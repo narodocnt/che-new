@@ -5,15 +5,21 @@
     <title>Рейтинг колективів</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #444; padding: 10px; text-align: left; }
-        th { background: #eee; }
+        h1 { color: #8b0000; }
+        .update-info { font-size: 0.9em; color: #555; margin-bottom: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f0f0f0; color: #333; cursor: pointer; } /* Зробимо заголовки клікабельними для сортування */
+        tr:nth-child(even) { background-color: #f9f9f9; } /* Чергування кольорів рядків */
+        tr:hover { background-color: #ffe0e0; } /* Ефект при наведенні */
+        td:last-child { font-weight: bold; color: #8b0000; text-align: center; } /* Виділення колонки з лайками */
     </style>
 </head>
 <body>
 
 <h1>Рейтинг колективів</h1>
-<p>Дані завантажуються з JSON файлу…</p>
+<p id="loadingMessage">Дані завантажуються з JSON файлу...</p>
+<div id="updateTime" class="update-info"></div>
 
 <table id="ratingTable">
     <thead>
@@ -21,33 +27,77 @@
             <th>Колектив</th>
             <th>Заклад</th>
             <th>Керівник</th>
-            <th>Лайки</th>
+            <th id="likesHeader">Лайки ⬇️</th>
         </tr>
     </thead>
     <tbody></tbody>
 </table>
 
 <script>
-    fetch("data/ratings.json")
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.querySelector("#ratingTable tbody");
+    // --- КОНСТАНТИ ---
+    const UPDATE_INTERVAL_MS = 10 * 60 * 1000; // 10 хвилин у мілісекундах
+    const DATA_SOURCE = "data/ratings.json";
 
-            data.groups
-                .sort((a, b) => b.likes - a.likes)
-                .forEach(g => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${g.name}</td>
-                            <td>${g.institution}</td>
-                            <td>${g.leader}</td>
-                            <td>${g.likes}</td>
-                        </tr>`;
+    // --- ФУНКЦІЯ ЗАВАНТАЖЕННЯ І ВІДОБРАЖЕННЯ ДАНИХ ---
+    function loadAndRenderData() {
+        const loadingMessage = document.getElementById('loadingMessage');
+        loadingMessage.textContent = "Оновлення даних...";
+        
+        fetch(DATA_SOURCE)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector("#ratingTable tbody");
+                
+                // 1. Сортування: завжди сортуємо за лайками від більшого до меншого
+                const sortedGroups = data.groups.sort((a, b) => b.likes - a.likes);
+
+                // 2. Очищення таблиці перед оновленням
+                tbody.innerHTML = ''; 
+
+                // 3. Створення нового DocumentFragment для ефективної вставки
+                const fragment = document.createDocumentFragment();
+
+                sortedGroups.forEach(g => {
+                    const row = document.createElement('tr');
+                    
+                    // Створення комірок (TD) та безпечне додавання тексту (textContent)
+                    ['name', 'institution', 'leader', 'likes'].forEach(key => {
+                        const cell = document.createElement('td');
+                        // Використовуємо textContent для захисту від XSS
+                        cell.textContent = g[key]; 
+                        row.appendChild(cell);
+                    });
+                    
+                    fragment.appendChild(row);
                 });
-        })
-        .catch(() => {
-            document.body.innerHTML += "<p style='color:red;'>Помилка: неможливо завантажити ratings.json</p>";
-        });
+
+                // 4. Вставка всіх рядків одним разом
+                tbody.appendChild(fragment); 
+
+                // 5. Оновлення повідомлень
+                loadingMessage.textContent = "Дані завантажено успішно.";
+                document.getElementById('updateTime').textContent = `Останнє оновлення: ${new Date().toLocaleTimeString('uk-UA')}`;
+
+            })
+            .catch(error => {
+                console.error("Помилка завантаження даних:", error);
+                loadingMessage.textContent = "Помилка: неможливо завантажити дані. Спробуємо ще раз через 10 хвилин.";
+                document.getElementById('updateTime').textContent = `Помилка завантаження: ${new Date().toLocaleTimeString('uk-UA')}`;
+            });
+    }
+
+    // --- ЗАПУСК ---
+
+    // 1. Запускаємо функцію одразу при завантаженні сторінки
+    loadAndRenderData();
+
+    // 2. Встановлюємо інтервал для автоматичного оновлення кожні 10 хвилин
+    setInterval(loadAndRenderData, UPDATE_INTERVAL_MS);
 </script>
 
 </body>
