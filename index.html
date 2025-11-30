@@ -1,111 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Відділ народної творчості</title>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta http-equiv="Permissions-Policy" content="identity-credentials-get=(self 'https://accounts.google.com')">
+
     <style>
-        /* ПОКРАЩЕНІ СТИЛІ */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background: #f0f2f5; /* Світлий сучасний фон */
-            color: #333;
+            margin: 0; padding: 0; background: #f0f2f5; color: #333; 
         }
         header { 
-            background: #8b0000; /* Насичений червоний */
-            color: white; 
-            padding: 30px 20px; 
-            text-align: center; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тінь для глибини */
+            background: #8b0000; color: white; padding: 20px; text-align: center; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        header h3 {
-            margin-top: 5px;
+        header h3 a { color: #ffcc00; text-decoration: none; font-size: 18px; display: block; }
+        header h3 a:hover { text-decoration: underline; }
+        .header-buttons { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
+        .header-buttons button {
+            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
         }
-        /* Стиль для посилання на ОЦНТ у хедері */
-        header h3 a {
-            color: #ffcc00; /* Акцентний жовтий колір */
-            text-decoration: none;
-            font-size: 18px;
-            display: block;
-        }
-        header h3 a:hover {
-            text-decoration: underline;
-        }
+        .login-btn { background: #007bff; color: white; }
+        .register-btn { background: #28a745; color: white; }
 
         nav { 
-            background: #b30000; 
-            padding: 12px 0; 
-            display: flex; 
-            justify-content: center; 
-            gap: 30px; 
-            position: sticky; /* Фіксована навігація */
-            top: 0;
-            z-index: 1000;
+            background: #b30000; padding: 12px 0; display: flex; justify-content: center; gap: 30px; 
+            position: sticky; top: 0; z-index: 1000;
         }
-        nav a { 
-            color: white; 
-            text-decoration: none; 
-            font-weight: 600; 
-            padding: 8px 15px; 
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        nav a:hover {
-            background-color: #d60000; /* Ефект наведення */
-        }
-        
-        .container { 
-            max-width: 1000px; 
-            margin: 30px auto; 
-            padding: 30px; 
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* М'яка тінь */
-        }
-        .section-title { 
-            font-size: 32px; 
-            margin-bottom: 20px; 
-            color: #8b0000; 
-            border-bottom: 3px solid #ffcc00; /* Акцентна лінія */
-            padding-bottom: 5px;
-            display: inline-block; 
-        }
+        nav a { color: white; text-decoration: none; font-weight: 600; padding: 8px 15px; border-radius: 4px; transition: 0.3s; }
+        nav a:hover { background-color: #d60000; }
 
-        ul {
-            list-style-type: '🔹 '; /* Символи замість точок */
-            padding-left: 20px;
-        }
-        ul li {
-            margin-bottom: 10px;
-        }
+        .container { max-width: 1000px; margin: 30px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .section-title { font-size: 32px; margin-bottom: 20px; color: #8b0000; border-bottom: 3px solid #ffcc00; padding-bottom: 5px; display: inline-block; }
 
-        /* Стиль для посилань у Контактах */
-        .container#contacts a {
-            color: #8b0000;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .container#contacts a:hover {
-            text-decoration: underline;
-        }
+        ul { list-style-type: '🔹 '; padding-left: 20px; }
+        ul li { margin-bottom: 10px; }
 
-        footer { 
-            background: #b30000; 
-            color: white; 
-            text-align: center; 
-            padding: 20px; 
-            margin-top: 40px; 
-            font-size: 14px;
-        }
+        .container#contacts a { color: #8b0000; text-decoration: none; font-weight: bold; }
+        .container#contacts a:hover { text-decoration: underline; }
+
+        footer { background: #b30000; color: white; text-align: center; padding: 20px; margin-top: 40px; font-size: 14px; }
+
+        /* Форма реєстрації */
+        #manualForm input, #manualForm button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccd; }
+        #manualForm button { background: #007bff; color: white; border: none; cursor: pointer; }
+        .divider { text-align: center; margin: 14px 0; color: #666; }
+        .note { font-size: 13px; color: #666; margin-top: 8px; }
+        .hidden { display: none; }
+        .error { color: #b00; font-weight: 600; }
     </style>
 </head>
 <body>
     <header>
         <h1>Відділ народної творчості</h1>
         <h3><a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">Обласний Центр Народної Творчості</a></h3>
+        <div class="header-buttons">
+            <button id="googleLoginHeader" class="login-btn">Увійти через Google</button>
+            <button class="register-btn" onclick="document.getElementById('manualForm').scrollIntoView({behavior:'smooth'});">Зареєструватися</button>
+        </div>
     </header>
 
     <nav>
@@ -151,201 +107,115 @@
         <p><strong>Ми у Facebook:</strong> <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">facebook.com/narodocntcherkasy</a></p>
     </div>
 
+    <!-- Форма реєстрації та GSI -->
+    <div class="container" id="manualForm">
+        <h2>Реєстрація</h2>
+        <form id="manualFormElement">
+            <input id="lastname" type="text" placeholder="Прізвище" required />
+            <input id="firstname" type="text" placeholder="Ім'я" required />
+            <input id="email" type="email" placeholder="Електронна пошта" required />
+            <button type="submit">Зареєструватися</button>
+        </form>
+
+        <div class="divider">або</div>
+
+        <div id="gsi-area">
+            <div id="g_id_onload"
+                 data-client_id="225496350184-4q6j2iqu5n9hkjt8u4age31bd4nkmedo.apps.googleusercontent.com"
+                 data-auto_prompt="false"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleLogin"></div>
+
+            <div class="g_id_signin" data-type="standard"></div>
+
+            <div id="gsi-error" class="note error hidden"></div>
+        </div>
+
+        <div id="oauth-fallback" class="hidden">
+            <div class="note">Якщо автоматичний вхід недоступний у цьому середовищі, використайте підказану кнопку:</div>
+            <button id="oauthBtn">Login with Google (fallback)</button>
+            <div class="note">Працює через OAuth2 popup. Redirect URI має бути доданий в Google Cloud Console.</div>
+        </div>
+
+        <div id="result" class="note hidden"></div>
+    </div>
+
     <footer>
         © 2025 Відділ народної творчості ОЦНТ
     </footer>
-    // авторизація
-    <!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Реєстрація — Народний центр</title>
 
-  <!--
-    Повністю включаємо політику дозволів, щоб браузер дозволив
-    Google Identity API використовувати feature "identity-credentials-get"
-    (ухвала браузера залежить від реалізації). Якщо ви розгортаєте на реальному домені,
-    рекомендовано додавати цей заголовок на рівні сервера:
-    Permissions-Policy: identity-credentials-get=(self "https://accounts.google.com")
+    <script>
+        // --- Обробка форми
+        function show(elem){ elem.classList.remove('hidden'); }
+        function hide(elem){ elem.classList.add('hidden'); }
+        function setText(elem, txt){ elem.textContent = txt; }
 
-    Якщо середовище (пісочниця / preview) не дає цієї можливості, з'явиться fallback-варіант
-    — кнопка, яка відкриває стандартний OAuth2 popup (потрібно зареєструвати redirect URI).
-  -->
-  <meta http-equiv="Permissions-Policy" content="identity-credentials-get=(self 'https://accounts.google.com')">
+        const gsiErrorEl = document.getElementById('gsi-error');
+        const oauthFallbackEl = document.getElementById('oauth-fallback');
+        const resultEl = document.getElementById('result');
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+        document.getElementById('manualFormElement').addEventListener('submit', function(e){
+            e.preventDefault();
+            const data = {
+                lastname: document.getElementById('lastname').value.trim(),
+                firstname: document.getElementById('firstname').value.trim(),
+                email: document.getElementById('email').value.trim()
+            };
+            setText(resultEl, 'Зареєстровано (локально): ' + JSON.stringify(data));
+            show(resultEl);
+        });
 
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:40px;display:flex;justify-content:center}
-    .container{background:#fff;padding:24px;width:380px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
-    h2{margin-top:0}
-    input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ccd}
-    button{width:100%;padding:12px;background:#007bff;border:none;color:#fff;border-radius:6px;cursor:pointer}
-    .divider{text-align:center;margin:14px 0;color:#666}
-    .note{font-size:13px;color:#666;margin-top:8px}
-    .hidden{display:none}
-    .error{color:#b00;font-weight:600}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Реєстрація</h2>
-
-    <form id="manualForm">
-      <input id="lastname" type="text" placeholder="Прізвище" required />
-      <input id="firstname" type="text" placeholder="Ім'я" required />
-      <input id="email" type="email" placeholder="Електронна пошта" required />
-      <button type="submit">Зареєструватися</button>
-    </form>
-
-    <div class="divider">або</div>
-
-    <div id="gsi-area">
-      <!-- GSI OneTap / Sign-in button. data-auto_prompt=false щоб не запускати One Tap автоматично -->
-      <div id="g_id_onload"
-           data-client_id="225496350184-4q6j2iqu5n9hkjt8u4age31bd4nkmedo.apps.googleusercontent.com"
-           data-auto_prompt="false"
-           data-context="signin"
-           data-ux_mode="popup"
-           data-callback="handleGoogleLogin"></div>
-
-      <div class="g_id_signin" data-type="standard"></div>
-
-      <div id="gsi-error" class="note error hidden"></div>
-    </div>
-
-    <div id="oauth-fallback" class="hidden">
-      <div class="note">Якщо автоматичний вхід недоступний у цьому середовищі, використайте підказану кнопку:</div>
-      <button id="oauthBtn">Login with Google (fallback)</button>
-      <div class="note">Працює через OAuth2 popup. Redirect URI має бути доданий в Google Cloud Console.</div>
-    </div>
-
-    <div id="result" class="note hidden"></div>
-  </div>
-
-  <script>
-    // --- Utility: show/hide and messages
-    function show(elem){ elem.classList.remove('hidden'); }
-    function hide(elem){ elem.classList.add('hidden'); }
-    function setText(elem, txt){ elem.textContent = txt; }
-
-    const gsiErrorEl = document.getElementById('gsi-error');
-    const oauthFallbackEl = document.getElementById('oauth-fallback');
-    const resultEl = document.getElementById('result');
-
-    // Manual form handler (example — here you would send to your backend)
-    document.getElementById('manualForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      const data = {
-        lastname: document.getElementById('lastname').value.trim(),
-        firstname: document.getElementById('firstname').value.trim(),
-        email: document.getElementById('email').value.trim()
-      };
-      // For demo we just show the data. In production POST to your server.
-      setText(resultEl, 'Зареєстровано (локально): ' + JSON.stringify(data));
-      show(resultEl);
-    });
-
-    // --- Google Identity callback
-    function handleGoogleLogin(response){
-      try{
-        if(!response || !response.credential) throw new Error('No credential');
-        // response.credential — це JWT ID token (OIDC). Ви маєте відправити його на бекенд для верифікації
-        console.log('GSI credential (ID token):', response.credential);
-        setText(resultEl, 'Успішний вхід через Google (ID Token отримано). Перевірте консоль.');
-        show(resultEl);
-      }catch(err){
-        console.error('GSI callback error', err);
-        setText(gsiErrorEl, 'Помилка обробки Google identity: ' + err.message);
-        show(gsiErrorEl);
-      }
-    }
-
-    // --- Detect GSI runtime errors (FedCM / Permissions issues)
-    window.addEventListener('gsiloaded', function(){
-      // If GSI script runs but browser disallows identity features, we may get runtime errors logged.
-      // We attach a small timeout to check if the button rendered.
-      setTimeout(()=>{
-        const btn = document.querySelector('.g_id_signin');
-        if(!btn || btn.offsetParent === null){
-          // button not visible — show fallback
-          setText(gsiErrorEl, 'Google Identity недоступний у цьому середовищі. Використайте fallback-логін.');
-          show(gsiErrorEl);
-          show(oauthFallbackEl);
+        function handleGoogleLogin(response){
+            try{
+                if(!response || !response.credential) throw new Error('No credential');
+                console.log('GSI credential (ID token):', response.credential);
+                setText(resultEl, 'Успішний вхід через Google (ID Token отримано). Перевірте консоль.');
+                show(resultEl);
+            }catch(err){
+                console.error('GSI callback error', err);
+                setText(gsiErrorEl, 'Помилка обробки Google identity: ' + err.message);
+                show(gsiErrorEl);
+            }
         }
-      }, 800);
-    });
 
-    // Also catch global GSI logger messages that indicate FedCM/permission problems
-    // The GSI library logs [GSI_LOGGER] messages to console — we can't intercept console easily,
-    // but we can try to initialize and catch synchronous errors.
+        // Кнопка в шапці для входу через Google
+        document.getElementById('googleLoginHeader').addEventListener('click', function(){
+            const btn = document.querySelector('.g_id_signin');
+            if(btn){
+                btn.click();
+            } else {
+                alert('Google Sign-In ще не доступний.');
+            }
+        });
 
-    // --- OAuth fallback: popup with implicit flow (for demo only)
-    // NOTE: implicit flow (response_type=token) is deprecated — recommended use PKCE code flow on server.
-    // For quick demo, set your redirect URI in Google Cloud to https://YOUR_DOMAIN/oauth2callback
+        // OAuth fallback
+        const CLIENT_ID = '225496350184-4q6j2iqu5n9hkjt8u4age31bd4nkmedo.apps.googleusercontent.com';
+        const REDIRECT_URI = window.location.origin + '/oauth2callback';
+        const SCOPE = 'openid email profile';
 
-    const CLIENT_ID = '225496350184-4q6j2iqu5n9hkjt8u4age31bd4nkmedo.apps.googleusercontent.com';
-    const REDIRECT_URI = window.location.origin + '/oauth2callback'; // must be registered in Google Cloud
-    const SCOPE = 'openid email profile';
-
-    document.getElementById('oauthBtn').addEventListener('click', function(){
-      // Build OAuth2 URL (implicit for demo)
-      const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
-        '?client_id=' + encodeURIComponent(CLIENT_ID) +
-        '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
-        '&response_type=token' +
-        '&scope=' + encodeURIComponent(SCOPE) +
-        '&prompt=select_account';
-
-      // Open popup
-      const w = 600, h = 700;
-      const left = (screen.width/2) - (w/2);
-      const top = (screen.height/2) - (h/2);
-      const popup = window.open(authUrl, 'google_oauth', 'width=' + w + ',height=' + h + ',top=' + top + ',left=' + left);
-
-      // Listener for messages from redirect page (we expect the redirect page to postMessage the token)
-      function onMessage(e){
-        if(e.origin !== window.location.origin) return; // only accept messages from same origin
-        if(e.data && e.data.type === 'oauth-token'){
-          setText(resultEl, 'OAuth token (fallback) отримано: ' + e.data.access_token);
-          show(resultEl);
-          window.removeEventListener('message', onMessage);
-          popup.close();
-        }
-      }
-      window.addEventListener('message', onMessage);
-    });
-
-    // If this page is used as redirect (e.g. /oauth2callback) we need to postMessage back to opener
-    // This small block allows the popup landing page (on the same origin) to forward the token to the opener.
-    (function forwardTokenFromUrl(){
-      try{
-        if(window.opener && window.location.hash){
-          const params = new URLSearchParams(window.location.hash.substring(1));
-          const access_token = params.get('access_token');
-          if(access_token){
-            window.opener.postMessage({type:'oauth-token', access_token}, window.location.origin);
-            // optional: display a message
-            document.body.innerHTML = '<div style="padding:20px;font-family:Arial">Login successful — you can close this window.</div>';
-          }
-        }
-      }catch(e){/* ignore */}
-    })();
-
-    // --- If GSI fails early, show fallback
-    setTimeout(()=>{
-      // If result not shown and no GSI button visible, reveal fallback
-      const btn = document.querySelector('.g_id_signin');
-      if(!btn || btn.offsetParent === null){
-        show(oauthFallbackEl);
-        setText(gsiErrorEl, 'Автоматичний Google Sign-In недоступний у цьому браузері/середовищі. Використайте кнопку fallback.');
-        show(gsiErrorEl);
-      }
-    }, 1200);
-  </script>
-</body>
-</html>
-
+        document.getElementById('oauthBtn').addEventListener('click', function(){
+            const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
+                '?client_id=' + encodeURIComponent(CLIENT_ID) +
+                '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
+                '&response_type=token' +
+                '&scope=' + encodeURIComponent(SCOPE) +
+                '&prompt=select_account';
+            const w = 600, h = 700;
+            const left = (screen.width/2) - (w/2);
+            const top = (screen.height/2) - (h/2);
+            const popup = window.open(authUrl, 'google_oauth', 'width=' + w + ',height=' + h + ',top=' + top + ',left=' + left);
+            function onMessage(e){
+                if(e.origin !== window.location.origin) return;
+                if(e.data && e.data.type === 'oauth-token'){
+                    setText(resultEl, 'OAuth token (fallback) отримано: ' + e.data.access_token);
+                    show(resultEl);
+                    window.removeEventListener('message', onMessage);
+                    popup.close();
+                }
+            }
+            window.addEventListener('message', onMessage);
+        });
+    </script>
 </body>
 </html>
