@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facebook OAuth Redirect</title>
+</head>
+<body>
+    <h2>Зачекайте, виконується авторизація через Facebook…</h2>
+
+    <script>
+        // Обробка redirect від Facebook
+        (function(){
+            // Отримання access token з URL
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+
+            if(!accessToken){
+                document.body.innerHTML = '<h3>Не вдалося авторизуватися через Facebook</h3>';
+                return;
+            }
+
+            // Відправка даних на n8n webhook
+            const N8N_WEBHOOK_URL = 'https://narodocnt.online:5678/webhook/facebook-signup';
+
+            fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`)
+            .then(res => res.json())
+            .then(user => {
+                fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        id: user.id,
+                        name: user.name,
+                        email: user.email || '',
+                        login_time: new Date().toISOString()
+                    })
+                });
+
+                // Повернення на головну сторінку
+                window.location.href = '/';
+            })
+            .catch(err => {
+                console.error(err);
+                document.body.innerHTML = '<h3>Помилка при обробці Facebook OAuth</h3>';
+            });
+        })();
+    </script>
+</body>
+</html>
