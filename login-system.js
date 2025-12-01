@@ -113,21 +113,19 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `);
 
-  /* ==== JS LOGIC ==== */
+ document.addEventListener("DOMContentLoaded", () => {
+  // Dropdown меню
   const loginBtn = document.getElementById("loginBtn");
   const loginDropdown = document.getElementById("loginDropdown");
 
-  loginBtn.addEventListener("mouseenter", ()=> loginDropdown.style.display = "flex");
-  loginBtn.addEventListener("mouseleave", ()=> loginDropdown.style.display = "none");
-  loginDropdown.addEventListener("mouseenter", ()=> loginDropdown.style.display = "flex");
-  loginDropdown.addEventListener("mouseleave", ()=> loginDropdown.style.display = "none");
+  loginBtn.addEventListener("mouseenter", () => loginDropdown.style.display = "flex");
+  loginBtn.addEventListener("mouseleave", () => loginDropdown.style.display = "none");
+  loginDropdown.addEventListener("mouseenter", () => loginDropdown.style.display = "flex");
+  loginDropdown.addEventListener("mouseleave", () => loginDropdown.style.display = "none");
 
-  document.getElementById("menuLogin").addEventListener("click", ()=> openModal("modalLogin"));
-  document.getElementById("menuEmail").addEventListener("click", ()=> openModal("modalEmail"));
-  document.getElementById("menuGoogle").addEventListener("click", ()=> startGoogleSignIn());
-  document.getElementById("menuFacebook").addEventListener("click", ()=> startFacebookOAuth());
-  document.addEventListener("DOMContentLoaded", () => {
-  // інші обробники
+  // Кнопки меню
+  document.getElementById("menuLogin").addEventListener("click", () => openModal("modalLogin"));
+  document.getElementById("menuEmail").addEventListener("click", () => openModal("modalEmail"));
   document.getElementById("menuGoogle").addEventListener("click", () => startGoogleSignIn());
   document.getElementById("menuFacebook").addEventListener("click", () => startFacebookOAuth());
 });
