@@ -126,6 +126,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("menuEmail").addEventListener("click", ()=> openModal("modalEmail"));
   document.getElementById("menuGoogle").addEventListener("click", ()=> startGoogleSignIn());
   document.getElementById("menuFacebook").addEventListener("click", ()=> startFacebookOAuth());
+  document.addEventListener("DOMContentLoaded", () => {
+  // інші обробники
+  document.getElementById("menuGoogle").addEventListener("click", () => startGoogleSignIn());
+  document.getElementById("menuFacebook").addEventListener("click", () => startFacebookOAuth());
+});
+
 
 });
 
