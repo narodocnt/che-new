@@ -31,7 +31,7 @@ async function startGoogleSignIn() {
     const authUrl =
         "https://accounts.google.com/o/oauth2/v2/auth" +
         "?client_id=" + GOOGLE_CLIENT_ID +
-        "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
+        "&redirect_uri=" + REDIRECT_URI +
         "&response_type=code" +
         "&scope=" + encodeURIComponent("openid email profile") +
         "&code_challenge=" + codeChallenge +
@@ -54,7 +54,7 @@ async function handleGoogleRedirect() {
     body.append("code", code);
     body.append("code_verifier", codeVerifier);
     body.append("grant_type", "authorization_code");
-    body.append("redirect_uri", REDIRECT_URI);
+    body.append("redirect_uri", encodeURIComponent(REDIRECT_URI));
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
