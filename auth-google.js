@@ -46,9 +46,13 @@ window.location.href = authUrl;
 
 // Обробка редіректу після входу
 async function handleGoogleRedirect() {
+    handleGoogleRedirect();
 const urlParams = new URLSearchParams(window.location.search);
 const code = urlParams.get("code");
 if (!code) return;
+// для сумісності з існуючим html
+    
+}
 
 ```
 const codeVerifier = localStorage.getItem("google_code_verifier");
