@@ -1,18 +1,37 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Google OAuth Redirect</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Авторизація Google</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+  }
+  h2 {
+    color: #8b0000;
+  }
+</style>
 </head>
 <body>
-    <h2>Зачекайте, виконується авторизація…</h2>
+<h2>Зачекайте, виконується авторизація…</h2>
 
-    <!-- Підключення логіки Google OAuth -->
-    <script src="auth-google.js"></script>
-    <script>
-        // Обробка redirect від Google
-        handleOAuthRedirect();
-    </script>
+<!-- Підключення Google OAuth JS -->
+<script src="auth-google.js"></script>
+
+<script>
+  // Викликаємо обробку редіректу
+  if (typeof handleGoogleRedirect === "function") {
+      handleGoogleRedirect();
+  } else {
+      console.error("handleGoogleRedirect не знайдено. Перевірте підключення auth-google.js");
+  }
+</script>
 </body>
 </html>
