@@ -50,6 +50,7 @@ loginBtn.addEventListener("mouseenter", () => loginDropdown.style.display = "fle
 loginBtn.addEventListener("mouseleave", () => loginDropdown.style.display = "none");
 loginDropdown.addEventListener("mouseenter", () => loginDropdown.style.display = "flex");
 loginDropdown.addEventListener("mouseleave", () => loginDropdown.style.display = "none");
+    dropdownTimeout = setTimeout(() => loginDropdown.style.display = "none", 200);
 
 // Меню кнопки
 document.getElementById("menuLogin").addEventListener("click", () => openModal("modalLogin"));
