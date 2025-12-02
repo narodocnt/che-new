@@ -2,7 +2,7 @@
 /* Працює на статичному сайті + n8n */
 
 const GOOGLE_CLIENT_ID = "225496350184-4q6j2iqu5n9hkjt8u4age31bd4nkmedo.apps.googleusercontent.com";
-const REDIRECT_URI = "https://narodocnt.online/oauth2callback";
+const REDIRECT_URI = "https://narodocnt.online/oauth2callback.html";
 const N8N_WEBHOOK = "https://narodocnt.online:5678/webhook/google-signup";
 
 // Генерація випадкового рядка
