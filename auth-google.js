@@ -1,6 +1,6 @@
 /* auth-google.js — Google OAuth PKCE through n8n backend */
 
-const GOOGLE_CLIENT_ID = "225496350184-2v39q3dt1p9k22g52q6ko4vqri7h7tqr.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "225496350184-m83n5351r571i33mn4pk86u93aed6jnc.apps.googleusercontent.com";
 const REDIRECT_URI = "[https://narodocnt.online/oauth2callback.html](https://narodocnt.online/oauth2callback.html)";
 const N8N_WEBHOOK = "[https://narodocnt.online/api/google-signup](https://narodocnt.online/api/google-signup)"; // proxy to n8n
 
