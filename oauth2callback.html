@@ -22,16 +22,6 @@
 <body>
 <h2>Зачекайте, виконується авторизація…</h2>
 
-<!-- Підключення Google OAuth JS -->
-<script src="auth-google.js"></script>
-
-<script>
-  // Викликаємо обробку редіректу
-  if (typeof handleGoogleRedirect === "function") {
-      handleGoogleRedirect();
-  } else {
-      console.error("handleGoogleRedirect не знайдено. Перевірте підключення auth-google.js");
-  }
-</script>
+<script src="/auth-google.js"></script>
 </body>
 </html>
