@@ -1,108 +1,27 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Авторизація Google — діагностика</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Авторизація Google</title>
 <style>
   body {
-    font-family: Consolas, monospace;
-    background: #f6f6f6;
-    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
   }
-  #log {
-    white-space: pre-wrap;
-    background: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+  h2 {
+    color: #8b0000;
   }
 </style>
 </head>
 <body>
+<h2>Зачекайте, виконується авторизація…</h2>
 
-<h2>Google OAuth Redirect Debug</h2>
-<div id="log">Логи завантажуються...</div>
-
-<script src="auth-google.js"></script>
-
-<script>
-  function log(msg) {
-    console.log(msg);
-    document.getElementById("log").textContent += msg + "\n";
-  }
-
-  log("=== PAGE LOADED ===");
-  log("auth-google.js loaded? " + (typeof handleGoogleRedirect));
-
-  async function debug() {
-    log("Running debug()...");
-
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    log("URL code: " + code);
-
-    const codeVerifier = localStorage.getItem("google_code_verifier");
-    log("localStorage code_verifier: " + codeVerifier);
-
-    if (!code) {
-      log("❌ ERROR: URL не містить ?code=");
-      return;
-    }
-
-    if (!codeVerifier) {
-      log("❌ ERROR: code_verifier відсутній у localStorage");
-      alert("Code verifier missing! Повторіть логін.");
-      return;
-    }
-
-    log("→ Виконуємо Fetch у n8n…");
-
-    try {
-      const res = await fetch("https://narodocnt.online/api/google-signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          code_verifier: codeVerifier,
-          redirect_uri: "https://narodocnt.online/oauth2callback.html"
-        })
-      });
-
-      log("n8n status: " + res.status);
-
-      const text = await res.text();
-      log("n8n raw response:\n" + text);
-
-      try {
-        const json = JSON.parse(text);
-        log("Parsed JSON OK");
-        log(JSON.stringify(json, null, 2));
-      } catch (e) {
-        log("❗ JSON parse failed — відповідь була не JSON");
-      }
-
-      if (!res.ok) {
-        log("❌ FATAL: Запит не успішний");
-        alert("Помилка з n8n: " + text);
-        return;
-      }
-
-      log("🎉 Успіх! Отримано відповідь.");
-      alert("Google Login Success!");
-
-      localStorage.removeItem("google_code_verifier");
-      window.history.replaceState({}, document.title, "/");
-
-    } catch (err) {
-      log("❌ FETCH ERROR:");
-      log(err.toString());
-      alert("Fetch error — дивись лог.");
-    }
-  }
-
-  debug();
-</script>
-
+<script src="/auth-google.js"></script>
 </body>
 </html>
