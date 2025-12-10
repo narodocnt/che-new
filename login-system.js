@@ -1,7 +1,7 @@
 /* login-system.js — сучасна система логіну з Google/Facebook + n8n */
 
 const N8N_WEBHOOK = 'https://narodocnt.online:5678/webhook/register';
-const GOOGLE_CLIENT_ID = "225496350184-m83n5351r571i33mn4pk86u93aed6jnc.apps.googleusercontent.com"; // <<< ПОТРІБНО ЗАМІНИТИ
+const GOOGLE_CLIENT_ID = "734541752522-1rkn3nt7bifjiaekbkcushi9o707tmdp.apps.googleusercontent.com"; // <<< ПОТРІБНО ЗАМІНИТИ
 const FB_APP_ID = 'YOUR_FB_APP_ID';               // <<< ПОТРІБНО ЗАМІНИТИ
 
 let dropdownTimeout; // Оголошуємо змінну глобально для логіки дропдауну
