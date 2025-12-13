@@ -6,46 +6,29 @@
 </head>
 <body>
 
-<h3>Обробка входу через Google…</h3>
+<h3>Вхід через Google…</h3>
 
 <script>
-(function () {
-    // Google повертає token у hash (#)
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
+const params = new URLSearchParams(window.location.search);
+const code = params.get("code");
 
-    const accessToken = params.get("access_token");
-
-    if (!accessToken) {
-        document.body.innerHTML = "❌ Помилка авторизації Google";
-        return;
-    }
-
-    // Надсилаємо токен у n8n
+if (!code) {
+    document.body.innerHTML = "❌ Помилка авторизації Google";
+} else {
     fetch("https://n8n.narodocnt.online/webhook/google-login", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            access_token: accessToken
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
     })
     .then(res => res.json())
     .then(data => {
-        console.log("n8n response:", data);
-
-        // можна зберігати сесію
         localStorage.setItem("user", JSON.stringify(data));
-
-        // редірект назад на сайт
         window.location.href = "/";
     })
-    .catch(err => {
-        console.error(err);
-        document.body.innerHTML = "❌ Помилка зв’язку з сервером";
+    .catch(() => {
+        document.body.innerHTML = "❌ Помилка сервера";
     });
-})();
+}
 </script>
 
 </body>
