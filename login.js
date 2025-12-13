@@ -1,10 +1,8 @@
-// login.js
-
 document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("googleLoginBtn");
 
     if (!btn) {
-        console.error("❌ Кнопка googleLoginBtn не знайдена в DOM");
+        console.error("❌ Кнопка не знайдена");
         return;
     }
 
@@ -16,8 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const REDIRECT_URI =
         "https://narodocnt.online/oauth2callback.html";
 
-    btn.style.display = "block";
-
     btn.addEventListener("click", () => {
         const url =
             "https://accounts.google.com/o/oauth2/v2/auth" +
@@ -25,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
             "&response_type=code" +
             "&scope=" + encodeURIComponent("openid email profile") +
-            "&access_type=online" +
             "&prompt=select_account";
 
         window.location.href = url;
