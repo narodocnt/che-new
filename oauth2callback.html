@@ -1,14 +1,38 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Авторизація Google…</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google OAuth Callback</title>
+<script>
+// Отримуємо access_token із URL hash
+window.onload = () => {
+    const hash = window.location.hash.substring(1); // видаляємо #
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    const idToken = params.get("id_token");
+    const expiresIn = params.get("expires_in");
+
+    if (accessToken) {
+        // Можна зберегти токен у localStorage або передати на сайт
+        localStorage.setItem("google_access_token", accessToken);
+        localStorage.setItem("google_id_token", idToken);
+        localStorage.setItem("google_token_expires", Date.now() + parseInt(expiresIn) * 1000);
+
+        // Закриваємо OAuth-вікно і повідомляємо головне вікно
+        if (window.opener) {
+            window.opener.postMessage({ success: true, accessToken, idToken }, window.location.origin);
+            window.close();
+        } else {
+            document.body.innerHTML = "<p>Успішно увійшли через Google! Закрийте цю сторінку.</p>";
+        }
+    } else {
+        document.body.innerHTML = "<p>Помилка авторизації Google.</p>";
+    }
+};
+</script>
 </head>
 <body>
-
-<p>Зачекайте, виконується авторизація…</p>
-
-<script src="auth-google.js"></script>
-
+<p>Завантаження…</p>
 </body>
 </html>
