@@ -6,94 +6,32 @@
 <title>Відділ народної творчості</title>
 
 <style>
-    <div style="text-align:center; margin:40px 0;">
-    <button id="googleLoginBtn">Увійти через Google</button>
-        style="
-        padding:12px 25px;
-        background:white;
-        border:2px solid #4285F4;
-        border-radius:8px;
-        font-size:18px;
-        cursor:pointer;
-        color:#4285F4;
-        font-weight:600;
-        transition:0.3s;">
+#googleLoginBtn {
+    padding: 12px 25px;
+    background: white;
+    border: 2px solid #4285F4;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #4285F4;
+    font-weight: 600;
+    transition: 0.3s;
+}
+#googleLoginBtn:hover {
+    background: #4285F4;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div style="text-align:center; margin:40px 0;">
+    <button id="googleLoginBtn">
         Увійти через Google
     </button>
 </div>
 
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f2f5; color: #333; }
-header { background: #8b0000; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-header h1 { margin: 0; font-size: 24px; }
-header h3 a { color: #ffcc00; text-decoration: none; font-size: 16px; display: block; }
-header h3 a:hover { text-decoration: underline; }
-nav { background: #b30000; padding: 12px 0; display: flex; justify-content: center; gap: 30px; position: sticky; top: 0; z-index: 1000; }
-nav a { color: white; text-decoration: none; font-weight: 600; padding: 8px 15px; border-radius: 4px; transition: 0.3s; }
-nav a:hover { background-color: #d60000; }
-.container { max-width: 1000px; margin: 30px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-.section-title { font-size: 32px; margin-bottom: 20px; color: #8b0000; border-bottom: 3px solid #ffcc00; padding-bottom: 5px; display: inline-block; }
-footer { background:#b30000; color:white; text-align:center; padding:20px; margin-top:40px; font-size:14px; }
-</style>
-</head>
-<body>
-
-<header>
-    <div>
-        <h1>Відділ народної творчості</h1>
-        <h3><a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">Обласний Центр Народної Творчості</a></h3>
-    </div>
-</header>
-
-<nav>
-    <a href="#about">Про нас</a>
-    <a href="#collectives">Колективи 🎭</a>
-    <a href="#events">Події</a>
-    <a href="#">Педагогам</a>
-    <a href="#contacts">Контакти</a>
-</nav>
-
-<div class="container" id="about">
-    <h2 class="section-title">Про нас</h2>
-    <p>Відділ народної творчості займається розвитком та підтримкою творчих колективів області...</p>
-</div>
-
-<div class="container" id="collectives">
-    <h2 class="section-title">Наші колективи</h2>
-    <ul>
-        <li>Народні та зразкові колективи</li>
-        <li>Троїсті музики</li>
-        <li>Духові оркестри</li>
-        <li>Хореографічні</li>
-        <li>Інструментальні</li>
-        <li>Театральні</li>
-        <li>Вокально-хорові</li>
-    </ul>
-</div>
-
-<div class="container" id="events">
-    <h2 class="section-title">Події та новини</h2>
-    <p>Оголошення, конкурси, фестивалі, семінари...</p>
-</div>
-
-<div class="container" id="contacts">
-    <h2 class="section-title">Контакти</h2>
-    <p>Email: narodocnt@ukr.net</p>
-    <p>Телефон: +380 00 000 00 00</p>
-    <p><strong>Ми у Facebook:</strong> <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">facebook.com/narodocntcherkasy</a></p>
-</div>
-
-<footer>
-    © 2025 Відділ народної творчості ОЦНТ
-</footer>
-
-<!-- Контейнер для динамічних кнопок і модалок -->
-<div id="login-container"></div>
-
-<!-- Підключення системи логіну та Google/Facebook OAuth -->
-<!--script src="login-system.js"></script>
-<script src="auth-google.js"></script-->
-<button id="googleLoginBtn">Увійти через Google</button>
 <script src="login.js"></script>
-
 </body>
 </html>
