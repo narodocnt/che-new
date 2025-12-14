@@ -2,34 +2,33 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Google Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OAuth Callback</title>
 </head>
 <body>
-
-<h3>Вхід через Google…</h3>
+<p id="status">Обробляємо авторизацію...</p>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
+async function handleGoogleRedirect() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
 
-if (!code) {
-    document.body.innerHTML = "❌ Помилка авторизації Google";
-} else {
-    fetch("https://n8n.narodocnt.online/webhook/google-login", {
+    if (!code) {
+        document.getElementById("status").innerText = "❌ Google не повернув code";
+        return;
+    }
+
+    // Надсилаємо в n8n
+    await fetch("https://n8n.narodocnt.online/webhook-test/google-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code })
-    })
-    .then(res => res.json())
-    .then(data => {
-        localStorage.setItem("user", JSON.stringify(data));
-        window.location.href = "/";
-    })
-    .catch(() => {
-        document.body.innerHTML = "❌ Помилка сервера";
     });
-}
-</script>
 
+    document.getElementById("status").innerText = "✅ Google авторизація успішна!";
+}
+
+handleGoogleRedirect();
+</script>
 </body>
 </html>
