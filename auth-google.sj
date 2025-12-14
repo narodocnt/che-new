@@ -86,10 +86,17 @@ async function generateCodeChallenge(verifier) {
 }
 
 
-
 // -------------------------------
 // Автозапуск callback
 // -------------------------------
 if (location.pathname.includes("oauth2callback.html")) {
     handleGoogleRedirect();
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("google-login-btn");
+  if (btn) {
+    btn.addEventListener("click", startGoogleOAuth);
+  }
+});
+
