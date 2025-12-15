@@ -22,12 +22,12 @@
   try {
      const res = await fetch("https://n8n.narodocnt.online/webhook/google-signup", {
   method: "POST",
+  mode: "cors",
+  credentials: "include", // ❗ ТАК, ПОВЕРТАЄМО
   headers: {
     "Content-Type": "application/json"
   },
-  body: JSON.stringify({
-    code
-  })
+  body: JSON.stringify({ code })
 });
 
     if (!res.ok) {
