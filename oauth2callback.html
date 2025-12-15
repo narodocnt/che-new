@@ -20,14 +20,15 @@
   }
 
   try {
-      const res = await fetch("https://n8n.narodocnt.online/webhook/google-signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include", // <- важливо
-      body: JSON.stringify({ code })
-    });
+     const res = await fetch("https://n8n.narodocnt.online/webhook/google-signup", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    code
+  })
+});
 
     if (!res.ok) {
       throw new Error("HTTP " + res.status);
