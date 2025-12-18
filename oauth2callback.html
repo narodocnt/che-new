@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Google авторизація</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+
 <h2>⏳ Завершуємо авторизацію через Google…</h2>
 
 <script>
@@ -15,31 +17,41 @@
   const code = params.get("code");
 
   if (!code) {
-    document.body.innerHTML = "❌ Google не повернув code";
+    document.body.innerHTML = "❌ Google не повернув код авторизації";
     return;
   }
 
   try {
-     const res = await fetch("https://n8n.narodocnt.online/webhook/google-signup", {
-  method: "POST",
-  mode: "cors",
-  credentials: "include", // ❗ ТАК, ПОВЕРТАЄМО
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ code })
-});
+    const res = await fetch(
+      "https://n8n.narodocnt.online/webhook/google-signup",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ code })
+      }
+    );
 
     if (!res.ok) {
-      throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      throw new Error("HTTP " + res.status + ": " + text);
     }
 
-    document.body.innerHTML = "✅ Авторизація успішна! Можна закривати сторінку 🎉";
+    document.body.innerHTML = `
+      <h2>✅ Авторизація успішна</h2>
+      <p>Можна закривати сторінку 🎉</p>
+    `;
+
   } catch (err) {
     console.error(err);
-    document.body.innerHTML = "❌ Помилка надсилання в n8n";
+    document.body.innerHTML = `
+      <h2>❌ Помилка авторизації</h2>
+      <pre>${err.message}</pre>
+    `;
   }
 })();
 </script>
+
 </body>
 </html>
