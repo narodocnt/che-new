@@ -27,25 +27,14 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     }
 
-    button {
-      padding: 14px 26px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #4285F4;
-      color: #fff;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #357ae8;
-    }
-
     h1 {
       margin-bottom: 30px;
       font-size: 24px;
       color: #333;
+    }
+
+    #google-button {
+      display: inline-block;
     }
 
     @media (max-width: 500px) {
@@ -53,9 +42,8 @@
         width: 90%;
         padding: 30px 20px;
       }
-
-      button {
-        width: 100%;
+      #google-button {
+        width: 100% !important;
       }
     }
   </style>
@@ -64,20 +52,29 @@
 
 <div class="login-container">
   <h1>Увійти через Google</h1>
-  <button id="google-login-btn">Увійти через Google</button>
+  <div id="google-button"></div>
 </div>
 
 <script>
-  // Підключення Google Identity Services
+  // Ініціалізація Google Identity
   google.accounts.id.initialize({
     client_id: "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com",
     callback: handleGoogleLogin
   });
 
-  // Клік на кнопку викликає вікно входу
-  document.getElementById("google-login-btn").addEventListener("click", () => {
-    google.accounts.id.prompt(); // показати вікно входу
-  });
+  // Створюємо стандартну кнопку Google
+  google.accounts.id.renderButton(
+    document.getElementById("google-button"),
+    {
+      theme: "outline",
+      size: "large",
+      width: "250",
+      type: "standard"
+    }
+  );
+
+  // Можна показати автопідказку
+  google.accounts.id.prompt();
 
   // Обробка відповіді Google
   function handleGoogleLogin(response) {
