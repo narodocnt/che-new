@@ -2,46 +2,45 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Google Auth Callback</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Обробка OAuth</title>
 </head>
 <body>
-
-<p>⏳ Авторизація…</p>
+<p>Зачекайте, виконується авторизація...</p>
 
 <script>
-(async () => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+(function() {
+    // Отримуємо id_token з URL hash
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const id_token = params.get("id_token");
 
-    if (!code) {
-        document.body.innerHTML = "❌ Немає authorization code";
+    if (!id_token) {
+        alert("❌ Не отримано id_token");
         return;
     }
 
-    try {
-        const res = await fetch(
-            "https://n8n.narodocnt.online/webhook/google-signup",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ code })
-            }
-        );
+    console.log("Отримано id_token:", id_token);
 
-        if (!res.ok) {
-            const txt = await res.text();
-            throw new Error(txt);
+    // Надсилаємо на n8n вебхук
+    fetch("https://n8n.narodocnt.online/webhook/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_token })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "/dashboard.html";
+        } else {
+            alert("Помилка входу. Спробуйте ще раз.");
         }
-
-        document.body.innerHTML = "✅ Авторизація успішна<br>Можна закривати сторінку 🎉";
-    } catch (err) {
+    })
+    .catch(err => {
         console.error(err);
-        document.body.innerHTML = "❌ Помилка авторизації";
-    }
+        alert("Сталася помилка під час авторизації.");
+    });
 })();
 </script>
-
 </body>
 </html>
