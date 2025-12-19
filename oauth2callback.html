@@ -1,55 +1,45 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Google авторизація</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Google Auth Callback</title>
 </head>
 <body>
 
-<h2>⏳ Завершуємо авторизацію через Google…</h2>
+<p>⏳ Авторизація…</p>
 
 <script>
 (async () => {
-  console.log("OAuth callback loaded");
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-
-  if (!code) {
-    document.body.innerHTML = "❌ Google не повернув код авторизації";
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      "https://n8n.narodocnt.online/webhook/google-signup",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ code })
-      }
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error("HTTP " + res.status + ": " + text);
+    if (!code) {
+        document.body.innerHTML = "❌ Немає authorization code";
+        return;
     }
 
-    document.body.innerHTML = `
-      <h2>✅ Авторизація успішна</h2>
-      <p>Можна закривати сторінку 🎉</p>
-    `;
+    try {
+        const res = await fetch(
+            "https://n8n.narodocnt.online/webhook/google-signup",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ code })
+            }
+        );
 
-  } catch (err) {
-    console.error(err);
-    document.body.innerHTML = `
-      <h2>❌ Помилка авторизації</h2>
-      <pre>${err.message}</pre>
-    `;
-  }
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt);
+        }
+
+        document.body.innerHTML = "✅ Авторизація успішна<br>Можна закривати сторінку 🎉";
+    } catch (err) {
+        console.error(err);
+        document.body.innerHTML = "❌ Помилка авторизації";
+    }
 })();
 </script>
 
