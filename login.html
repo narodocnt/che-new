@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Вхід через Google</title>
 
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,6 +38,25 @@
     font-size: 18px;
     cursor: pointer;
     color: #4285F4;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+  #google-login-btn:hover {
+    background: #4285F4;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-container">
+  <h1>Увійти через Google</h1>
+  <button id="google-login-btn">Увійти через Google</button>
+</div>
+
+<script src="login.js"></script>
+</body>
+</html>    color: #4285F4;
     font-weight: 600;
     transition: 0.3s;
   }
