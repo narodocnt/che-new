@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const REDIRECT_URI = "https://narodocnt.online/oauth2callback.html";
 
     btn.addEventListener("click", () => {
-        console.log("Кнопка натиснута");
         const authUrl =
             "https://accounts.google.com/o/oauth2/v2/auth" +
             "?client_id=" + encodeURIComponent(GOOGLE_CLIENT_ID) +
