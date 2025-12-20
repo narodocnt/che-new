@@ -1,46 +1,26 @@
 <!DOCTYPE html>
-<html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Обробка OAuth</title>
-</head>
+<html>
 <body>
-<p>Зачекайте, виконується авторизація...</p>
+<p>Авторизація...</p>
 
 <script>
-(function() {
-    // Отримуємо id_token з URL hash
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const id_token = params.get("id_token");
+const params = new URLSearchParams(window.location.search);
+const code = params.get("code");
 
-    if (!id_token) {
-        alert("❌ Не отримано id_token");
-        return;
-    }
-
-    console.log("Отримано id_token:", id_token);
-
-    // Надсилаємо на n8n вебхук
-    fetch("https://n8n.narodocnt.online/webhook/google-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_token })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = "/dashboard.html";
-        } else {
-            alert("Помилка входу. Спробуйте ще раз.");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Сталася помилка під час авторизації.");
-    });
-})();
+if (!code) {
+  document.body.innerHTML = "❌ Немає authorization code";
+} else {
+  fetch("https://n8n.narodocnt.online/webhook/google-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) location.href = "/dashboard.html";
+    else document.body.innerHTML = "❌ Помилка входу";
+  });
+}
 </script>
 </body>
 </html>
