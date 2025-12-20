@@ -1,26 +1,21 @@
 <!DOCTYPE html>
 <html>
 <body>
-<p>Авторизація...</p>
+<p>Авторизація…</p>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 
 if (!code) {
-  document.body.innerHTML = "❌ Немає authorization code";
+  document.body.innerText = "❌ Немає authorization code";
 } else {
-  fetch("https://n8n.narodocnt.online/webhook/google-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) location.href = "/dashboard.html";
-    else document.body.innerHTML = "❌ Помилка входу";
-  });
+  // ПРОСТИЙ REDIRECT, НЕ fetch
+  window.location.href =
+    "https://n8n.narodocnt.online/webhook/google-login?code=" +
+    encodeURIComponent(code);
 }
 </script>
+
 </body>
 </html>
