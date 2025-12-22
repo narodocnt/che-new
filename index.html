@@ -1,292 +1,264 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мій Сайт</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f0f2f5;
-      color: #333;
-      /* Прибираємо центрування всього body, щоб контент розтікався по ширині */
-      min-height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Відділ народної творчості</title>
+    <style>
+        /* ОСНОВНІ СТИЛІ */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            color: #333;
+        }
 
-    /* Верхня панель (Header) */
-    .header {
-      width: 100%;
-      display: flex;
-      justify-content: flex-end; /* Зміщує елементи вправо */
-      padding: 20px;
-      box-sizing: border-box; /* Щоб падінги не роздували ширину */
-    }
+        /* ШАПКА САЙТУ */
+        header {
+            background: #8b0000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
 
-    /* Стиль посилання Login */
-    .login-link {
-      font-size: 18px;
-      font-weight: 500;
-      color: #333;
-      text-decoration: none; /* Прибираємо стандартне підкреслення */
-      cursor: pointer;
-      transition: color 0.2s;
-    }
+        header h1 { margin: 0; font-size: 24px; }
+        header h3 a { color: #ffcc00; text-decoration: none; font-size: 16px; }
 
-    /* Ефект підкреслення при наведенні */
-    .login-link:hover {
-      text-decoration: underline;
-      color: #4285F4; /* Опціонально: змінюємо колір на брендовий Google */
-    }
+        /* ПОСИЛАННЯ LOGIN */
+        .login-link {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .login-link:hover { color: #ffcc00; }
 
-    /* Контентна частина сайту */
-    .content {
-      padding: 40px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
+        /* НАВІГАЦІЯ */
+        nav {
+            background: #b30000;
+            padding: 12px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        nav a, .dropbtn {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+        nav a:hover, .dropdown:hover .dropbtn { background-color: #d60000; }
 
-  <header class="header">
-    <span class="login-link" id="google-login">Login</span>
-  </header>
+        /* ВИПАДАЮЧЕ МЕНЮ ЗАЯВКИ */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+        .dropdown-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+        .dropdown-content button:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
 
-  <main class="content">
-    <h1>Ласкаво просимо на наш сайт</h1>
-    <p>Тепер інтерфейс адаптивний, а вхід знаходиться справа вгорі.</p>
-  </main>
+        /* КОНТЕЙНЕРИ ТА ФОРМА */
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 28px;
+            color: #8b0000;
+            border-bottom: 3px solid #ffcc00;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
 
-  <script>
-    const clientId = "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com";
-    const redirectUri = "https://n8n.narodocnt.online/webhook/google-signup";
-    const scope = "email profile openid";
+        #formContainer { display: none; background: #fff; border: 2px solid #8b0000; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        input:focus { border-color: #8b0000; outline: none; }
+        .full-width { grid-column: span 2; }
+        .submit-btn {
+            background: #b30000; color: white; border: none; padding: 15px;
+            font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 20px;
+        }
+        .submit-btn:hover { background: #d60000; }
 
-    document.getElementById("google-login").addEventListener("click", () => {
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&prompt=consent`;
-      window.location.href = authUrl;
-    });
-  </script>
-
-
-</body>
-  
-<html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Відділ народної творчості</title>
-
-<style>
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #f0f2f5;
-  color: #333;
-}
-
-header {
-  background: #8b0000;
-  color: white;
-  padding: 20px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-header h1 {
-  margin: 0;
-  font-size: 24px;
-}
-
-header h3 a {
-  color: #ffcc00;
-  text-decoration: none;
-  font-size: 16px;
-  display: block;
-}
-
-header h3 a:hover {
-  text-decoration: underline;
-}
-
-/* ✅ КНОПКА GOOGLE */
-.google-login-btn {
-  background: #ffffff;
-  color: #444;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: 0.2s;
-}
-
-.google-login-btn:hover {
-  background: #f1f1f1;
-}
-
-.google-login-btn img {
-  width: 18px;
-  height: 18px;
-}
-
-nav {
-  background: #b30000;
-  padding: 12px 0;
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  font-weight: 600;
-  padding: 8px 15px;
-  border-radius: 4px;
-  transition: 0.3s;
-}
-
-nav a:hover {
-  background-color: #d60000;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 30px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.section-title {
-  font-size: 32px;
-  margin-bottom: 20px;
-  color: #8b0000;
-  border-bottom: 3px solid #ffcc00;
-  padding-bottom: 5px;
-  display: inline-block;
-}
-
-footer {
-  background:#b30000;
-  color:white;
-  text-align:center;
-  padding:20px;
-  margin-top:40px;
-  font-size:14px;
-}
-</style>
+        footer { background:#b30000; color:white; text-align:center; padding:20px; margin-top:40px; }
+    </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>Відділ народної творчості</h1>
-    <h3>
-      <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">
-        Обласний Центр Народної Творчості
-      </a>
-    </h3>
-  </div>
-
-  <!-- ✅ КНОПКА ВХОДУ -->
-  <button id="google-login-btn">TEST КНОПКА</button>
-
-<script>
-document.getElementById("google-login-btn").addEventListener("click", () => {
-
-  const CLIENT_ID = "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com";
-  const REDIRECT_URI = "https://narodocnt.online/oauth2callback.html";
-
-  const authUrl =
-    "https://accounts.google.com/o/oauth2/v2/auth" +
-    "?client_id=" + CLIENT_ID +
-    "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
-    "&response_type=code" +
-    "&scope=openid%20email%20profile" +
-    "&access_type=offline" +
-    "&prompt=consent";
-
-  window.location.href = authUrl;
-});
-</script>
-
-
+    <div>
+        <h1>Відділ народної творчості</h1>
+        <h3><a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">Обласний Центр Народної Творчості</a></h3>
+    </div>
+    <span class="login-link" id="google-login-btn">Login</span>
 </header>
 
 <nav>
-  <a href="#about">Про нас</a>
-  <a href="#collectives">Колективи</a>
-  <a href="#">Анонси</a>
-  <a href="#events">Події</a>
-  <a href="#contacts">Контакти</a>
-  <a href="#">Подати заявку</a>
-  </nav>
+    <a href="#about">Про нас</a>
+    <a href="#collectives">Колективи</a>
+    <a href="#">Анонси</a>
+    <a href="#events">Події</a>
+    <a href="#contacts">Контакти</a>
+    
+    <div class="dropdown">
+        <button class="dropbtn">Подати заявку ▼</button>
+        <div class="dropdown-content">
+            <button onclick="openForm('Театральний')">Театральний</button>
+            <button onclick="openForm('Вокально-хоровий')">Вокально-хоровий</button>
+            <button onclick="openForm('Хореографічний')">Хореографічний</button>
+            <button onclick="openForm('Інструментальний')">Інструментальний</button>
+            <button onclick="openForm('Червона рута')">Червона рута</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container" id="formContainer">
+    <h2 class="section-title" id="formTitle">Заявка</h2>
+    <form id="applicationForm" onsubmit="sendData(event)">
+        <div class="form-grid">
+            <input type="text" id="event_name" placeholder="Назва заходу" required class="full-width">
+            <input type="text" id="group_name" placeholder="Назва колективу" required>
+            <input type="text" id="leader_name" placeholder="П.І.Б. керівника" required>
+            <input type="text" id="institution" placeholder="Назва установи (повна)" required class="full-width">
+            <input type="tel" id="user_phone" placeholder="Номер мобільного телефону" required class="full-width">
+            
+            <p class="full-width" style="margin: 10px 0 5px; font-weight: bold;">Програма (назви творів):</p>
+            <input type="text" id="work1" placeholder="Перший твір">
+            <input type="text" id="work2" placeholder="Другий твір">
+            <input type="text" id="work3" placeholder="Третій твір">
+            <input type="text" id="work4" placeholder="Четвертий твір">
+            <input type="text" id="work5" placeholder="П'ятий твір">
+            
+            <input type="text" id="regDate" readonly class="full-width" style="background: #eee;">
+        </div>
+        <button type="submit" class="submit-btn">Надіслати заявку</button>
+    </form>
+</div>
 
 <div class="container" id="about">
-  <h2 class="section-title">Про нас</h2>
-  <p>
-    Відділ народної творчості займається розвитком та підтримкою
-    творчих колективів області...
-  </p>
+    <h2 class="section-title">Про нас</h2>
+    <p>Відділ народної творчості займається розвитком та підтримкою творчих колективів області...</p>
 </div>
 
 <div class="container" id="collectives">
-  <h2 class="section-title">Наші колективи</h2>
-  <ul>
-    <li>Народні та зразкові колективи</li>
-    <li>Троїсті музики</li>
-    <li>Духові оркестри</li>
-    <li>Хореографічні</li>
-    <li>Інструментальні</li>
-    <li>Театральні</li>
-    <li>Вокально-хорові</li>
-  </ul>
-</div>
-
-<div class="container" id="events">
-  <h2 class="section-title">Події та новини</h2>
-  <p>Оголошення, конкурси, фестивалі, семінари...</p>
+    <h2 class="section-title">Наші колективи</h2>
+    <ul>
+        <li>Народні та зразкові колективи</li>
+        <li>Троїсті музики</li>
+        <li>Хореографічні</li>
+        <li>Інструментальні</li>
+        <li>Театральні</li>
+        <li>Вокально-хорові</li>
+    </ul>
 </div>
 
 <div class="container" id="contacts">
-  <h2 class="section-title">Контакти</h2>
-  <p>Email: narodocnt@ukr.net</p>
-  <p>Телефон: +380 00 000 00 00</p>
-  <p>
-    <strong>Ми у Facebook:</strong>
-    <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">
-      narodocntcherkasy
-    </a>
-    <strong>Ми на Youtube:</strong>
-    <a href="https://www.youtube.com/channel/UCdhef5PwRS8nuwTW8vOFR9A/" target="_blank">
-      narodocntcherkasy
-    </a>
-    
-  </p>
+    <h2 class="section-title">Контакти</h2>
+    <p>Email: narodocnt@ukr.net</p>
+    <p><strong>Ми у Facebook:</strong> <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">narodocntcherkasy</a></p>
 </div>
 
 <footer>
-  © 2025 Відділ народної творчості ОЦНТ
+    © 2025 Відділ народної творчості ОЦНТ
 </footer>
 
-<!-- ✅ ТІЛЬКИ ЦЕ -->
+<script>
+    // 1. ЛОГІКА ВХОДУ ЧЕРЕЗ GOOGLE
+    document.getElementById("google-login-btn").addEventListener("click", () => {
+        const CLIENT_ID = "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com";
+        const REDIRECT_URI = "https://narodocnt.online/oauth2callback.html"; // Переконайтесь, що цей URL збігається з налаштуваннями Google Console
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent`;
+        window.location.href = authUrl;
+    });
 
+    // 2. ЛОГІКА ВІДКРИТТЯ ФОРМИ
+    let currentGenre = "";
+    function openForm(genre) {
+        currentGenre = genre;
+        document.getElementById('formContainer').style.display = 'block';
+        document.getElementById('formTitle').innerText = "Заявка: " + genre;
+        document.getElementById('regDate').value = "Дата: " + new Date().toLocaleString();
+        document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 3. ВІДПРАВКА ДАНИХ В n8n
+    async function sendData(event) {
+        event.preventDefault(); // Зупиняємо перезавантаження сторінки
+
+        const payload = {
+            genre: currentGenre,
+            event: document.getElementById('event_name').value,
+            group: document.getElementById('group_name').value,
+            institution: document.getElementById('institution').value,
+            leader: document.getElementById('leader_name').value,
+            phone: document.getElementById('user_phone').value,
+            works: [
+                document.getElementById('work1').value,
+                document.getElementById('work2').value,
+                document.getElementById('work3').value,
+                document.getElementById('work4').value,
+                document.getElementById('work5').value
+            ].filter(w => w !== "").join("; "), // Збираємо тільки заповнені твори
+            submittedAt: new Date().toLocaleString()
+        };
+
+        const webhookUrl = 'https://n8n.narodocnt.online/webhook/ВАШ_ID_ЗАЯВОК'; // ЗАМІНІТЬ НА ВАШ URL
+
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("Дякуємо! Заявку успішно надіслано.");
+                document.getElementById('applicationForm').reset();
+                document.getElementById('formContainer').style.display = 'none';
+            } else {
+                alert("Помилка при відправці. Спробуйте ще раз.");
+            }
+        } catch (e) {
+            alert("Не вдалося з'єднатися з сервером n8n.");
+        }
+    }
+</script>
 
 </body>
-</html>
-
 </html>
