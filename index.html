@@ -153,10 +153,12 @@
     <form id="applicationForm" onsubmit="sendData(event)">
         <div class="form-grid">
             <input type="text" id="event_name" placeholder="Назва заходу" required class="full-width">
-            <input type="text" id="leader_name" placeholder="П.І.Б. керівника" required>
-            <input type="tel" id="user_phone" placeholder="Номер мобільного телефону" required class="full-width">
-            <input type="text" id="group_name" placeholder="Назва колективу" required>
             <input type="text" id="institution" placeholder="Назва установи (повна)" required class="full-width">
+            <input type="text" id="group_name" placeholder="Назва колективу" required class="full-width">
+            <input type="text" id="leader_name" placeholder="П.І.Б. керівника" required>
+            <input type="tel" id="user_phone" placeholder="Номер мобільного телефону" required>
+            
+            
             
             
             <p class="full-width" style="margin: 10px 0 5px; font-weight: bold;">Програма (назви творів):</p>
@@ -180,8 +182,7 @@
 <div class="container" id="collectives">
     <h2 class="section-title">Наші колективи</h2>
     <ul>
-        <li>Народні та зразкові колективи</li>
-        <li>Троїсті музики</li>
+       
         <li>Хореографічні</li>
         <li>Інструментальні</li>
         <li>Театральні</li>
@@ -239,7 +240,7 @@
             submittedAt: new Date().toLocaleString()
         };
 
-        const webhookUrl = 'https://n8n.narodocnt.online/webhook/ВАШ_ID_ЗАЯВОК'; // ЗАМІНІТЬ НА ВАШ URL
+        const webhookUrl = 'https://n8n.narodocnt.online/webhook/https://docs.google.com/spreadsheets/d/1FdvDHlBG7q_OkPlimdyx5D0dAPlkhAt7LYVHem8IYGA/edit?gid=463056327#gid=463056327'; // ЗАМІНІТЬ НА ВАШ URL
 
         try {
             const response = await fetch(webhookUrl, {
