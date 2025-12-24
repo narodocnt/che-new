@@ -7,53 +7,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --main-red: #8b0000;
-            --hover-red: #b30000;
-            --accent: #ffcc00;
-            --bg-light: #f8f9fa;
+            --pastel-blue: #5a7d9a;
+            --pastel-bg: #f4f7f6;
+            --pastel-accent: #e9ecef;
+            --text-main: #4a4a4a;
+            --white: #ffffff;
         }
 
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
             margin: 0;
+            background: var(--pastel-bg);
+            color: var(--text-main);
             line-height: 1.6;
-            background: #f0f2f5;
-            color: #333;
         }
 
         /* ШАПКА */
         header {
-            background: var(--main-red);
-            color: white;
-            padding: 1.5rem 5%;
+            background: var(--white);
+            padding: 1rem 5%;
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         }
 
-        header h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.8rem); }
-        header h3 a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
-
-        .login-link {
+        header h1 { margin: 0; font-size: 1.5rem; color: var(--pastel-blue); }
+        
+        .user-control {
             font-weight: 600;
-            color: white;
+            color: var(--pastel-blue);
             text-decoration: none;
             cursor: pointer;
+            padding: 5px 15px;
+            border: 1px solid var(--pastel-blue);
+            border-radius: 20px;
             transition: 0.3s;
-            border-bottom: 2px solid transparent;
         }
-        .login-link:hover { border-bottom-color: var(--accent); color: var(--accent); }
+        .user-control:hover { background: var(--pastel-blue); color: white; }
 
         /* НАВІГАЦІЯ */
         nav {
-            background: var(--hover-red);
-            padding: 10px 5%;
+            background: var(--pastel-blue);
+            padding: 12px 0;
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -61,260 +60,168 @@
         nav a {
             color: white;
             text-decoration: none;
+            font-size: 0.95rem;
             font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 4px;
             transition: 0.3s;
         }
-        nav a:hover { background: rgba(255,255,255,0.1); color: var(--accent); }
+        nav a:hover { opacity: 0.8; }
 
         /* КОНТЕЙНЕРИ */
         .container {
-            max-width: 1100px;
+            max-width: 900px;
             margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 2.5rem;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
         }
 
         .section-title {
-            font-size: 1.8rem;
-            color: var(--main-red);
-            margin-bottom: 1.5rem;
+            color: var(--pastel-blue);
+            border-bottom: 2px solid var(--pastel-accent);
             padding-bottom: 10px;
-            border-bottom: 3px solid var(--accent);
-            display: inline-block;
+            margin-bottom: 20px;
         }
 
-        /* ФОРМА (Адаптивна сітка) */
-        #formContainer { display: none; border-top: 5px solid var(--main-red); }
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 15px; 
+        /* ТАБЛИЧКА АВТОРИЗАЦІЇ (MODAL) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 2000;
+            justify-content: center; align-items: center;
         }
-        .full-width { grid-column: 1 / -1; }
-        
-        input { 
-            width: 100%; padding: 12px; 
-            border: 1px solid #ddd; border-radius: 6px; 
-            font-size: 16px; 
+        .auth-modal {
+            background: white; padding: 30px; border-radius: 15px;
+            text-align: center; max-width: 350px;
         }
-        input:focus { border-color: var(--main-red); outline: none; box-shadow: 0 0 5px rgba(139,0,0,0.2); }
 
-        .submit-btn {
-            background: var(--main-red); color: white; border: none; 
-            padding: 1rem; border-radius: 8px; font-weight: bold; 
-            cursor: pointer; width: 100%; margin-top: 1rem; transition: 0.3s;
-        }
-        .submit-btn:hover { background: #660000; transform: translateY(-2px); }
-
-        /* ФУТЕР (ОНОВЛЕНИЙ) */
+        /* ФУТЕР */
         .main-footer {
-            background: #fff;
-            border-top: 4px solid var(--main-red);
-            padding: 30px 5% 15px;
+            background: var(--white);
+            padding: 40px 5% 20px;
             margin-top: 50px;
+            border-top: 1px solid var(--pastel-accent);
         }
-
         .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-section { text-align: center; }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
+            text-align: center;
         }
 
         .footer-btn {
-            padding: 10px 20px;
+            display: inline-block;
+            padding: 10px 25px;
             border-radius: 25px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
+            margin: 5px;
             transition: 0.3s;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
+        .btn-tg { background: #0088cc; color: white; }
+        .btn-form { background: var(--pastel-blue); color: white; border: none; cursor: pointer; }
+        .footer-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .btn-tg { background: #0088cc; }
-        .btn-form { background: var(--main-red); }
-        .footer-btn:hover { opacity: 0.9; transform: scale(1.05); }
-
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-        }
         .social-icons a {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: white; text-decoration: none; transition: 0.3s;
-        }
-
-        .copyright {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-            font-size: 13px;
-            color: #888;
-        }
-
-        /* Адаптація для мобільних */
-        @media (max-width: 600px) {
-            header { text-align: center; justify-content: center; flex-direction: column; gap: 10px; }
-            .container { margin: 1rem; padding: 1.5rem; }
-            nav { gap: 5px; }
-            nav a { font-size: 14px; padding: 6px 10px; }
+            font-size: 1.5rem; margin: 0 10px; color: var(--pastel-blue);
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div>
-        <h1>Відділ народної творчості</h1>
-        <h3><a href="https://www.facebook.com/narodocntcherkasy/" target="_blank">Обласний Центр Народної Творчості</a></h3>
-    </div>
-    <span class="login-link" id="google-login-btn">Login</span>
+    <h1>Відділ народної творчості</h1>
+    <span class="user-control" id="auth-btn" onclick="handleAuthClick()">Login</span>
 </header>
 
 <nav>
     <a href="#about">Про нас</a>
     <a href="#collectives">Колективи</a>
-    <a href="#events">Події</a>
     <a href="#contacts">Контакти</a>
 </nav>
 
-<div class="container" id="formContainer">
-    <h2 class="section-title" id="formTitle">Заявка</h2>
-    <form id="applicationForm" onsubmit="sendData(event)">
-        <div class="form-grid">
-            <input type="text" id="event_name" placeholder="Назва заходу" required class="full-width">
-            <input type="text" id="institution" placeholder="Назва установи (повна)" required class="full-width">
-            <input type="text" id="group_name" placeholder="Назва колективу" required class="full-width">
-            <input type="text" id="leader_name" placeholder="П.І.Б. керівника" required>
-            <input type="tel" id="user_phone" placeholder="Номер телефону" required>
-            
-            <p class="full-width" style="margin: 10px 0 0; font-weight: bold; color: var(--main-red);">Програма виступу:</p>
-            <input type="text" id="work1" placeholder="Твір №1">
-            <input type="text" id="work2" placeholder="Твір №2">
-            <input type="text" id="work3" placeholder="Твір №3">
-            <input type="text" id="regDate" readonly class="full-width" style="background: #f1f1f1; font-size: 14px;">
-        </div>
-        <button type="submit" class="submit-btn">ВІДПРАВИТИ ДАНІ</button>
-    </form>
-</div>
-
 <div class="container" id="about">
-    <h2 class="section-title">Про нас</h2>
-    <p>Відділ народної творчості займається розвитком та підтримкою творчих колективів області, організацією фестивалів та збереженням культурної спадщини Черкащини.</p>
+    <h2 class="section-title">Вітаємо!</h2>
+    <p>Тут ви можете дізнатися про культурні заходи та подати заявку на участь у наших фестивалях.</p>
 </div>
 
-<div class="container" id="collectives">
-    <h2 class="section-title">Наші колективи</h2>
-    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-        <li><i class="fas fa-music" style="color: var(--main-red);"></i> Вокально-хорові</li>
-        <li><i class="fas fa-child" style="color: var(--main-red);"></i> Хореографічні</li>
-        <li><i class="fas fa-guitar" style="color: var(--main-red);"></i> Інструментальні</li>
-        <li><i class="fas fa-masks-theater" style="color: var(--main-red);"></i> Театральні</li>
-    </ul>
+<div id="authModal" class="modal-overlay">
+    <div class="auth-modal">
+        <h3>Будь ласка, авторизуйтесь</h3>
+        <p>Подача заявок доступна тільки для зареєстрованих користувачів.</p>
+        <button class="footer-btn btn-form" onclick="loginWithGoogle()">Login</button>
+        <button class="footer-btn" style="background:#eee; color:#333;" onclick="closeModal()">Cancel</button>
+    </div>
 </div>
 
 <footer class="main-footer" id="contacts">
     <div class="footer-grid">
-        <div class="footer-section">
-            <h4 style="margin:0 0 10px">Ресурси та зв'язок</h4>
-            <div class="btn-group">
-                <a href="https://t.me/narodocnt_bot" target="_blank" class="footer-btn btn-tg">
-                    <i class="fab fa-telegram"></i> ТЕЛЕГРАМ-БОТ
-                </a>
-                <button onclick="openForm('Загальна')" class="footer-btn btn-form" style="border:none; cursor:pointer;">
-                    <i class="fas fa-edit"></i> ПОДАТИ ЗАЯВКУ
-                </button>
-            </div>
+        <div>
+            <h4>Онлайн-сервіси</h4>
+            <a href="https://t.me/narodocnt_bot" target="_blank" class="footer-btn btn-tg">Telegram-Бот</a>
+            <button onclick="handleApplication()" class="footer-btn btn-form">Подати заявку</button>
         </div>
-
-        <div class="footer-section">
-            <h4 style="margin:0 0 10px; color: var(--main-red);">КОНТАКТИ</h4>
-            <a href="mailto:narodocnt@ukr.net" style="text-decoration:none; color:#333; font-weight:600;">
-                <i class="fas fa-envelope-open-text"></i> narodocnt@ukr.net
-            </a>
+        <div>
+            <h4>Контакти</h4>
+            <p>Email: narodocnt@ukr.net</p>
             <div class="social-icons">
-                <a href="https://facebook.com/narodocntcherkasy/" target="_blank" style="background:#1877f2"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://youtube.com/channel/UCdhef5PwRS8nuwTW8vOFR9A" target="_blank" style="background:#ff0000"><i class="fab fa-youtube"></i></a>
+                <a href="https://facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
             </div>
         </div>
     </div>
-    
-    <div class="copyright">
-        &copy; 2025 Обласний центр народної творчості. Всі права захищені.
+    <div style="text-align:center; margin-top:30px; font-size:12px; color:#aaa;">
+        &copy; 2025 Відділ народної творчості
     </div>
 </footer>
 
 <script>
-    // 1. ВХІД GOOGLE
-    document.getElementById("google-login-btn").addEventListener("click", () => {
-        const CLIENT_ID = "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com";
-        const REDIRECT_URI = "https://n8n.narodocnt.online/webhook/google-signup";
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid%20email%20profile&prompt=consent`;
-        window.location.href = authUrl;
-    });
+    const FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
+    const CLIENT_ID = "734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com";
+    const REDIRECT_URI = "https://n8n.narodocnt.online/webhook/google-signup";
 
-    // 2. ФУНКЦІЯ ВІДКРИТТЯ ФОРМИ
-    function openForm(genre) {
-        const form = document.getElementById('formContainer');
-        form.style.display = 'block';
-        document.getElementById('formTitle').innerText = "Заявка на участь";
-        document.getElementById('regDate').value = "Дата формування: " + new Date().toLocaleString();
-        form.scrollIntoView({ behavior: 'smooth' });
+    // ПЕРЕВІРКА СТАТУСУ ПРИ ЗАВАНТАЖЕННІ
+    window.onload = function() {
+        const user = localStorage.getItem('userName');
+        if (user) {
+            document.getElementById('auth-btn').innerText = user;
+        }
     }
 
-    // 3. ВІДПРАВКА ДАНИХ
-    async function sendData(event) {
-        event.preventDefault();
-        const payload = {
-            event: document.getElementById('event_name').value,
-            group: document.getElementById('group_name').value,
-            institution: document.getElementById('institution').value,
-            leader: document.getElementById('leader_name').value,
-            phone: document.getElementById('user_phone').value,
-            works: [
-                document.getElementById('work1').value,
-                document.getElementById('work2').value,
-                document.getElementById('work3').value
-            ].filter(w => w !== "").join("; "),
-            submittedAt: new Date().toLocaleString()
-        };
-
-        try {
-            const response = await fetch('https://n8n.narodocnt.online/webhook/collect-application', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (response.ok) {
-                alert("Успішно надіслано!");
-                document.getElementById('applicationForm').reset();
-                document.getElementById('formContainer').style.display = 'none';
+    // ЛОГІКА КНОПКИ В ШАПЦІ (LOGIN/LOGOUT)
+    function handleAuthClick() {
+        if (localStorage.getItem('userName')) {
+            // Якщо авторизований - виходимо
+            if (confirm("Вийти з профілю?")) {
+                localStorage.removeItem('userName');
+                location.reload();
             }
-        } catch (e) {
-            alert("Помилка з'єднання.");
+        } else {
+            loginWithGoogle();
         }
+    }
+
+    function loginWithGoogle() {
+        // Для демонстрації ми просто запишемо ім'я, 
+        // в реальності n8n має повернути користувача з ім'ям в URL або cookie
+        localStorage.setItem('userName', 'Користувач'); // Імітація успішного входу
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid%20email%20profile&prompt=consent`;
+        window.location.href = authUrl;
+    }
+
+    // ЛОГІКА ПОДАЧІ ЗАЯВКИ
+    function handleApplication() {
+        if (localStorage.getItem('userName')) {
+            window.open(FORM_URL, '_blank');
+        } else {
+            document.getElementById('authModal').style.display = 'flex';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('authModal').style.display = 'none';
     }
 </script>
 
