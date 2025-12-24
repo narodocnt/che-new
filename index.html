@@ -3,71 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мій Адаптивний Сайт</title>
+  <title>Modern Portal</title>
   <style>
-    /* Базові налаштування для адаптивності */
+    :root {
+      --primary: #4285F4;
+      --text: #202124;
+      --bg: #f8f9fa;
+      --white: #ffffff;
+    }
+
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f8f9fa;
-      color: #212529;
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
     }
 
-    /* Шапка сайту */
+    /* Адаптивна навігація */
     .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px); /* Ефект розмиття */
       display: flex;
-      justify-content: flex-end; /* Login справа */
-      padding: 1rem 2rem;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
-    /* Стилізація текстового логіну */
-    .login-btn {
-      color: #007bff;
+    .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .login-link {
+      font-weight: 500;
+      color: var(--text);
       text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
       cursor: pointer;
-      border: none;
-      background: none;
-      padding: 5px 10px;
-      transition: all 0.2s ease;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      position: relative;
     }
 
-    .login-btn:hover {
-      text-decoration: underline; /* Підкреслення при наведенні */
-      color: #0056b3;
+    /* Ефект підкреслення при наведенні */
+    .login-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background-color: var(--primary);
+      transition: width 0.3s ease;
     }
 
-    /* Контейнер для контенту (адаптивний) */
-    .main-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
+    .login-link:hover::after {
+      width: 100%;
+    }
+
+    /* Головний контент */
+    .hero {
+      max-width: 1000px;
+      margin: 4rem auto;
+      padding: 0 2rem;
       text-align: center;
     }
 
-    h1 {
-      font-size: calc(1.5rem + 1.5vw); /* Текст змінюється залежно від екрана */
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(45deg, #202124, #4285F4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #5f6368;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    /* Картки (сітка) */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      transition: transform 0.3s ease;
+      text-align: left;
+      border: 1px solid #f1f3f4;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    @media (max-width: 600px) {
+      .hero { margin: 2rem auto; }
+      .navbar { padding: 1rem 1.5rem; }
     }
   </style>
 </head>
 <body>
 
-  <header class="navbar">
-    <button class="login-btn" id="google-login">Login</button>
-  </header>
+  <nav class="navbar">
+    <div class="logo">MyPortal</div>
+    <span class="login-link" id="google-login">Login</span>
+  </nav>
 
-  <main class="main-container">
-    <h1>Ваш контент тут</h1>
-    <p>Ця сторінка тепер адаптивна. Напис Login знаходиться зверху справа.</p>
+  <main class="hero">
+    <h1>Автоматизуйте свій успіх</h1>
+    <p>Ласкаво просимо! Тепер ваш сайт повністю адаптивний. Використовуйте сучасні інструменти для керування вашими даними через n8n.</p>
+
+    <div class="features">
+      <div class="card">
+        <h3>Адаптивність</h3>
+        <p>Сайт автоматично підлаштовується під екрани смартфонів, планшетів та ПК.</p>
+      </div>
+      <div class="card">
+        <h3>Google Auth</h3>
+        <p>Безпечний вхід через офіційний сервіс Google у один клік.</p>
+      </div>
+      <div class="card">
+        <h3>n8n Інтеграція</h3>
+        <p>Ваш вебхук готовий приймати дані та обробляти сценарії будь-якої складності.</p>
+      </div>
+    </div>
   </main>
 
   <script>
