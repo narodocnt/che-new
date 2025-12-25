@@ -9,137 +9,77 @@
         :root {
             --soft-blue: #a2b9bc;
             --soft-bg: #f4f7f6;
-            --text-dark: #505e63;
             --white: #ffffff;
             --active-green: #a3b18a;
         }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            background: var(--soft-bg);
-            color: var(--text-dark);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        header {
-            background: var(--white);
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-
-        header h1 { margin: 0; font-size: 1.4rem; color: var(--soft-blue); }
-
-        .auth-btn {
-            font-weight: 600;
-            color: var(--soft-blue);
-            cursor: pointer;
-            padding: 7px 20px;
-            border: 2px solid var(--soft-blue);
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 40px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            text-align: center;
-        }
-
-        /* МОДАЛЬНЕ ВІКНО */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            z-index: 10000;
-            justify-content: center; 
-            align-items: center;
-        }
-        .modal-box {
-            background: white; 
-            padding: 40px; 
-            border-radius: 20px;
-            text-align: center; 
-            max-width: 350px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            border-radius: 30px;
-            text-decoration: none;
-            color: white;
-            font-weight: 600;
-            margin: 10px 5px;
-            transition: 0.3s;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-blue { background: var(--soft-blue); }
-        .btn-cancel { background: #eee; color: #666; }
-
-        footer { margin-top: auto; padding: 20px; text-align: center; color: #aaa; font-size: 12px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--soft-bg); margin: 0; text-align: center; color: #505e63; }
+        header { background: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .auth-btn { font-weight: 600; color: var(--soft-blue); cursor: pointer; padding: 7px 20px; border: 2px solid var(--soft-blue); border-radius: 20px; transition: 0.3s; }
+        .container { max-width: 600px; margin: 80px auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; max-width: 350px; position: relative; }
+        .btn { display: inline-block; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; margin: 10px; transition: 0.3s; }
+        .btn-blue { background: var(--soft-blue); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        #loading-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: white; z-index: 20000; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
+<div id="loading-screen">
+    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--soft-blue);"></i>
+    <p style="margin-top: 20px; font-weight: 600;">Відкриваємо форму заявки...</p>
+</div>
+
 <header>
-    <h1>ОЦНТ Черкаси</h1>
+    <h1 style="color: var(--soft-blue); font-size: 1.2rem; margin:0;">ОЦНТ Черкаси</h1>
     <div class="auth-btn" id="loginBtn" onclick="handleAuthAction()">Login</div>
 </header>
 
 <div class="container">
-    <h2 style="color: var(--soft-blue); margin-bottom: 20px;">Подача заявки на участь</h2>
-    <p>Для того, щоб заповнити анкету учасника, будь ласка, скористайтеся кнопкою нижче.</p>
-    <button onclick="checkAccessAndRedirect()" class="btn btn-blue" style="font-size: 1.1rem; margin-top: 20px;">ПОДАТИ ЗАЯВКУ</button>
+    <h2>Вітаємо!</h2>
+    <p>Для подачі заявки натисніть кнопку нижче.</p>
+    <button onclick="checkAccessAndRedirect()" class="btn btn-blue" style="font-size: 1.1rem;">ПОДАТИ ЗАЯВКУ</button>
 </div>
 
 <div id="authModal" class="modal-overlay">
     <div class="modal-box" id="modalBox">
-        <h3 style="color: var(--soft-blue);">Потрібна авторизація</h3>
-        <p>Для доступу до форми заявки необхідно увійти через ваш Google-акаунт.</p>
-        <button class="btn btn-blue" onclick="login()">УВІЙТИ</button>
-        <button class="btn btn-cancel" onclick="closeModal()">СКАСУВАТИ</button>
+        <h3>Авторизація</h3>
+        <p>Форма доступна тільки для авторизованих користувачів.</p>
+        <button class="btn btn-blue" onclick="login()">УВІЙТИ ЧЕРЕЗ GOOGLE</button>
+        <p style="font-size: 12px; color: #aaa; cursor: pointer; margin-top: 15px;" onclick="closeModal()">Скасувати</p>
     </div>
 </div>
-
-<footer>
-    © 2025 Обласний центр народної творчості
-</footer>
 
 <script>
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 const N8N_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
 
-// 1. ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ
-function checkLoginStatus() {
-    const params = new URLSearchParams(window.location.search);
-    const nameFromUrl = params.get('name');
+// 1. ПРИМУСОВА ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ (виконується миттєво)
+(function quickCheck() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const name = urlParams.get('name');
 
-    if (nameFromUrl) {
-        // Зберігаємо дані в пам'ять браузера
-        localStorage.setItem('userName', decodeURIComponent(nameFromUrl));
-        // Прибираємо ім'я з адресного рядка для чистоти
-        window.history.replaceState({}, document.title, window.location.pathname);
+    if (name) {
+        // Ховаємо контент і показуємо лоадер
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('loading-screen').style.display = 'flex';
+        });
+
+        // Зберігаємо ім'я
+        localStorage.setItem('userName', decodeURIComponent(name));
         
-        // МИТТЄВИЙ ПЕРЕХІД НА ФОРМУ (без нового вікна, щоб не блокувалося)
-        window.location.href = N8N_FORM_URL; 
-        return; // Виходимо з функції, бо вже йде редірект
-    }
+        // Очищуємо URL
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
 
-    // Оновлюємо вигляд кнопки Login
+        // Прямий редірект на форму
+        window.location.replace(N8N_FORM_URL);
+    }
+})();
+
+// 2. ОНОВЛЕННЯ ІНТЕРФЕЙСУ
+window.onload = function() {
     const savedName = localStorage.getItem('userName');
     const loginBtn = document.getElementById('loginBtn');
     
@@ -149,24 +89,18 @@ function checkLoginStatus() {
         loginBtn.style.color = "white";
         loginBtn.style.borderColor = "var(--active-green)";
     }
-}
+};
 
-// 2. ЗАКРИТТЯ КЛІКОМ МИМО ТАБЛИЧКИ
-const modalOverlay = document.getElementById('authModal');
-modalOverlay.addEventListener('mousedown', function(event) {
-    const modalBox = document.getElementById('modalBox');
-    if (!modalBox.contains(event.target)) {
-        closeModal();
-    }
+// 3. ЗАКРИТТЯ КЛІКОМ МИМО МОДАЛКИ
+document.getElementById('authModal').addEventListener('mousedown', function(e) {
+    if (e.target.id === 'authModal') closeModal();
 });
 
-// 3. ЛОГІКА КНОПКИ "ПОДАТИ ЗАЯВКУ"
+// 4. ЛОГІКА КНОПОК
 function checkAccessAndRedirect() {
     if (localStorage.getItem('userName')) {
-        // Якщо вже авторизовані - йдемо на форму
         window.location.href = N8N_FORM_URL;
     } else {
-        // Якщо ні - показуємо гарну табличку
         document.getElementById('authModal').style.display = 'flex';
     }
 }
@@ -182,16 +116,8 @@ function handleAuthAction() {
     }
 }
 
-function login() {
-    window.location.href = GOOGLE_AUTH_URL;
-}
-
-function closeModal() {
-    document.getElementById('authModal').style.display = 'none';
-}
-
-// Запускаємо при старті
-window.onload = checkLoginStatus;
+function login() { window.location.href = GOOGLE_AUTH_URL; }
+function closeModal() { document.getElementById('authModal').style.display = 'none'; }
 </script>
 
 </body>
