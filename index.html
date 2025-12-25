@@ -58,33 +58,36 @@
     const FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
-    (function init() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let name = urlParams.get('name');
+   (function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let name = urlParams.get('name');
 
-        // Перевірка на технічні повідомлення n8n
-        if (name && (name.includes('Workflow') || name.includes('{'))) {
-            name = "Заявка прийнята"; 
+    // Якщо прийшло undefined або помилка - ігноруємо
+    if (!name || name === "undefined" || name.includes('{')) {
+        name = null;
+    }
+
+    if (name) {
+        localStorage.setItem('user', decodeURIComponent(name));
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Автоматично йдемо на форму, якщо це був вхід через Google
+        if (!document.referrer.includes('n8n-form')) {
+            window.location.href = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
         }
+    }
 
-        if (name) {
-            localStorage.setItem('user', decodeURIComponent(name));
-            window.history.replaceState({}, document.title, window.location.pathname);
-            // Якщо тільки що зайшли через Google - кидаємо на форму
-            if (!document.referrer.includes('n8n-form')) {
-                window.location.href = FORM_URL;
-            }
-        }
-
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            const btn = document.getElementById('loginBtn');
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+        const btn = document.getElementById('loginBtn');
+        if (btn) {
             btn.innerText = savedUser;
             btn.style.background = "#a3b18a";
             btn.style.color = "white";
         }
-    })();
-
+    }
+})();
+    
     function goToForm() {
         if (localStorage.getItem('user')) {
             // Перехід на форму в цій же вкладці
