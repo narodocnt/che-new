@@ -11,6 +11,7 @@
             --soft-bg: #f4f7f6;
             --text-dark: #505e63;
             --white: #ffffff;
+            --active-green: #a3b18a;
         }
 
         body {
@@ -20,7 +21,6 @@
             color: var(--text-dark);
         }
 
-        /* ШАПКА */
         header {
             background: var(--white);
             padding: 15px 5%;
@@ -44,7 +44,6 @@
         }
         .auth-btn:hover { background: var(--soft-blue); color: white; }
 
-        /* НАВІГАЦІЯ */
         nav {
             background: var(--soft-blue);
             padding: 10px 0;
@@ -55,7 +54,6 @@
         }
         nav a { color: white; text-decoration: none; font-weight: 500; font-size: 0.9rem; }
 
-        /* КОНТЕНТ */
         .container {
             max-width: 1000px;
             margin: 30px auto;
@@ -72,7 +70,6 @@
             padding-bottom: 5px;
         }
 
-        /* МОДАЛЬНЕ ВІКНО */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -87,7 +84,6 @@
             text-align: center; max-width: 400px;
         }
 
-        /* ФУТЕР (АДАПТИВНИЙ) */
         footer {
             background: white;
             padding: 40px 5% 20px;
@@ -112,8 +108,10 @@
             font-weight: 600;
             margin: 5px;
             transition: 0.3s;
+            border: none;
+            cursor: pointer;
         }
-        .btn-blue { background: var(--soft-blue); border: none; cursor: pointer; }
+        .btn-blue { background: var(--soft-blue); }
         .btn-tg { background: #0088cc; }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
@@ -128,7 +126,7 @@
 
 <header>
     <h1>ОЦНТ Черкаси</h1>
-    <div class="auth-btn" id="loginLabel" onclick="handleAuth()">Login</div>
+    <div class="auth-btn" id="loginBtn" onclick="handleAuthAction()">Login</div>
 </header>
 
 <nav>
@@ -164,7 +162,7 @@
         </div>
         <div class="footer-section">
             <h4>Подати заявку</h4>
-            <button onclick="handleApplication()" class="btn btn-blue">ЗАПОВНИТИ ФОРМУ</button>
+            <button onclick="checkAccessAndRedirect()" class="btn btn-blue">ЗАПОВНИТИ ФОРМУ</button>
         </div>
         <div class="footer-section">
             <h4>Контакти</h4>
@@ -181,48 +179,42 @@
 </footer>
 
 <script>
- const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 const N8N_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
 
-// 1. ФУНКЦІЯ ПЕРЕВІРКИ СТАТУСУ (запускається при кожному завантаженні сторінки)
 function checkLoginStatus() {
     const params = new URLSearchParams(window.location.search);
     const nameFromUrl = params.get('name');
 
-    // Якщо ми прийшли від n8n з іменем в URL
     if (nameFromUrl) {
         localStorage.setItem('userName', decodeURIComponent(nameFromUrl));
-        // Очищуємо URL, щоб при оновленні сторінки ім'я не зникало
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Оновлюємо текст кнопки в шапці
     const savedName = localStorage.getItem('userName');
     const loginBtn = document.getElementById('loginBtn');
     
     if (savedName) {
         loginBtn.innerText = savedName;
-        loginBtn.style.background = "#a3b18a"; // Змінюємо колір на "активний", якщо увійшли
+        loginBtn.style.background = "var(--active-green)"; 
         loginBtn.style.color = "white";
+        loginBtn.style.borderColor = "var(--active-green)";
     } else {
         loginBtn.innerText = "Login";
+        loginBtn.style.background = "transparent";
+        loginBtn.style.color = "var(--soft-blue)";
+        loginBtn.style.borderColor = "var(--soft-blue)";
     }
 }
 
-// 2. ЛОГІКА КНОПКИ ПОДАТИ ЗАЯВКУ
 function checkAccessAndRedirect() {
-    const userIsLoggedIn = localStorage.getItem('userName');
-
-    if (userIsLoggedIn) {
-        // Якщо користувач авторизований - ВІДКРИВАЄМО ФОРМУ
+    if (localStorage.getItem('userName')) {
         window.open(N8N_FORM_URL, '_blank');
     } else {
-        // Якщо ні - ПОКАЗУЄМО МОДАЛКУ
         document.getElementById('authModal').style.display = 'flex';
     }
 }
 
-// 3. ЛОГІКА КНОПКИ LOGIN У ШАПЦІ
 function handleAuthAction() {
     if (localStorage.getItem('userName')) {
         if (confirm("Вийти з системи?")) {
@@ -230,7 +222,7 @@ function handleAuthAction() {
             location.reload();
         }
     } else {
-        window.location.href = GOOGLE_AUTH_URL;
+        login();
     }
 }
 
@@ -242,7 +234,6 @@ function closeModal() {
     document.getElementById('authModal').style.display = 'none';
 }
 
-// Запускаємо перевірку відразу при завантаженні
 window.onload = checkLoginStatus;
 </script>
 
