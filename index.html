@@ -3,218 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Відділ народної творчості</title>
+    <title>ОЦНТ Черкаси - Заявки</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --soft-blue: #a2b9bc;
-            --soft-bg: #f4f7f6;
-            --text-dark: #505e63;
-            --white: #ffffff;
-            --active-green: #a3b18a;
-        }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            background: var(--soft-bg);
-            color: var(--text-dark);
-            text-align: center;
-        }
-
-        header {
-            background: var(--white);
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        header h1 { margin: 0; font-size: 1.2rem; color: var(--soft-blue); }
-
-        .auth-btn {
-            font-weight: 600;
-            color: var(--soft-blue);
-            cursor: pointer;
-            padding: 7px 18px;
-            border: 2px solid var(--soft-blue);
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
-        nav {
-            background: var(--soft-blue);
-            padding: 12px 0;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-        nav a { color: white; text-decoration: none; font-weight: 500; font-size: 0.9rem; }
-
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 40px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
-        }
-
-        /* Модалка авторизації */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-box {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 350px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            border-radius: 30px;
-            text-decoration: none;
-            color: white !important;
-            font-weight: 600;
-            margin: 10px 5px;
-            cursor: pointer;
-            border: none;
-            transition: 0.3s;
-        }
-        .btn-blue { background: var(--soft-blue); }
-        .btn-tg { background: #0088cc; }
-        .btn:hover { opacity: 0.9; transform: scale(1.02); }
-
-        footer {
-            background: white;
-            padding: 40px 5%;
-            margin-top: 50px;
-            border-top: 1px solid #eee;
-        }
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
+        :root { --blue: #a2b9bc; --bg: #f4f7f6; --green: #a3b18a; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); text-align: center; color: #505e63; }
+        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--blue); border-radius: 20px; font-weight: bold; color: var(--blue); }
+        nav { background: var(--blue); padding: 10px; display: flex; justify-content: center; gap: 20px; }
+        nav a { color: white; text-decoration: none; font-size: 14px; }
+        .main-card { max-width: 600px; margin: 50px auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .btn { display: inline-block; padding: 15px 35px; border-radius: 30px; text-decoration: none; color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin: 10px; }
+        .btn-blue { background: var(--blue); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 300px; }
+        footer { margin-top: 50px; padding: 30px; background: white; border-top: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>ОЦНТ Черкаси</h1>
-    <div class="auth-btn" id="loginBtn" onclick="handleAuthAction()">Увійти</div>
+    <h1 style="font-size: 1.2rem; color: var(--blue);">ОЦНТ Черкаси</h1>
+    <div class="auth-btn" id="loginBtn" onclick="handleAuth()">Увійти</div>
 </header>
 
 <nav>
     <a href="#about">Про нас</a>
     <a href="#contacts">Контакти</a>
-    <a href="javascript:void(0)" onclick="checkAccessAndRedirect()" style="font-weight: bold; color: #fff3b0;">ПОДАТИ ЗАЯВКУ</a>
+    <a href="javascript:void(0)" onclick="goToForm()" style="color: #fff3b0; font-weight: bold;">ПОДАТИ ЗАЯВКУ</a>
 </nav>
 
-<div class="container" id="about">
-    <h2 style="color: var(--soft-blue);">Подача заявки</h2>
-    <p>Вітаємо! Для участі у заходах ОЦНТ, будь ласка, авторизуйтесь та заповніть форму.</p>
-    <button onclick="checkAccessAndRedirect()" class="btn btn-blue" style="font-size: 1.1rem;">ЗАПОВНИТИ АНКЕТУ</button>
+<div class="main-card" id="about">
+    <h2>Подача заявки на участь</h2>
+    <p>Натисніть кнопку нижче, щоб відкрити анкету.</p>
+    <button onclick="goToForm()" class="btn btn-blue">ЗАПОВНИТИ ФОРМУ</button>
 </div>
 
-<div id="authModal" class="modal-overlay">
-    <div class="modal-box" id="modalBox">
-        <h3 style="color: var(--soft-blue);">Потрібен вхід</h3>
-        <p>Для доступу до форми, будь ласка, використайте свій Google-акаунт.</p>
-        <button class="btn btn-blue" onclick="login()">УВІЙТИ ЧЕРЕЗ GOOGLE</button>
-        <div style="margin-top: 15px; cursor: pointer; color: #aaa; font-size: 0.9rem;" onclick="closeModal()">Скасувати</div>
+<div id="authModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>Потрібна авторизація</h3>
+        <p>Увійдіть через Google, щоб ми знали, хто подає заявку.</p>
+        <button class="btn btn-blue" onclick="startLogin()">УВІЙТИ</button>
+        <div style="color: #aaa; cursor: pointer; margin-top: 10px;" onclick="closeModal(null)">Скасувати</div>
     </div>
 </div>
 
 <footer id="contacts">
-    <div class="footer-grid">
-        <div class="footer-section">
-            <h4>Telegram</h4>
-            <a href="https://t.me/narodocnt_bot" target="_blank" class="btn btn-tg"><i class="fab fa-telegram"></i> Наш Бот</a>
-        </div>
-        <div class="footer-section">
-            <h4>Контакти</h4>
-            <p>Email: narodocnt@ukr.net</p>
-            <p>Черкаси, Україна</p>
-        </div>
-    </div>
-    <p style="font-size: 0.8rem; color: #ccc; margin-top: 30px;">© 2025 Обласний центр народної творчості</p>
+    <h4>Контакти</h4>
+    <p>narodocnt@ukr.net</p>
+    <a href="https://t.me/narodocnt_bot" target="_blank" style="color: #0088cc; text-decoration: none; font-weight: bold;">
+        <i class="fab fa-telegram"></i> Наш Telegram Бот
+    </a>
 </footer>
 
 <script>
-// ТУТ ВАШІ ПОСИЛАННЯ
-const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
-const N8N_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
+    const FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
+    const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
-// 1. Перевірка при завантаженні
-function checkLoginStatus() {
-    const params = new URLSearchParams(window.location.search);
-    const nameFromUrl = params.get('name');
+    // ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ
+    (function init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
 
-    if (nameFromUrl) {
-        // Зберігаємо ім'я та миттєво йдемо на форму
-        localStorage.setItem('userName', decodeURIComponent(nameFromUrl));
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = N8N_FORM_URL; // ПЕРЕХІД ТУТ
-        return;
-    }
-
-    // Оновлюємо кнопку входу, якщо вже залогінені
-    const savedName = localStorage.getItem('userName');
-    if (savedName) {
-        const btn = document.getElementById('loginBtn');
-        btn.innerText = savedName;
-        btn.style.backgroundColor = "var(--active-green)";
-        btn.style.color = "white";
-        btn.style.borderColor = "var(--active-green)";
-    }
-}
-
-// 2. Логіка натискання "Подати заявку"
-function checkAccessAndRedirect() {
-    if (localStorage.getItem('userName')) {
-        window.location.href = N8N_FORM_URL; // Йдемо на форму
-    } else {
-        document.getElementById('authModal').style.display = 'flex'; // Показуємо модалку
-    }
-}
-
-// 3. Закриття кліком мимо форми
-document.getElementById('authModal').addEventListener('mousedown', function(e) {
-    if (e.target.id === 'authModal') closeModal();
-});
-
-function login() { window.location.href = GOOGLE_AUTH_URL; }
-function closeModal() { document.getElementById('authModal').style.display = 'none'; }
-
-function handleAuthAction() {
-    if (localStorage.getItem('userName')) {
-        if (confirm("Вийти з акаунта?")) {
-            localStorage.removeItem('userName');
-            location.reload();
+        if (name) {
+            localStorage.setItem('user', decodeURIComponent(name));
+            // МИТТЄВИЙ ПЕРЕХІД БЕЗ ЗАЙВИХ ПИТАНЬ
+            window.location.replace(FORM_URL);
+            return;
         }
-    } else {
-        login();
-    }
-}
 
-window.onload = checkLoginStatus;
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = savedUser;
+            btn.style.background = "#a3b18a";
+            btn.style.color = "white";
+            btn.style.borderColor = "#a3b18a";
+        }
+    })();
+
+    function goToForm() {
+        if (localStorage.getItem('user')) {
+            window.location.href = FORM_URL;
+        } else {
+            document.getElementById('authModal').style.display = 'flex';
+        }
+    }
+
+    function startLogin() {
+        window.location.href = AUTH_URL;
+    }
+
+    function closeModal(e) {
+        if (!e || e.target.id === 'authModal' || e === null) {
+            document.getElementById('authModal').style.display = 'none';
+        }
+    }
+
+    function handleAuth() {
+        if (localStorage.getItem('user')) {
+            if (confirm("Вийти?")) {
+                localStorage.removeItem('user');
+                location.reload();
+            }
+        } else {
+            startLogin();
+        }
+    }
 </script>
 
 </body>
