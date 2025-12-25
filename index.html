@@ -9,13 +9,21 @@
         :root {
             --soft-blue: #a2b9bc;
             --soft-bg: #f4f7f6;
+            --text-dark: #505e63;
             --white: #ffffff;
-            --active-green: #a3b18a;
+            --active-green: #a3b18a; /* Пастельний зелений для авторизованих */
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--soft-bg); margin: 0; text-align: center; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background: var(--soft-bg);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-        /* Шапка */
         header {
             background: var(--white);
             padding: 15px 5%;
@@ -25,16 +33,46 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
+        header h1 { margin: 0; font-size: 1.4rem; color: var(--soft-blue); }
+
         .auth-btn {
             font-weight: 600;
             color: var(--soft-blue);
+            text-decoration: none;
             cursor: pointer;
             padding: 7px 20px;
             border: 2px solid var(--soft-blue);
             border-radius: 20px;
+            transition: 0.3s;
         }
 
-        /* Модалка */
+        nav {
+            background: var(--soft-blue);
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        nav a { color: white; text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+        }
+
+        .section-title {
+            color: var(--soft-blue);
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+        }
+
+        /* МОДАЛЬНЕ ВІКНО */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -44,113 +82,96 @@
             z-index: 10000;
             justify-content: center; align-items: center;
         }
-        .modal-box { background: white; padding: 40px; border-radius: 20px; max-width: 350px; }
+        .modal-box {
+            background: white; padding: 40px; border-radius: 20px;
+            text-align: center; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
 
         .btn {
             display: inline-block;
-            padding: 12px 30px;
-            border-radius: 30px;
+            padding: 10px 25px;
+            border-radius: 25px;
             text-decoration: none;
+            color: white;
             font-weight: 600;
-            cursor: pointer;
+            margin: 5px;
+            transition: 0.3s;
             border: none;
-            margin: 10px;
+            cursor: pointer;
         }
-        .btn-blue { background: var(--soft-blue); color: white; }
+        .btn-blue { background: var(--soft-blue); }
+        .btn-tg { background: #0088cc; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
-        /* Лоадер (завантаження) */
-        #loader { display: none; margin-top: 20px; color: var(--soft-blue); }
+        footer {
+            background: white;
+            padding: 40px 5% 20px;
+            border-top: 1px solid #eee;
+            margin-top: auto;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer-section { text-align: center; }
+        .social-icons a { font-size: 1.5rem; margin: 0 10px; color: var(--soft-blue); }
+
+        @media (max-width: 600px) {
+            .container { margin: 15px; padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 style="color: var(--soft-blue); font-size: 1.2rem;">ОЦНТ Черкаси</h1>
+    <h1>ОЦНТ Черкаси</h1>
     <div class="auth-btn" id="loginBtn" onclick="handleAuthAction()">Login</div>
 </header>
 
-<div class="container" style="padding: 50px 20px;">
-    <h2>Подати заявку</h2>
-    <p>Натисніть кнопку для заповнення анкети</p>
-    <button onclick="checkAccessAndRedirect()" class="btn btn-blue">ЗАПОВНИТИ ФОРМУ</button>
-    <div id="loader"><i class="fas fa-spinner fa-spin"></i> Перевірка авторизації...</div>
+<nav>
+    <a href="#about">Про нас</a>
+    <a href="#collectives">Колективи</a>
+    <a href="#contacts">Контакти</a>
+</nav>
+
+<div class="container" id="about">
+    <h2 class="section-title">Про нас</h2>
+    <p>Відділ народної творчості займається розвитком та підтримкою творчих колективів Черкащини.</p>
+</div>
+
+<div class="container" id="collectives">
+    <h2 class="section-title">Колективи</h2>
+    <p>• Вокально-хорові • Хореографічні • Інструментальні • Театральні</p>
 </div>
 
 <div id="authModal" class="modal-overlay">
     <div class="modal-box" id="modalBox">
         <h3>Авторизація</h3>
-        <p>Будь ласка, увійдіть через Google, щоб отримати доступ до форми.</p>
-        <button class="btn btn-blue" onclick="login()">УВІЙТИ ЧЕРЕЗ GOOGLE</button>
-        <p style="font-size: 12px; color: #aaa; cursor: pointer;" onclick="closeModal()">Скасувати</p>
+        <p>Для подачі заявки потрібно увійти через Google.</p>
+        <button class="btn btn-blue" onclick="login()">УВІЙТИ</button>
+        <button class="btn" style="background:#ddd; color:#333;" onclick="closeModal()">СКАСУВАТИ</button>
     </div>
 </div>
 
-<script>
-const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
-const N8N_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
-
-// 1. ГОЛОВНА ФУНКЦІЯ ПЕРЕВІРКИ
-function init() {
-    const params = new URLSearchParams(window.location.search);
-    const nameFromUrl = params.get('name');
-
-    if (nameFromUrl) {
-        // Якщо в URL є ім'я - значить ми щойно від Google/n8n
-        localStorage.setItem('userName', decodeURIComponent(nameFromUrl));
-        document.getElementById('loader').style.display = 'block';
-        
-        // Очищуємо URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // РЕДІРЕКТ НА ФОРМУ
-        setTimeout(() => {
-            window.location.href = N8N_FORM_URL;
-        }, 500); 
-        return;
-    }
-
-    updateUI();
-}
-
-function updateUI() {
-    const savedName = localStorage.getItem('userName');
-    const loginBtn = document.getElementById('loginBtn');
-    if (savedName && loginBtn) {
-        loginBtn.innerText = savedName;
-        loginBtn.style.background = "var(--active-green)";
-        loginBtn.style.color = "white";
-    }
-}
-
-// 2. ЗАКРИТТЯ КЛІКОМ ПО ФОНУ
-document.getElementById('authModal').addEventListener('mousedown', function(e) {
-    if (e.target.id === 'authModal') closeModal();
-});
-
-function checkAccessAndRedirect() {
-    if (localStorage.getItem('userName')) {
-        window.location.href = N8N_FORM_URL;
-    } else {
-        document.getElementById('authModal').style.display = 'flex';
-    }
-}
-
-function handleAuthAction() {
-    if (localStorage.getItem('userName')) {
-        if (confirm("Вийти?")) {
-            localStorage.removeItem('userName');
-            location.reload();
-        }
-    } else {
-        login();
-    }
-}
-
-function login() { window.location.href = GOOGLE_AUTH_URL; }
-function closeModal() { document.getElementById('authModal').style.display = 'none'; }
-
-// Запуск
-init();
-</script>
-</body>
-</html>
+<footer id="contacts">
+    <div class="footer-grid">
+        <div class="footer-section">
+            <h4>Підпишіться</h4>
+            <a href="https://t.me/narodocnt_bot" target="_blank" class="btn btn-tg"><i class="fab fa-telegram"></i> ТЕЛЕГРАМ-БОТ</a>
+        </div>
+        <div class="footer-section">
+            <h4>Подати заявку</h4>
+            <button onclick="checkAccessAndRedirect()" class="btn btn-blue">ЗАПОВНИТИ ФОРМУ</button>
+        </div>
+        <div class="footer-section">
+            <h4>Контакти</h4>
+            <p>narodocnt@ukr.net</p>
+            <div class="social-icons">
+                <a href="https://facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
