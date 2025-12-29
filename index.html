@@ -80,6 +80,31 @@
             text-decoration: none; font-weight: bold; border: none; font-size: 1.1rem; cursor: pointer;
         }
 
+         /* Статистика */
+<style>
+    .ranking-section { max-width: 800px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+    .ranking-title { text-align: center; color: var(--nav); margin-bottom: 30px; }
+    
+    .rank-item { margin-bottom: 20px; }
+    .rank-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
+    .progress-bg { background: #eee; border-radius: 10px; height: 20px; overflow: hidden; }
+    .progress-bar { 
+        background: linear-gradient(90deg, #e67e22, #f1c40f); 
+        height: 100%; 
+        width: 0%; 
+        transition: width 1s ease-in-out; 
+    }
+    .likes-count { color: var(--accent); }
+</style>
+
+<div class="ranking-section" id="contest">
+    <h2 class="ranking-title">🏆 Рейтинг популярності колективів</h2>
+    <div id="rankingList">
+        <p style="text-align:center;">Завантаження результатів...</p>
+    </div>
+</div>
+
+        
         /* Футер */
         footer { background: #2f3640; padding: 50px 20px; margin-top: 50px; text-align: center; color: white; }
         footer a { color: #f1c40f; text-decoration: none; }
@@ -197,6 +222,43 @@
             btn.style.color = "white";
         }
     }
+// Статистика
+    async function loadRanking() {
+    // URL вашого вебхука в n8n, який віддає дані з Google Таблиці
+    const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+
+    try {
+        const response = await fetch(N8N_GET_RANKING_URL);
+        const data = await response.json(); // Очікуємо масив: [{name: "Тясмин", likes: 120}, ...]
+        
+        const list = document.getElementById('rankingList');
+        list.innerHTML = ''; // Очищуємо текст завантаження
+
+        // Знаходимо максимальну кількість лайків для розрахунку % прогресу
+        const maxLikes = Math.max(...data.map(item => item.likes));
+
+        data.forEach(item => {
+            const percentage = (item.likes / maxLikes) * 100;
+            list.innerHTML += `
+                <div class="rank-item">
+                    <div class="rank-info">
+                        <span>${item.name}</span>
+                        <span class="likes-count"><i class="fas fa-heart"></i> ${item.likes}</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-bar" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("Помилка рейтингу:", error);
+        document.getElementById('rankingList').innerHTML = "<p>Тимчасово не вдалося завантажити рейтинг.</p>";
+    }
+}
+
+// Запускаємо при завантаженні сторінки
+window.addEventListener('DOMContentLoaded', loadRanking);
 </script>
 </body>
 </html>
