@@ -6,7 +6,6 @@
     <title>Відділ народної творчості Черкаського ОЦНТ</title>
     
     <link rel="icon" type="image/png" href="фото_для_боту.png">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -30,10 +29,7 @@
         .logo-text h1 { font-size: 1.2rem; margin: 0; color: #2c3e50; }
         .logo-text p { font-size: 0.9rem; margin: 0; color: #7f8c8d; }
 
-        /* Контейнер для кнопок праворуч */
         .header-right { display: flex; align-items: center; gap: 20px; }
-        
-        /* Соцмережі у хедері */
         .header-socials { display: flex; gap: 15px; }
         .header-socials a { font-size: 1.5rem; color: var(--nav); transition: 0.3s; }
         .header-socials a:hover { transform: scale(1.1); }
@@ -62,7 +58,7 @@
         .dropdown-content a:hover { background: #f1f1f1; }
         .dropdown:hover .dropdown-content { display: block; }
 
-        /* Модальне вікно списків */
+        /* Модальне вікно */
         .modal-list { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;
@@ -80,31 +76,18 @@
             text-decoration: none; font-weight: bold; border: none; font-size: 1.1rem; cursor: pointer;
         }
 
-         /* Статистика */
-<style>
-    .ranking-section { max-width: 800px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-    .ranking-title { text-align: center; color: var(--nav); margin-bottom: 30px; }
-    
-    .rank-item { margin-bottom: 20px; }
-    .rank-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
-    .progress-bg { background: #eee; border-radius: 10px; height: 20px; overflow: hidden; }
-    .progress-bar { 
-        background: linear-gradient(90deg, #e67e22, #f1c40f); 
-        height: 100%; 
-        width: 0%; 
-        transition: width 1s ease-in-out; 
-    }
-    .likes-count { color: var(--accent); }
-</style>
+        /* Стилі рейтингу */
+        .ranking-section { max-width: 800px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .ranking-title { text-align: center; color: var(--nav); margin-bottom: 30px; }
+        .rank-item { margin-bottom: 20px; }
+        .rank-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
+        .progress-bg { background: #eee; border-radius: 10px; height: 20px; overflow: hidden; }
+        .progress-bar { 
+            background: linear-gradient(90deg, #e67e22, #f1c40f); 
+            height: 100%; width: 0%; transition: width 1s ease-in-out; 
+        }
+        .likes-count { color: var(--accent); }
 
-<div class="ranking-section" id="contest">
-    <h2 class="ranking-title">🏆 Рейтинг популярності колективів</h2>
-    <div id="rankingList">
-        <p style="text-align:center;">Завантаження результатів...</p>
-    </div>
-</div>
-
-        
         /* Футер */
         footer { background: #2f3640; padding: 50px 20px; margin-top: 50px; text-align: center; color: white; }
         footer a { color: #f1c40f; text-decoration: none; }
@@ -153,6 +136,13 @@
     <h2>Подача заявки</h2>
     <p>Натисніть кнопку, щоб заповнити анкету учасника.</p><br>
     <button class="btn-main" onclick="goToForm()">ВІДКРИТИ АНКЕТУ</button>
+</div>
+
+<div class="ranking-section" id="contest">
+    <h2 class="ranking-title">🏆 Рейтинг популярності колективів</h2>
+    <div id="rankingList">
+        <p style="text-align:center;">Завантаження результатів...</p>
+    </div>
 </div>
 
 <div id="listModal" class="modal-list" onclick="this.style.display='none'">
@@ -222,43 +212,43 @@
             btn.style.color = "white";
         }
     }
-// Статистика
+
     async function loadRanking() {
-    // URL вашого вебхука в n8n, який віддає дані з Google Таблиці
-    const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+        const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+        try {
+            const response = await fetch(N8N_GET_RANKING_URL);
+            const data = await response.json();
+            const list = document.getElementById('rankingList');
+            list.innerHTML = ''; 
+            
+            if (data.length === 0) {
+                list.innerHTML = "<p style='text-align:center;'>Наразі немає даних для рейтингу.</p>";
+                return;
+            }
 
-    try {
-        const response = await fetch(N8N_GET_RANKING_URL);
-        const data = await response.json(); // Очікуємо масив: [{name: "Тясмин", likes: 120}, ...]
-        
-        const list = document.getElementById('rankingList');
-        list.innerHTML = ''; // Очищуємо текст завантаження
+            const maxLikes = Math.max(...data.map(item => item.likes)) || 1;
 
-        // Знаходимо максимальну кількість лайків для розрахунку % прогресу
-        const maxLikes = Math.max(...data.map(item => item.likes));
-
-        data.forEach(item => {
-            const percentage = (item.likes / maxLikes) * 100;
-            list.innerHTML += `
-                <div class="rank-item">
-                    <div class="rank-info">
-                        <span>${item.name}</span>
-                        <span class="likes-count"><i class="fas fa-heart"></i> ${item.likes}</span>
+            data.forEach(item => {
+                const percentage = (item.likes / maxLikes) * 100;
+                list.innerHTML += `
+                    <div class="rank-item">
+                        <div class="rank-info">
+                            <span>${item.name}</span>
+                            <span class="likes-count"><i class="fas fa-heart"></i> ${item.likes}</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-bar" style="width: ${percentage}%"></div>
+                        </div>
                     </div>
-                    <div class="progress-bg">
-                        <div class="progress-bar" style="width: ${percentage}%"></div>
-                    </div>
-                </div>
-            `;
-        });
-    } catch (error) {
-        console.error("Помилка рейтингу:", error);
-        document.getElementById('rankingList').innerHTML = "<p>Тимчасово не вдалося завантажити рейтинг.</p>";
+                `;
+            });
+        } catch (error) {
+            console.error("Помилка рейтингу:", error);
+            document.getElementById('rankingList').innerHTML = "<p style='text-align:center;'>Тимчасово не вдалося завантажити рейтинг.</p>";
+        }
     }
-}
 
-// Запускаємо при завантаженні сторінки
-window.addEventListener('DOMContentLoaded', loadRanking);
+    window.addEventListener('DOMContentLoaded', loadRanking);
 </script>
 </body>
 </html>
