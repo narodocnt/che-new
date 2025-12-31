@@ -130,9 +130,17 @@
 </div>
 
 <div class="ranking-section" id="contest">
-    <h2 class="ranking-title">🏆 Живий бенчмарк популярності колективів</h2>
+    <h2 class="ranking-title">🏆 Живий бенчмарк популярності</h2>
+    
+    <div class="ranking-tabs">
+        <button class="tab-btn active" onclick="renderList('total')">🏆 Всі разом</button>
+        <button class="tab-btn" onclick="renderList('likes')">❤️ Лайки</button>
+        <button class="tab-btn" onclick="renderList('comments')">💬 Коментарі</button>
+        <button class="tab-btn" onclick="renderList('shares')">🔄 Поширення</button>
+    </div>
+
     <div id="rankingList" class="ranking-container">
-        <p style="text-align:center;">Завантаження результатів змагання...</p>
+        <p style="text-align:center;">Завантаження результатів...</p>
     </div>
 </div>
 
