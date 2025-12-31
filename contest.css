@@ -36,3 +36,29 @@
     width: 0; transition: width 1.5s ease-out; 
 }
 .likes-count { color: #e67e22; font-weight: bold; }
+
+/* Перемикачі категорій */
+.ranking-tabs {
+    display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
+}
+.tab-btn {
+    padding: 10px 20px; border: 2px solid var(--accent); border-radius: 20px;
+    background: white; cursor: pointer; font-weight: bold; transition: 0.3s;
+}
+.tab-btn.active { background: var(--accent); color: white; }
+
+/* Підсвічування переможців */
+.rank-card.top-0 { border: 2px solid #ffd700; background: #fffdf0; transform: scale(1.02); } /* Золото */
+.rank-card.top-1 { border: 2px solid #c0c0c0; background: #f8f8f8; } /* Срібло */
+.rank-card.top-2 { border: 2px solid #cd7f32; background: #fffaf5; } /* Бронза */
+
+.medal { font-size: 1.5rem; margin-right: 15px; }
+
+/* Кнопка "Дивитись" */
+.btn-watch {
+    padding: 8px 15px; background: #1877f2; color: white; border-radius: 5px;
+    text-decoration: none; font-size: 0.9rem; font-weight: bold; margin-left: 10px;
+}
+.btn-watch:hover { background: #145dbf; }
+
+.metric-info { font-size: 0.9rem; color: #666; font-weight: bold; }
