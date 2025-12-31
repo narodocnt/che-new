@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" href="фото_для_боту.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <link rel="stylesheet" href="contest.css">
+    
     <style>
         :root { 
             --primary: #1e272e; 
@@ -76,28 +78,6 @@
             text-decoration: none; font-weight: bold; border: none; font-size: 1.1rem; cursor: pointer;
         }
 
-        /* Стилі рейтингу */
-        .ranking-section { max-width: 900px; margin: 50px auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .ranking-title { text-align: center; color: var(--nav); margin-bottom: 20px; }
-        
-        .iframe-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* Співвідношення сторін для Looker Studio */
-            height: 0;
-            overflow: hidden;
-            border-radius: 15px;
-        }
-        
-        .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-
         /* Футер */
         footer { background: #2f3640; padding: 50px 20px; margin-top: 50px; text-align: center; color: white; }
         footer a { color: #f1c40f; text-decoration: none; }
@@ -150,8 +130,8 @@
 
 <div class="ranking-section" id="contest">
     <h2 class="ranking-title">🏆 Живий бенчмарк популярності колективів</h2>
-    <div class="iframe-container">
-        <iframe src="https://lookerstudio.google.com/embed/reporting/71f80ce8-8563-4d48-b907-1714c0b1111b/page/ix2jF" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+    <div id="rankingList" class="ranking-container">
+        <p style="text-align:center;">Завантаження результатів змагання...</p>
     </div>
 </div>
 
@@ -175,6 +155,7 @@
 </footer>
 
 <script src="collectives.js"></script>
+<script src="contest.js"></script>
 
 <script>
     const FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
