@@ -1,0 +1,38 @@
+/* Стилі для бенчмарку в стилі Elfsight */
+.ranking-section { 
+    max-width: 900px; 
+    margin: 50px auto; 
+    background: white; 
+    padding: 30px; 
+    border-radius: 20px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+}
+
+.ranking-title { text-align: center; color: #2f3640; margin-bottom: 30px; }
+
+.ranking-container { display: flex; flex-direction: column; gap: 15px; }
+
+.rank-card {
+    display: flex; align-items: center; background: #fff;
+    padding: 15px; border-radius: 12px; border: 1px solid #eee;
+    transition: transform 0.2s;
+}
+
+.rank-card:hover { transform: translateX(10px); border-color: #e67e22; }
+
+.rank-photo {
+    width: 60px; height: 60px; border-radius: 50%;
+    object-fit: cover; margin-right: 20px; border: 2px solid #f5f6fa;
+}
+
+.rank-details { flex-grow: 1; }
+
+.rank-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.rank-name { font-weight: bold; font-size: 1rem; color: #2f3640; }
+
+.progress-wrapper { background: #f0f0f0; border-radius: 20px; height: 12px; overflow: hidden; }
+.progress-fill { 
+    height: 100%; background: linear-gradient(90deg, #e67e22, #f1c40f); 
+    width: 0; transition: width 1.5s ease-out; 
+}
+.likes-count { color: #e67e22; font-weight: bold; }
