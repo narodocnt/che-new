@@ -1,15 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. Шукаємо конкретний блок за ID "about", який ми видаляємо
+    // 1. Шукаємо блок "about" для заміни
     const aboutSection = document.getElementById('about');
 
     if (aboutSection) {
-        // Створюємо новий контейнер для картинки та кнопок
+        // Створюємо контейнер банера
         const newBanner = document.createElement('div');
         newBanner.className = 'cheruta-banner-container';
         newBanner.style.cssText = `
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             margin: 30px auto;
             border-radius: 15px;
             overflow: hidden;
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
             line-height: 0;
         `;
 
-        // Вставляємо картинку та кнопки
+        // Вставляємо картинку та кнопки поверх неї
         newBanner.innerHTML = `
             <img src="cheruta.jpg" alt="Червона Рута 2026" style="width: 100%; height: auto; display: block;">
             
@@ -31,13 +31,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 padding: 0 20px;
                 gap: 15px;
             ">
-                <a href="ПОСИЛАННЯ_НА_ПОЛОЖЕННЯ" target="_blank" class="cheruta-btn btn-left">
+                <a href="URL_ПОЛОЖЕННЯ" target="_blank" class="cheruta-btn btn-left">
                     ЧИТАТИ ПОЛОЖЕННЯ
                 </a>
 
-                <a href="ПОСИЛАННЯ_НА_ЗАЯВКУ" target="_blank" class="cheruta-btn btn-right">
+                <button id="openFormBtn" class="cheruta-btn btn-right">
                     ПОДАТИ ЗАЯВКУ
-                </a>
+                </button>
             </div>
 
             <style>
@@ -56,71 +56,61 @@ document.addEventListener("DOMContentLoaded", function() {
                     align-items: center;
                     justify-content: center;
                     text-transform: uppercase;
+                    cursor: pointer;
+                    border: none;
                 }
                 .btn-left {
                     background-color: rgba(255, 255, 255, 0.15);
                     color: #ffffff;
-                    border: 2px solid #ffffff;
+                    border: 2px solid #ffffff !important;
                     backdrop-filter: blur(5px);
                 }
-                .btn-left:hover {
-                    background-color: #ffffff;
-                    color: #000000;
-                }
+                .btn-left:hover { background-color: #ffffff; color: #000000; }
+                
                 .btn-right {
-                    background-color: #ff4500; /* Помаранчевий під колір "Рути" */
+                    background-color: #ff4500;
                     color: white;
-                    border: 2px solid #ff4500;
+                    border: 2px solid #ff4500 !important;
                 }
                 .btn-right:hover {
                     background-color: #e63e00;
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.5);
                 }
-                /* Адаптація для мобільних */
                 @media (max-width: 480px) {
                     .cheruta-btn { font-size: 10px; padding: 8px 5px; }
-                    .cheruta-banner-container { margin: 15px auto; }
                 }
             </style>
         `;
 
         // Замінюємо старий блок новим
         aboutSection.parentNode.replaceChild(newBanner, aboutSection);
-    }
 
-    document.addEventListener("DOMContentLoaded", function() {
-    const aboutSection = document.getElementById('about');
-
-    if (aboutSection) {
-        // Створюємо банер (ваша картинка + кнопки)
-        const newBanner = document.createElement('div');
-        newBanner.style.cssText = 'position: relative; width: 100%; max-width: 900px; margin: 20px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);';
-
-        newBanner.innerHTML = `
-            <img src="cheruta.jpg" alt="Червона Рута 2026" style="width: 100%; display: block;">
-            <div style="position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 30px; gap: 20px;">
-                <a href="URL_ПОЛОЖЕННЯ" target="_blank" style="flex: 1; text-align: center; padding: 15px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; text-decoration: none; font-weight: bold; backdrop-filter: blur(5px);">ЧИТАТИ ПОЛОЖЕННЯ</a>
-                <button id="openFormBtn" style="flex: 1; text-align: center; padding: 15px; background: #ff4500; color: white; border: 2px solid #ff4500; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase;">ПОДАТИ ЗАЯВКУ</button>
-            </div>
-        `;
-
-        aboutSection.parentNode.replaceChild(newBanner, aboutSection);
-
-        // Створюємо модальне вікно з усіма полями анкети
+        // 2. Створюємо модальне вікно (додаємо в кінець body)
         const modal = document.createElement('div');
         modal.id = 'rutaModal';
-        modal.style.cssText = 'display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); overflow-y: auto; padding: 20px; box-sizing: border-box;';
+        modal.style.cssText = `
+            display: none; 
+            position: fixed; 
+            z-index: 99999; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.85); 
+            overflow-y: auto; 
+            padding: 20px; 
+            box-sizing: border-box;
+        `;
 
         modal.innerHTML = `
-            <div style="background: #fff; margin: auto; padding: 30px; border-radius: 12px; max-width: 600px; position: relative; font-family: Arial, sans-serif; color: #333;">
-                <span id="closeModal" style="position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer;">&times;</span>
-                <h2 style="text-align: center; color: #ff4500;">АНКЕТА УЧАСНИКА - 2026</h2>
-                <p style="font-size: 12px; text-align: center; margin-bottom: 20px;">Усі поля є обов’язковими для заповнення</p>
+            <div style="background: #fff; margin: 20px auto; padding: 30px; border-radius: 12px; max-width: 600px; position: relative; font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+                <span id="closeModal" style="position: absolute; right: 20px; top: 10px; font-size: 35px; cursor: pointer; color: #999;">&times;</span>
+                <h2 style="text-align: center; color: #ff4500; margin-top: 0;">АНКЕТА УЧАСНИКА - 2026</h2>
+                <p style="font-size: 12px; text-align: center; margin-bottom: 20px; color: #666;">Усі поля є обов’язковими для заповнення</p>
                 
                 <form id="rutaEntryForm">
-                    <label>01. Жанр музики:</label>
-                    <select name="genre" required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">01. Жанр музики:</label>
+                    <select name="genre" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
                         <option value="фольклор">Фольклор</option>
                         <option value="поп-музика">Поп-музика</option>
                         <option value="танцювальна">Танцювальна</option>
@@ -129,46 +119,62 @@ document.addEventListener("DOMContentLoaded", function() {
                         <option value="інша">Інша музика</option>
                     </select>
 
-                    <label>03. Прізвище, ім’я соліста / Назва гурту:</label>
-                    <input type="text" name="participant_name" required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">03. Прізвище, ім’я соліста / Назва гурту:</label>
+                    <input type="text" name="participant_name" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
 
-                    <label>04. Володіння інструментами (для соліста або склад гурту):</label>
-                    <textarea name="instruments" required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px; height: 60px;"></textarea>
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">04. Володіння інструментами / Склад гурту:</label>
+                    <textarea name="instruments" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; height: 60px;"></textarea>
 
-                    <div style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label>05. Номер мобільного:</label>
-                            <input type="tel" name="phone" placeholder="+380..." required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="font-weight:bold; display:block; margin-bottom:5px;">05. Номер мобільного:</label>
+                            <input type="tel" name="phone" placeholder="+380..." required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
                         </div>
-                        <div style="flex: 1;">
-                            <label>Email:</label>
-                            <input type="email" name="email" required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="font-weight:bold; display:block; margin-bottom:5px;">Email:</label>
+                            <input type="email" name="email" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
                         </div>
                     </div>
 
-                    <label>10. Конкурсний репертуар (1, 2, 3 пісні - назва/автори):</label>
-                    <textarea name="repertoire" required style="width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 4px; height: 80px;" placeholder="1 пісня: ... &#10;2 пісня: ..."></textarea>
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">10. Конкурсний репертуар (Назви пісень та автори):</label>
+                    <textarea name="repertoire" required style="width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #ccc; border-radius: 6px; height: 80px;" placeholder="1 пісня: Назва - Автор..."></textarea>
 
-                    <button type="submit" style="width: 100%; padding: 15px; background: #ff4500; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">ВІДПРАВИТИ ЗАЯВКУ</button>
+                    <button type="submit" id="submitBtn" style="width: 100%; padding: 16px; background: #ff4500; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s;">ВІДПРАВИТИ ЗАЯВКУ</button>
                 </form>
             </div>
         `;
-
         document.body.appendChild(modal);
 
-        // Обробка кнопок
-        document.getElementById('openFormBtn').onclick = () => modal.style.display = 'block';
-        document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
-        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+        // Логіка відкриття/закриття
+        const openBtn = document.getElementById('openFormBtn');
+        const closeBtn = document.getElementById('closeModal');
+        const form = document.getElementById('rutaEntryForm');
+
+        openBtn.addEventListener('click', function() {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Заборона прокрутки фону
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
 
         // Відправка в n8n
-        document.getElementById('rutaEntryForm').onsubmit = async (e) => {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = 'ВІДПРАВКА...';
-            btn.disabled = true;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = 'ВІДПРАВКА...';
+            submitBtn.disabled = true;
 
-            const formData = new FormData(e.target);
+            const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
             try {
@@ -181,17 +187,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (response.ok) {
                     alert('Дякуємо! Ваша заявка прийнята.');
                     modal.style.display = 'none';
-                    e.target.reset();
+                    document.body.style.overflow = 'auto';
+                    form.reset();
                 } else {
                     throw new Error();
                 }
             } catch (err) {
-                alert('Помилка відправки. Перевірте з’єднання з n8n.');
+                alert('Помилка відправки. Перевірте з’єднання.');
             } finally {
-                btn.innerText = 'ВІДПРАВИТИ ЗАЯВКУ';
-                btn.disabled = false;
+                submitBtn.innerText = 'ВІДПРАВИТИ ЗАЯВКУ';
+                submitBtn.disabled = false;
             }
-        };
+        });
     }
-});
 });
