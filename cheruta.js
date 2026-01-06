@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const newBanner = document.createElement('div');
         newBanner.className = 'cheruta-banner-container';
         newBanner.style.cssText = `
-            position: relative; width: 100%; max-width: 500px; margin: 30px auto; 
+            position: relative; width: 100%; max-width: 900px; margin: 30px auto; 
             border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.3); line-height: 0;
         `;
 
