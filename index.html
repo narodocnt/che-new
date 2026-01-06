@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Відділ народної творчості Черкаського ОЦНТ</title>
 
-    <link rel="stylesheet" href="contest.css">
-    
     <link rel="icon" type="image/png" href="фото_для_боту.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="contest.css">
@@ -36,15 +34,18 @@
             display: none; position: absolute; background-color: white; min-width: 220px; 
             box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 0 0 8px 8px;
         }
-        .dropdown-content a { color: var(--primary); padding: 12px 16px; display: block; border-bottom: 1px solid #eee; text-align: left; text-decoration: none; }
+        .dropdown-content a { color: var(--primary); padding: 12px 16px; display: block; border-bottom: 1px solid #eee; text-align: left; text-decoration: none; cursor: pointer; }
         .dropdown:hover .dropdown-content { display: block; }
 
-        /* Контейнери для зовнішніх JS */
-        #ruta-banner-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; min-height: 200px; }
+        /* Контейнери */
+        #ruta-banner-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; min-height: 300px; background: #eee; }
         .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
         footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
         .social-icons a { color: white; font-size: 2rem; margin: 0 12px; }
+
+        /* Стиль для модалки з прокруткою */
+        #modalBody { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
 
         @media (max-width: 600px) { .header-socials { display: none; } }
     </style>
@@ -100,8 +101,8 @@
 </footer>
 
 <div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
-    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:600px; position:relative;" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:28px;">&times;</span>
+    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative;" onclick="event.stopPropagation()">
+        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:28px; font-weight:bold;">&times;</span>
         <div id="modalBody"></div>
     </div>
 </div>
@@ -111,12 +112,10 @@
 <script src="contest.js"></script>
 
 <script>
-    // Новий вебхук для Червоної Рути
     const RUTA_WEBHOOK = "https://n8n.narodocnt.online/webhook/ruta-zayavka";
     const GENERAL_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
-    // Авторизація та Вихід
     function handleAuthClick() {
         const user = localStorage.getItem('user');
         if (user) {
@@ -129,7 +128,6 @@
         }
     }
 
-    // Перехід на загальну форму
     function goToGeneralForm() {
         if (!localStorage.getItem('user')) {
             alert("Будь ласка, авторизуйтесь.");
@@ -138,24 +136,6 @@
             window.location.href = GENERAL_FORM_URL;
         }
     }
-
-    // Колективи (Випадаюче меню)
-    function openGenre(genre) {
-        const body = document.getElementById('modalBody');
-        if (typeof collectivesData === 'undefined') return alert("База даних не знайдена.");
-        
-        const list = collectivesData[genre] || [];
-        const titles = { vocal: 'Вокальні', choreographic: 'Хореографічні', theatrical: 'Театральні', instrumental: 'Інструментальні' };
-        
-        let html = `<h2>${titles[genre]} колективи</h2><hr>`;
-        list.forEach(i => {
-            html += `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${i.name}</b><br>${i.leader}</div>`;
-        });
-        body.innerHTML = html;
-        document.getElementById('listModal').style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('listModal').style.display = 'none'; }
 
     // Обробка входу після Google Redirect
     document.addEventListener('DOMContentLoaded', function() {
