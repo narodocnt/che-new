@@ -12,20 +12,17 @@
         :root { --primary: #1e272e; --accent: #e67e22; --bg: #f5f6fa; --nav: #2f3640; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--primary); overflow-x: hidden; }
         
-        /* Хедер */
         header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 15px; }
         .logo-img { height: 60px; border-radius: 8px; }
         .logo-text h1 { font-size: 1.1rem; margin: 0; }
         
-        .header-right { display: flex; align-items: center; gap: 15px; }
         .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; transition: 0.3s; }
 
-        /* Навігація */
         nav { background: var(--nav); display: flex; justify-content: center; flex-wrap: wrap; }
         nav a { color: white; padding: 15px 20px; text-decoration: none; font-weight: 600; font-size: 14px; cursor: pointer; }
 
-        /* БАНЕР ЧЕРВОНА РУТА З КНОПКАМИ */
+        /* БАНЕР ЧЕРВОНА РУТА */
         .ruta-container { 
             position: relative; 
             max-width: 900px; 
@@ -33,7 +30,6 @@
             border-radius: 15px; 
             overflow: hidden; 
             background: #000; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
         .ruta-img { width: 100%; display: block; }
         .ruta-overlay { 
@@ -50,24 +46,24 @@
             width: 85px; height: 85px; border: none; border-radius: 10px; font-weight: bold; font-size: 10px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
             cursor: pointer; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;
-            pointer-events: auto;
         }
-        .btn-rules { background: rgba(255, 255, 255, 0.9); color: black; }
-        .btn-apply { background: rgba(255, 69, 0, 0.9); color: white; }
-        .sq-btn:active { transform: scale(0.95); }
+        .btn-rules { background: rgba(255, 255, 255, 0.95); color: black; }
+        .btn-apply { background: rgba(230, 126, 34, 0.95); color: white; }
 
-        /* Модальне вікно */
+        /* БИТВА ВПОДОБАЙКІВ */
+        .battle-section { max-width: 900px; margin: 30px auto; text-align: center; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .battle-img { width: 100%; max-width: 600px; border-radius: 15px; margin-bottom: 15px; }
+        #festival-title { font-weight: bold; font-size: 1.4rem; color: #ff9800; margin-bottom: 20px; text-transform: uppercase; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; max-height: 80vh; overflow-y: auto; }
         
         footer { background: #2f3640; padding: 30px; color: white; text-align: center; margin-top: 50px; }
         .social-icons a { color: white; font-size: 1.8rem; margin: 0 10px; transition: 0.3s; }
-        .social-icons a:hover { color: #f1c40f; }
 
         @media (max-width: 600px) {
             .sq-btn { width: 75px; height: 75px; font-size: 9px; }
             header { padding: 10px 2%; }
-            .logo-text h1 { font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -75,10 +71,10 @@
 
 <header>
     <div class="logo-box">
-        <img src="фото_для_боту.png" class="logo-img" alt="Лого">
+        <img src="фото_для_боту.png" class="logo-img">
         <div class="logo-text">
             <h1>Відділ народної творчості</h1>
-            <p style="margin:0; font-size: 0.8rem; color: #7f8c8d;">Черкаського ОЦНТ</p>
+            <p style="margin:0; font-size: 0.8rem;">Черкаського ОЦНТ</p>
         </div>
     </div>
     <div class="header-right">
@@ -92,10 +88,20 @@
 </nav>
 
 <div class="ruta-container">
-    <img src="ruta_banner.png" class="ruta-img" alt="Червона Рута"> 
+    <img src="bitva.png" class="ruta-img" alt="Червона Рута"> 
     <div class="ruta-overlay">
-        <button class="sq-btn btn-rules" onclick="window.open('ПОСИЛАННЯ_НА_ПОЛОЖЕННЯ', '_blank')">ЧИТАТИ<br>ПОЛОЖЕННЯ</button>
+        <button class="sq-btn btn-rules" onclick="window.open('https://n8n.narodocnt.online/webhook/get-rules', '_blank')">ЧИТАТИ<br>ПОЛОЖЕННЯ</button>
         <button class="sq-btn btn-apply" onclick="goToForm()">ПОДАТИ<br>ЗАЯВКУ</button>
+    </div>
+</div>
+
+<div class="battle-section">
+    <img src="bitva.png" class="battle-img" alt="Битва вподобайків">
+    <h2>🏆 Битва вподобайків</h2>
+    <div id="festival-title">Завантаження назви...</div>
+    
+    <div id="rankingList" class="ranking-container">
+        <p style="text-align:center;">Завантаження результатів таблиці...</p>
     </div>
 </div>
 
@@ -106,27 +112,28 @@
         <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank" style="color:#ff0000;"><i class="fab fa-youtube"></i></a>
         <a href="https://t.me/narodocnt_bot" target="_blank" style="color:#0088cc;"><i class="fab fa-telegram"></i></a>
     </div>
-    <p style="margin-top:15px; opacity: 0.8;">Email: narodocnt@ukr.net</p>
-    <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">© 2026 Відділ народної творчості Черкаського ОЦНТ</p>
+    <p style="margin-top:15px;">Email: narodocnt@ukr.net</p>
+    <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">© 2026 Черкаський ОЦНТ</p>
 </footer>
 
 <div id="listModal" class="modal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <span style="float:right; cursor:pointer; font-size:24px; font-weight:bold;" onclick="closeModal()">&times;</span>
+        <span style="float:right; cursor:pointer; font-size:24px;" onclick="closeModal()">&times;</span>
         <div id="modalBody"></div>
     </div>
 </div>
 
 <script src="collectives.js"></script>
 <script>
+    const SHEET_URL = 'https://n8n.narodocnt.online/webhook/get-ranking'; 
     const FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
-    // --- Авторизація та Вихід (Logout) ---
+    // --- Авторизація та Logout ---
     function handleAuthClick() {
         const user = localStorage.getItem('user');
         if (user) {
-            if (confirm(`Ви залогінені як ${user}. Бажаєте вийти?`)) {
+            if (confirm(`Вийти з аккаунту ${user}?`)) {
                 localStorage.removeItem('user');
                 location.reload();
             }
@@ -137,66 +144,57 @@
 
     function goToForm() {
         if (!localStorage.getItem('user')) {
-            alert("Будь ласка, авторизуйтесь через Google для доступу до анкети.");
+            alert("Потрібна авторизація");
             handleAuthClick();
         } else {
             window.location.href = FORM_URL;
         }
     }
 
-    // --- Колективи (Логіка виклику) ---
+    // --- Завантаження даних таблиці ---
+    async function loadBattleData() {
+        try {
+            const response = await fetch(SHEET_URL);
+            const data = await response.json();
+            if (data.length > 0 && data[0].festival_title) {
+                document.getElementById('festival-title').innerText = data[0].festival_title;
+            }
+            // Тут ваш код рендеру списку з таблиці (якщо він у contest.js - він спрацює автоматично)
+        } catch (e) { console.error("Помилка даних:", e); }
+    }
+
+    // --- Колективи ---
     function showGenreMenu() {
         const body = document.getElementById('modalBody');
         body.innerHTML = `
-            <h2 style="text-align:center; color:var(--nav);">Оберіть жанр</h2>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-                <button onclick="openGenre('vocal')" style="padding:12px; cursor:pointer; font-weight:bold; border-radius:8px; border:1px solid #ddd;">Вокально-хоровий</button>
-                <button onclick="openGenre('choreographic')" style="padding:12px; cursor:pointer; font-weight:bold; border-radius:8px; border:1px solid #ddd;">Хореографічний</button>
-                <button onclick="openGenre('theatrical')" style="padding:12px; cursor:pointer; font-weight:bold; border-radius:8px; border:1px solid #ddd;">Театральний</button>
-                <button onclick="openGenre('instrumental')" style="padding:12px; cursor:pointer; font-weight:bold; border-radius:8px; border:1px solid #ddd;">Музично-інструментальний</button>
-            </div>
-        `;
+            <h3>Оберіть жанр:</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button onclick="openGenre('vocal')" style="padding:10px;">Вокальний</button>
+                <button onclick="openGenre('choreographic')" style="padding:10px;">Хореографічний</button>
+            </div>`;
         document.getElementById('listModal').style.display = 'flex';
     }
 
     function openGenre(genre) {
         const body = document.getElementById('modalBody');
-        if (typeof collectivesData === 'undefined') {
-            return alert("Помилка: Файл collectives.js не знайдено.");
-        }
-        
+        if (typeof collectivesData === 'undefined') return alert("Дані відсутні");
         const list = collectivesData[genre] || [];
-        let html = `<h2 style="text-align:center;">Список колективів</h2><hr>`;
-        if (list.length === 0) {
-            html += `<p style="text-align:center;">Дані оновлюються...</p>`;
-        } else {
-            list.forEach(item => {
-                html += `<div style="padding:10px; border-bottom:1px solid #eee;">
-                    <b style="color:var(--nav);">${item.name}</b><br>
-                    <small>Керівник: ${item.leader}</small><br>
-                    <small style="color:gray;">${item.location}</small>
-                </div>`;
-            });
-        }
-        body.innerHTML = html + `<br><button onclick="showGenreMenu()" style="width:100%; padding:10px; background:#eee; border:none; border-radius:8px; cursor:pointer;">⬅ Назад</button>`;
+        let html = `<h3>${genre}</h3>`;
+        list.forEach(i => html += `<p><b>${i.name}</b><br>${i.leader}</p>`);
+        body.innerHTML = html + `<button onclick="showGenreMenu()">Назад</button>`;
     }
 
     function closeModal() { document.getElementById('listModal').style.display = 'none'; }
 
-    // --- Обробка при завантаженні ---
     document.addEventListener('DOMContentLoaded', function() {
-        const params = new URLSearchParams(window.location.search);
-        const name = params.get('name');
+        const name = new URLSearchParams(window.location.search).get('name');
         if (name) localStorage.setItem('user', decodeURIComponent(name));
-
         const user = localStorage.getItem('user');
         if (user) {
             const btn = document.getElementById('loginBtn');
-            btn.innerText = user;
-            btn.style.background = "#27ae60";
-            btn.style.color = "white";
-            btn.style.border = "none";
+            btn.innerText = user; btn.style.background = "#27ae60"; btn.style.color = "white";
         }
+        loadBattleData();
     });
 </script>
 </body>
