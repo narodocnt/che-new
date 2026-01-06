@@ -25,9 +25,12 @@
         nav { background: var(--nav); display: flex; justify-content: center; flex-wrap: wrap; }
         nav a { color: white; padding: 15px 20px; text-decoration: none; font-weight: 600; font-size: 14px; cursor: pointer; }
 
+        /* СПІЛЬНИЙ КОНТЕЙНЕР ДЛЯ БАНЕРІВ */
+        .banners-wrapper { max-width: 900px; margin: 0 auto; padding: 10px; }
+
         /* БАНЕР ЧЕРВОНА РУТА */
         .ruta-container { 
-            position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; background: #000; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            position: relative; width: 100%; border-radius: 15px; overflow: hidden; background: #000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); margin-bottom: 20px;
         }
         .ruta-img { width: 100%; display: block; }
         .ruta-overlay { 
@@ -35,16 +38,23 @@
         }
         
         .sq-btn {
-            width: 85px; height: 85px; border: none; border-radius: 10px; font-weight: bold; font-size: 10px; 
+            width: 90px; height: 90px; border: 2px solid white; border-radius: 12px; font-weight: bold; font-size: 10px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            cursor: pointer; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;
+            cursor: pointer; line-height: 1.2; transition: 0.2s; background: rgba(0,0,0,0.6); color: white;
         }
-        .btn-rules { background: rgba(255, 255, 255, 0.9); color: black; }
-        .btn-apply { background: rgba(255, 69, 0, 0.9); color: white; }
+        .btn-rules { background: rgba(255, 255, 255, 0.15); }
+        .btn-apply { background: #ff4500; border-color: #ff4500; }
+        .sq-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.3); }
+
+        /* БАНЕР БИТВА ВПОДОБАЙКІВ */
+        .bitva-container { 
+            width: 100%; background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); box-sizing: border-box;
+        }
+        .bitva-img { width: 100%; max-width: 400px; border-radius: 10px; margin-bottom: 15px; }
 
         /* Модалка */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; }
         
         footer { background: #2f3640; padding: 30px; color: white; text-align: center; margin-top: 50px; }
         .social-icons a { color: white; font-size: 1.8rem; margin: 0 10px; }
@@ -71,11 +81,19 @@
     <a onclick="goToGeneralForm()" style="color: #f1c40f;">ПОДАТИ ЗАЯВКУ</a>
 </nav>
 
-<div class="ruta-container">
-    <img src="ruta_banner.png" class="ruta-img" alt="Червона Рута"> 
-    <div class="ruta-overlay">
-        <button class="sq-btn btn-rules" onclick="window.open('ПОСИЛАННЯ_НА_ПОЛОЖЕННЯ', '_blank')">ЧИТАТИ<br>ПОЛОЖЕННЯ</button>
-        <button class="sq-btn btn-apply" onclick="goToRutaForm()">ПОДАТИ<br>ЗАЯВКУ</button>
+<div class="banners-wrapper">
+    <div class="ruta-container">
+        <img src="ruta_banner.png" class="ruta-img" alt="Червона Рута"> 
+        <div class="ruta-overlay">
+            <button class="sq-btn btn-rules" onclick="window.open('https://n8n.narodocnt.online/webhook/get-polozhennya', '_blank')">ЧИТАТИ<br>ПОЛОЖЕННЯ</button>
+            <button class="sq-btn btn-apply" onclick="goToRutaForm()">ПОДАТИ<br>ЗАЯВКУ</button>
+        </div>
+    </div>
+
+    <div class="bitva-container">
+        <img src="bitva.png" class="bitva-img" alt="Битва вподобайків">
+        <h2 id="festival-title" style="margin:0; color:var(--nav);">🏆 Битва вподобайків</h2>
+        <div id="rankingList" style="margin-top:15px;">Завантаження рейтингу...</div>
     </div>
 </div>
 
@@ -97,9 +115,10 @@
 
 <script src="collectives.js"></script>
 <script>
-    // Посилання на дві різні форми
+    // Посилання
     const GENERAL_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
-    const RUTA_FORM_URL = "https://n8n.narodocnt.online/webhook/vasha-forma-chervona-ruta"; // ВСТАВТЕ СЮДИ ПОСИЛАННЯ НА ВЕЛИКУ ФОРМУ
+    // Велика форма Червоної Рути (взято з ваших попередніх конфігурацій)
+    const RUTA_FORM_URL = "https://n8n.narodocnt.online/webhook/chervona-ruta-full-form"; 
     
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
@@ -113,39 +132,38 @@
         } else { window.location.href = AUTH_URL; }
     }
 
-    // Функція для верхнього меню (Загальна)
     function goToGeneralForm() {
         if (!localStorage.getItem('user')) {
-            alert("Потрібна авторизація через Google.");
+            alert("Будь ласка, авторизуйтесь.");
             handleAuthClick();
         } else { window.location.href = GENERAL_FORM_URL; }
     }
 
-    // Функція для банера (Червона Рута)
     function goToRutaForm() {
         if (!localStorage.getItem('user')) {
-            alert("Для реєстрації на Червону Руту, будь ласка, авторизуйтесь.");
+            alert("Для запису на Червону Руту потрібна авторизація.");
             handleAuthClick();
         } else { window.location.href = RUTA_FORM_URL; }
     }
 
-    // КОЛЕКТИВИ
+    // ЛОГІКА КОЛЕКТИВІВ
     function showGenreMenu() {
         const body = document.getElementById('modalBody');
         body.innerHTML = `<h3>Оберіть жанр:</h3>
-            <button onclick="openGenre('vocal')" style="width:100%; padding:10px; margin:5px 0;">Вокальний</button>
-            <button onclick="openGenre('choreographic')" style="width:100%; padding:10px; margin:5px 0;">Хореографічний</button>
-            <button onclick="openGenre('theatrical')" style="width:100%; padding:10px; margin:5px 0;">Театральний</button>
-            <button onclick="openGenre('instrumental')" style="width:100%; padding:10px; margin:5px 0;">Музичний</button>`;
+            <div style="display:grid; gap:10px;">
+                <button onclick="openGenre('vocal')" style="padding:10px;">Вокальний</button>
+                <button onclick="openGenre('choreographic')" style="padding:10px;">Хореографічний</button>
+                <button onclick="openGenre('theatrical')" style="padding:10px;">Театральний</button>
+            </div>`;
         document.getElementById('listModal').style.display = 'flex';
     }
 
     function openGenre(genre) {
         const body = document.getElementById('modalBody');
-        if (typeof collectivesData === 'undefined') return alert("Дані collectives.js не знайдено");
+        if (typeof collectivesData === 'undefined') return alert("Файл collectives.js не знайдено");
         const list = collectivesData[genre] || [];
         let html = `<h3>${genre}</h3>`;
-        list.forEach(item => { html += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><b>${item.name}</b><br><small>${item.leader}</small></div>`; });
+        list.forEach(item => { html += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><b>${item.name}</b></div>`; });
         body.innerHTML = html + `<br><button onclick="showGenreMenu()">Назад</button>`;
     }
 
