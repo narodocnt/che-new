@@ -1,11 +1,7 @@
-/**
- * cheruta.js - Чистий інтерфейс без багів
- */
 function initRutaUI() {
     const banner = document.querySelector('.ruta-container');
     if (!banner) return;
 
-    // Видаляємо старий інтерфейс, якщо він був
     const oldUI = document.getElementById('ruta-interface');
     if (oldUI) oldUI.remove();
 
@@ -38,7 +34,7 @@ function initRutaUI() {
         </div>
 
         <div style="padding-right: 15px;">
-            <button id="ruta-auth-btn" class="r-btn btn-prim">ЗАЯВКА</button>
+            <button id="final-auth-btn" class="r-btn btn-prim">ЗАЯВКА</button>
         </div>
     </div>
 
@@ -53,6 +49,7 @@ function initRutaUI() {
             text-transform: uppercase;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             pointer-events: auto !important;
+            display: inline-block;
         }
         .btn-sec { background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); }
         .btn-prim { background: #ff4500; color: white; }
@@ -68,22 +65,26 @@ function initRutaUI() {
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Логіка кнопки ЗАЯВКА - спочатку авторизація
-    const authBtn = document.getElementById('ruta-auth-btn');
-    if (authBtn) {
-        authBtn.onclick = function() {
-            // Виклик вашої системної авторизації
-            if (typeof goToForm === 'function') {
-                goToForm(); 
+    // Гарантована активація авторизації
+    document.getElementById('final-auth-btn').addEventListener('click', function() {
+        console.log("Спроба викликати авторизацію...");
+        
+        // 1. Прямий виклик через вікно
+        if (typeof window.goToForm === 'function') {
+            window.goToForm();
+        } 
+        // 2. Пошук будь-якої кнопки на сайті, яка запускає goToForm
+        else {
+            const hiddenBtn = document.querySelector('[onclick*="goToForm"]');
+            if (hiddenBtn) {
+                hiddenBtn.click();
             } else {
-                // Якщо функція не знайдена, імітуємо клік по кнопці в меню
-                const menuBtn = document.querySelector('.header-btn, #nav-apply, [onclick*="goToForm"]');
-                if (menuBtn) menuBtn.click();
+                // 3. Якщо нічого не спрацювало — просто перехід на реєстрацію
+                window.location.href = 'register.html';
             }
-        };
-    }
+        }
+    });
 
-    // Таймер
     const targetDate = new Date("March 21, 2026 09:00:00").getTime();
     function updateTimer() {
         const now = new Date().getTime();
@@ -109,9 +110,9 @@ function initRutaUI() {
     updateTimer();
 }
 
-// Запуск
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initRutaUI);
-} else {
+// Коректний запуск
+if (document.readyState === 'complete') {
     initRutaUI();
+} else {
+    window.addEventListener('load', initRutaUI);
 }
