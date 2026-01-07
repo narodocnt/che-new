@@ -105,16 +105,15 @@ function initRutaUI() {
  */
 function goToRutaForm() {
     const user = localStorage.getItem('user');
-    const RUTA_FORM_URL = "https://n8n.narodocnt.online/webhook/ruta-zayavka"; 
+    
+    // Пряме посилання на файл анкети
+    const RUTA_PAGE = "register.html"; 
 
     if (!user) {
-        alert("Будь ласка, авторизуйтесь для подачі заявки на Червону Руту.");
-        // Викликаємо вашу функцію handleAuthClick з index.html
-        if (typeof handleAuthClick === 'function') {
-            handleAuthClick();
-        }
+        alert("Будь ласка, авторизуйтесь (кнопка 'Увійти' зверху), щоб заповнити анкету.");
     } else {
-        window.location.href = RUTA_FORM_URL;
+        // Перехід на велику форму
+        window.location.href = RUTA_PAGE;
     }
 }
 
