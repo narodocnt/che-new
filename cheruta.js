@@ -1,5 +1,5 @@
 /**
- * cheruta.js - Пряме посилання на PDF та виклик авторизації через goToForm()
+ * cheruta.js - Фінальна версія з гарантованим викликом авторизації
  */
 
 function initRutaUI() {
@@ -39,7 +39,7 @@ function initRutaUI() {
         </div>
 
         <div style="padding-right: 15px;">
-            <button onclick="goToForm()" class="r-btn btn-prim">ЗАЯВКА</button>
+            <button id="main-zayavka-btn" class="r-btn btn-prim">ЗАЯВКА</button>
         </div>
     </div>
 
@@ -75,6 +75,26 @@ function initRutaUI() {
 
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
+
+    // НАДІЙНИЙ ОБРОБНИК КЛІКУ ДЛЯ ЗАЯВКИ
+    const zayavkaBtn = document.getElementById('main-zayavka-btn');
+    if (zayavkaBtn) {
+        zayavkaBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Кнопка натиснута, шукаємо функцію goToForm...');
+            
+            // Спробуємо викликати функцію різними способами
+            if (typeof window.goToForm === 'function') {
+                window.goToForm();
+            } else if (typeof goToForm === 'function') {
+                goToForm();
+            } else {
+                // Якщо функція зовсім не знайдена, просто йдемо на сторінку форми
+                // де сайт сам має викинути вікно логіна
+                window.location.href = '/form'; 
+            }
+        });
+    }
 
     // Логіка таймера
     const targetDate = new Date("March 21, 2026 09:00:00").getTime();
