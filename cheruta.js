@@ -1,125 +1,104 @@
 /**
- * cheruta.js - Компактні кнопки та таймер зворотного відліку
+ * cheruta.js - Дизайн банера з кнопками по кутах та таймером
  */
 
-function initRutaSection() {
-    // Шукаємо контейнер банера
-    const banner = document.querySelector('.ruta-container') || document.querySelector('.ruta-banner-section');
-    
+function initRutaUI() {
+    const banner = document.querySelector('.ruta-container');
     if (!banner) return;
 
-    // Прибираємо старі елементи, якщо вони були створені раніше
-    const existingInterface = document.getElementById('ruta-dynamic-interface');
-    if (existingInterface) existingInterface.remove();
+    // Очищення старого інтерфейсу (якщо був)
+    const oldUI = document.getElementById('ruta-interface');
+    if (oldUI) oldUI.remove();
 
-    // Створюємо нову панель
-    const interfaceHtml = `
-        <div id="ruta-dynamic-interface" class="ruta-ui-panel">
-            <div class="ruta-buttons">
-                <button onclick="window.open('ПОСИЛАННЯ_НА_ПОЛОЖЕННЯ', '_blank')" class="ruta-btn btn-glass">ПОЛОЖЕННЯ</button>
-                <button onclick="goToForm()" class="ruta-btn btn-glow">ЗАЯВКА</button>
-            </div>
-            <div id="ruta-countdown" class="ruta-timer">
-                <div class="t-block"><span id="r-days">00</span><small>дн</small></div>
-                <div class="t-block"><span id="r-hours">00</span><small>год</small></div>
-                <div class="t-block"><span id="r-mins">00</span><small>хв</small></div>
-                <div class="t-block"><span id="r-secs">00</span><small>сек</small></div>
-            </div>
+    const uiHtml = `
+    <div id="ruta-interface" style="
+        position: absolute; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4), transparent);
+        padding: 20px 0 15px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    ">
+        <div style="color: #f1c40f; font-weight: bold; text-transform: uppercase; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px;">
+            Конкурс розпочнеться через:
         </div>
 
-        <style>
-            .ruta-ui-panel {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                backdrop-filter: blur(5px);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 10px 0;
-                gap: 8px;
-                border-bottom-left-radius: 15px;
-                border-bottom-right-radius: 15px;
-            }
-            .ruta-buttons {
-                display: flex;
-                gap: 15px;
-            }
-            .ruta-btn {
-                padding: 6px 15px;
-                border: none;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: 0.3s;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            .btn-glass {
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-            }
-            .btn-glass:hover { background: rgba(255, 255, 255, 0.4); }
+        <div style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box;">
             
-            .btn-glow {
-                background: #ffbc00;
-                color: #000;
-                box-shadow: 0 0 10px rgba(255, 188, 0, 0.5);
-            }
-            .btn-glow:hover {
-                background: #ffd700;
-                box-shadow: 0 0 15px rgba(255, 188, 0, 0.8);
-            }
+            <button onclick="window.open('ruta-2026_polozhennia.pdf', '_blank')" class="r-btn btn-sec">ПОЛОЖЕННЯ</button>
 
-            .ruta-timer {
-                display: flex;
-                gap: 10px;
-                color: white;
-            }
-            .t-block { text-align: center; min-width: 30px; }
-            .t-block span { display: block; font-size: 16px; font-weight: bold; color: #ffbc00; }
-            .t-block small { font-size: 8px; text-transform: uppercase; opacity: 0.7; }
+            <div id="ruta-timer" style="display: flex; gap: 15px; color: white;">
+                <div class="t-box"><span id="d-val">00</span><small>днів</small></div>
+                <div class="t-box"><span id="h-val">00</span><small>год</small></div>
+                <div class="t-box"><span id="m-val">00</span><small>хв</small></div>
+                <div class="t-box"><span id="s-val">00</span><small>сек</small></div>
+            </div>
 
-            /* Масштабування для мобільних */
-            @media (max-width: 600px) {
-                .ruta-btn { padding: 4px 10px; font-size: 10px; }
-                .t-block span { font-size: 14px; }
-                .t-block small { font-size: 7px; }
-            }
-        </style>
+            <button onclick="goToForm()" class="r-btn btn-prim">ЗАЯВКА</button>
+        </div>
+    </div>
+
+    <style>
+        .r-btn {
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .btn-sec { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-prim { background: #ff4500; color: white; border: 1px solid #ff4500; }
+        .r-btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
+        .r-btn:active { transform: translateY(0); }
+
+        .t-box { text-align: center; min-width: 45px; }
+        .t-box span { display: block; font-size: 22px; font-weight: 900; color: #f1c40f; line-height: 1; }
+        .t-box small { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            #ruta-interface { padding-bottom: 10px; }
+            .r-btn { padding: 8px 12px; font-size: 10px; }
+            .t-box span { font-size: 16px; }
+            .t-box { min-width: 35px; }
+            .t-box small { font-size: 7px; }
+        }
+    </style>
     `;
 
-    banner.style.position = 'relative'; 
-    banner.insertAdjacentHTML('beforeend', interfaceHtml);
+    banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Логіка таймера
-    const targetDate = new Date("March 21, 2026 09:00:00").getTime();
+    // Логіка відліку
+    const target = new Date("March 21, 2026 09:00:00").getTime();
 
-    const timerInterval = setInterval(function() {
+    const update = () => {
         const now = new Date().getTime();
-        const distance = targetDate - now;
+        const diff = target - now;
 
-        if (distance < 0) {
-            clearInterval(timerInterval);
-            document.getElementById("ruta-countdown").innerHTML = "<span style='font-size:12px'>КОНКУРС РОЗПОЧАТО</span>";
+        if (diff < 0) {
+            document.getElementById("ruta-timer").innerHTML = "РОЗПОЧАТО!";
             return;
         }
 
-        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((distance % (1000 * 60)) / 1000);
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-        document.getElementById("r-days").innerText = d.toString().padStart(2, '0');
-        document.getElementById("r-hours").innerText = h.toString().padStart(2, '0');
-        document.getElementById("r-mins").innerText = m.toString().padStart(2, '0');
-        document.getElementById("r-secs").innerText = s.toString().padStart(2, '0');
-    }, 1000);
+        document.getElementById("d-val").innerText = d.toString().padStart(2, '0');
+        document.getElementById("h-val").innerText = h.toString().padStart(2, '0');
+        document.getElementById("m-val").innerText = m.toString().padStart(2, '0');
+        document.getElementById("s-val").innerText = s.toString().padStart(2, '0');
+    };
+
+    setInterval(update, 1000);
+    update();
 }
 
-// Запуск при завантаженні
-document.addEventListener('DOMContentLoaded', initRutaSection);
+document.addEventListener('DOMContentLoaded', initRutaUI);
