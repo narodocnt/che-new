@@ -28,7 +28,9 @@ function initRutaUI() {
 
         <div style="display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box;">
             
-            <button onclick="window.open('ruta-2026_polozhennia.pdf', '_blank')" class="r-btn btn-sec">ПОЛОЖЕННЯ</button>
+           // <button onclick="window.open('ruta-2026_polozhennia.pdf', '_blank')" class="r-btn btn-sec">ПОЛОЖЕННЯ</button>
+            // Замініть рядок з кнопкою ЗАЯВКА на цей:
+            <button onclick="window.location.href='https://narodocnt.online/form'" class="r-btn btn-prim">ЗАЯВКА</button>
 
             <div id="ruta-timer" style="display: flex; gap: 15px; color: white;">
                 <div class="t-box"><span id="d-val">00</span><small>днів</small></div>
