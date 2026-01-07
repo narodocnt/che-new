@@ -1,7 +1,11 @@
+/**
+ * cheruta.js - Чистий інтерфейс без багів
+ */
 function initRutaUI() {
     const banner = document.querySelector('.ruta-container');
     if (!banner) return;
 
+    // Видаляємо старий інтерфейс, якщо він був
     const oldUI = document.getElementById('ruta-interface');
     if (oldUI) oldUI.remove();
 
@@ -24,7 +28,6 @@ function initRutaUI() {
 
         <div id="ruta-timer" style="display: flex; align-items: center; gap: 5px; color: white; font-family: monospace;">
             <span id="d-val" style="color: #f1c40f; font-size: 22px; font-weight: 900; margin-right: 5px;">00</span>
-            
             <div style="display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 5px; border: 1px solid rgba(241,196,15,0.4);">
                 <span id="h-val" class="time-num">00</span>
                 <span class="dots">:</span>
@@ -35,7 +38,7 @@ function initRutaUI() {
         </div>
 
         <div style="padding-right: 15px;">
-            <button id="auth-trigger-btn" class="r-btn btn-prim">ЗАЯВКА</button>
+            <button id="ruta-auth-btn" class="r-btn btn-prim">ЗАЯВКА</button>
         </div>
     </div>
 
@@ -50,42 +53,32 @@ function initRutaUI() {
             text-transform: uppercase;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             pointer-events: auto !important;
-            display: inline-block;
         }
         .btn-sec { background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); }
         .btn-prim { background: #ff4500; color: white; }
-        
         .time-num { color: #f1c40f; font-size: 22px; font-weight: 900; min-width: 26px; text-align: center; }
         .dots { color: #fff; font-size: 20px; font-weight: bold; margin: 0 2px; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.3; } }
-
         @media (max-width: 480px) {
             .r-btn { padding: 8px 10px; font-size: 9px; }
             .time-num, #d-val { font-size: 17px; min-width: 20px; }
-            .dots { font-size: 15px; }
         }
-    </style>
-    `;
+    </style>`;
 
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Логіка кнопки ЗАЯВКА
-    const btn = document.getElementById('auth-trigger-btn');
-    if (btn) {
-        btn.onclick = function() {
-            // 1. Пріоритет: викликаємо вашу системну функцію авторизації
-            if (typeof window.goToForm === 'function') {
-                window.goToForm();
-            } 
-            // 2. Якщо функція не знайдена, імітуємо клік по кнопці в меню
-            else {
-                const menuBtn = Array.from(document.querySelectorAll('a, button')).find(el => el.textContent.includes('ПОДАТИ ЗАЯВКУ'));
-                if (menuBtn) {
-                    menuBtn.click();
-                } else {
-                    console.log("Система авторизації не знайдена");
-                }
+    // Логіка кнопки ЗАЯВКА - спочатку авторизація
+    const authBtn = document.getElementById('ruta-auth-btn');
+    if (authBtn) {
+        authBtn.onclick = function() {
+            // Виклик вашої системної авторизації
+            if (typeof goToForm === 'function') {
+                goToForm(); 
+            } else {
+                // Якщо функція не знайдена, імітуємо клік по кнопці в меню
+                const menuBtn = document.querySelector('.header-btn, #nav-apply, [onclick*="goToForm"]');
+                if (menuBtn) menuBtn.click();
             }
         };
     }
@@ -115,4 +108,10 @@ function initRutaUI() {
     setInterval(updateTimer, 1000);
     updateTimer();
 }
-document.addEventListener('DOMContentLoaded', initRutaUI);
+
+// Запуск
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRutaUI);
+} else {
+    initRutaUI();
+}
