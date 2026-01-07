@@ -1,5 +1,5 @@
 /**
- * cheruta.js - Фінальна версія: оригінальні посилання + чисті цифри
+ * cheruta.js - Версія з робочими кнопками та чистим цифровим таймером
  */
 
 function initRutaUI() {
@@ -85,7 +85,6 @@ function initRutaUI() {
     function updateTimer() {
         const now = new Date().getTime();
         const diff = targetDate - now;
-
         if (diff < 0) return;
 
         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -108,6 +107,7 @@ function initRutaUI() {
     updateTimer();
 }
 
+// Запуск
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initRutaUI);
 } else {
