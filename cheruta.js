@@ -1,5 +1,5 @@
 /**
- * cheruta.js - Фінальна версія з гарантованим викликом авторизації
+ * cheruta.js - Версія з "розумною" кнопкою заявки
  */
 
 function initRutaUI() {
@@ -28,7 +28,6 @@ function initRutaUI() {
 
         <div id="ruta-timer" style="display: flex; align-items: center; gap: 5px; color: white; font-family: monospace;">
             <span id="d-val" style="color: #f1c40f; font-size: 22px; font-weight: 900; margin-right: 5px;">00</span>
-            
             <div style="display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 5px; border: 1px solid rgba(241,196,15,0.4);">
                 <span id="h-val" class="time-num">00</span>
                 <span class="dots">:</span>
@@ -39,7 +38,7 @@ function initRutaUI() {
         </div>
 
         <div style="padding-right: 15px;">
-            <button id="main-zayavka-btn" class="r-btn btn-prim">ЗАЯВКА</button>
+            <button id="ruta-action-btn" class="r-btn btn-prim">ЗАЯВКА</button>
         </div>
     </div>
 
@@ -76,27 +75,30 @@ function initRutaUI() {
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // НАДІЙНИЙ ОБРОБНИК КЛІКУ ДЛЯ ЗАЯВКИ
-    const zayavkaBtn = document.getElementById('main-zayavka-btn');
-    if (zayavkaBtn) {
-        zayavkaBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Кнопка натиснута, шукаємо функцію goToForm...');
-            
-            // Спробуємо викликати функцію різними способами
-            if (typeof window.goToForm === 'function') {
-                window.goToForm();
-            } else if (typeof goToForm === 'function') {
-                goToForm();
-            } else {
-                // Якщо функція зовсім не знайдена, просто йдемо на сторінку форми
-                // де сайт сам має викинути вікно логіна
-                window.location.href = '/form'; 
+    // НОВА ЛОГІКА КНОПКИ
+    document.getElementById('ruta-action-btn').onclick = function() {
+        // 1. Пробуємо знайти вашу кнопку в меню за текстом "ПОДАТИ ЗАЯВКУ"
+        const menuLinks = document.querySelectorAll('nav a, header a');
+        let found = false;
+
+        menuLinks.forEach(link => {
+            if (link.textContent.includes('ЗАЯВКУ')) {
+                link.click(); // Симулюємо клік по справжній кнопці меню
+                found = true;
             }
         });
-    }
 
-    // Логіка таймера
+        // 2. Якщо кнопку в меню не знайшли, викликаємо функцію напряму
+        if (!found) {
+            if (typeof goToForm === 'function') {
+                goToForm();
+            } else {
+                alert('Будь ласка, увійдіть через кнопку в меню');
+            }
+        }
+    };
+
+    // Таймер
     const targetDate = new Date("March 21, 2026 09:00:00").getTime();
     function updateTimer() {
         const now = new Date().getTime();
