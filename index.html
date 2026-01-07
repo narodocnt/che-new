@@ -82,9 +82,16 @@
     <a onclick="goToGeneralForm()" style="color: #f1c40f;">ПОДАТИ ЗАЯВКУ</a>
 </nav>
 
-    <div class="ruta-container" style="position: relative; overflow: hidden; border-radius: 15px;">
-    <img src="cheruta.jpg" class="ruta-img" alt="Червона Рута" style="width: 900px; display: block;">
-    </div>
+    <div class="ruta-container" style="
+    position: relative; 
+    overflow: hidden; 
+    border-radius: 15px; 
+    width: 900px;      /* Встановлюємо ширину контейнера як у картинки */
+    margin: 20px auto; /* Центруємо контейнер: 0 зверху/знизу, auto зліва/справа */
+    max-width: 100%;   /* Щоб на мобільних він не вилазив за екран */
+">
+    <img src="cheruta.jpg" class="ruta-img" alt="Червона Рута" style="width: 100%; display: block;">
+</div>
 
 <div id="about"></div>
 
