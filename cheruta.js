@@ -7,14 +7,12 @@ function initRutaUI() {
 
     // ПЕРЕВІРКА: Чи ми повернулися з n8n?
     if (window.location.search.includes('auth=success')) {
-        if (!window.location.pathname.includes('register.html')) {
-            window.location.href = 'register.html';
-            return;
-        }
+        window.location.href = 'register.html';
+        return;
     }
 
     const uiHtml = `
-    <div id="ruta-interface" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); padding: 12px 0; display: flex; align-items: center; justify-content: space-between; z-index: 1000000;">
+    <div id="ruta-interface" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); padding: 12px 0; display: flex; align-items: center; justify-content: space-between; z-index: 999999;">
         
         <div style="padding-left: 15px;">
             <button id="ruta-docs-btn" class="r-btn btn-sec">ПОЛОЖЕННЯ</button>
@@ -41,12 +39,11 @@ function initRutaUI() {
             cursor: pointer; 
             border: none; 
             text-transform: uppercase; 
-            pointer-events: auto !important; 
-            position: relative; 
-            z-index: 1000001; 
+            pointer-events: auto !important;
+            display: block;
         }
         .btn-sec { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
-        .btn-prim { background: #ff4500; color: white; }
+        .btn-prim { background: #ff4500 !important; color: white !important; }
         .time-num { color: #f1c40f; font-size: 24px; font-weight: 900; min-width: 28px; text-align: center; text-shadow: 2px 2px 3px #000; }
         .dots { color: #fff; font-size: 20px; font-weight: bold; margin: 0 2px; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.3; } }
@@ -59,30 +56,39 @@ function initRutaUI() {
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // 1. ПРАЦЮЮЧА КНОПКА ПОЛОЖЕННЯ
-    document.getElementById('ruta-docs-btn').onclick = function() {
+    // 1. КНОПКА ПОЛОЖЕННЯ
+    document.getElementById('ruta-docs-btn').addEventListener('click', function(e) {
+        e.preventDefault();
         window.open('ruta-2026_polozhennia.pdf', '_blank');
-    };
+    });
 
-    // 2. ПРАЦЮЮЧА КНОПКА ЗАЯВКА (АВТОРИЗАЦІЯ)
-    document.getElementById('ruta-final-btn').onclick = function() {
+    // 2. КНОПКА ЗАЯВКА (З ПОКРАЩЕНОЮ РЕАКЦІЄЮ)
+    document.getElementById('ruta-final-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
         const menuBtn = document.querySelector('.header-btn');
-        const isLoggedIn = menuBtn && menuBtn.textContent.toLowerCase().includes('вийти');
+        const isLoggedIn = (menuBtn && menuBtn.textContent.toLowerCase().includes('вийти')) || 
+                           localStorage.getItem('isLoggedIn') === 'true';
 
         if (isLoggedIn) {
+            // Якщо увійшли - зразу на форму
             window.location.href = 'register.html';
         } else {
+            // Якщо ні - намагаємося відкрити вікно входу будь-яким способом
             if (typeof window.goToForm === 'function') {
                 window.goToForm();
             } else if (menuBtn) {
-                menuBtn.click();
+                menuBtn.click(); // Просто тиснемо на кнопку "Увійти" в меню
+            } else {
+                // Крайній випадок: якщо нічого не спрацювало, просто показуємо напис
+                alert("Будь ласка, натисніть 'Увійти' у верхньому меню сайту.");
             }
         }
-    };
+    });
 
     // 3. ТАЙМЕР
     const targetDate = new Date("March 21, 2026 09:00:00").getTime();
-    setInterval(() => {
+    function updateTimer() {
         const now = new Date().getTime();
         const diff = targetDate - now;
         if (diff < 0) return;
@@ -91,7 +97,14 @@ function initRutaUI() {
         document.getElementById("h-val").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
         document.getElementById("m-val").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
         document.getElementById("s-val").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-    }, 1000);
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
 }
 
-window.addEventListener('load', initRutaUI);
+// Запуск при будь-якому стані завантаження
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRutaUI);
+} else {
+    initRutaUI();
+}
