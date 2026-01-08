@@ -1,12 +1,11 @@
 function initRutaUI() {
     const banner = document.querySelector('.ruta-container');
     if (!banner) return;
-
     const oldUI = document.getElementById('ruta-interface');
     if (oldUI) oldUI.remove();
 
-    // 1. ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ (якщо n8n повернув нас)
-    if (window.location.search.includes('auth=success')) {
+    // ПЕРЕВІРКА: Якщо ми повернулися з n8n з міткою source=ruta
+    if (window.location.search.includes('source=ruta')) {
         window.location.href = 'register.html';
         return;
     }
@@ -24,50 +23,35 @@ function initRutaUI() {
         <div style="padding-right: 15px;"><button id="ruta-final-btn" class="r-btn btn-prim">ЗАЯВКА</button></div>
     </div>
     <style>
-        .r-btn { padding: 10px 18px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; border: none; text-transform: uppercase; pointer-events: auto !important; display: block; }
+        .r-btn { padding: 10px 18px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; border: none; text-transform: uppercase; pointer-events: auto !important; }
         .btn-sec { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
         .btn-prim { background: #ff4500 !important; color: white !important; }
         .time-num { color: #f1c40f; font-size: 24px; font-weight: 900; min-width: 28px; text-align: center; text-shadow: 2px 2px 3px #000; }
         .dots { color: #fff; font-size: 20px; font-weight: bold; margin: 0 2px; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.3; } }
-        @media (max-width: 480px) { .r-btn { padding: 8px 10px; font-size: 9px; } .time-num, #d-val { font-size: 18px; } }
     </style>`;
 
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Функція миттєвої перевірки
-    const getAuthStatus = () => {
-        const menuBtn = document.querySelector('.header-btn');
-        const storageAuth = localStorage.getItem('isLoggedIn') === 'true';
-        const cookieAuth = document.cookie.includes('isLoggedIn=true'); // Додав перевірку кук про всяк випадок
-        
-        return (menuBtn && menuBtn.textContent.toLowerCase().includes('вийти')) || storageAuth || cookieAuth;
-    };
+    document.getElementById('ruta-docs-btn').onclick = () => window.open('ruta-2026_polozhennia.pdf', '_blank');
 
-    document.getElementById('ruta-docs-btn').onclick = (e) => {
-        e.preventDefault();
-        window.open('ruta-2026_polozhennia.pdf', '_blank');
-    };
-
-    document.getElementById('ruta-final-btn').onclick = (e) => {
-        e.preventDefault();
+    document.getElementById('ruta-final-btn').onclick = function() {
+        const isLoggedIn = document.querySelector('.header-btn') && document.querySelector('.header-btn').textContent.includes('ВИЙТИ');
         
-        // Якщо система бачить, що ви вже авторизовані (навіть якщо тільки-но увійшли)
-        if (getAuthStatus()) {
+        if (isLoggedIn) {
             window.location.href = 'register.html';
         } else {
-            // Якщо все ще "гість" - викликаємо форму входу
+            // ЗАПАМ'ЯТОВУЄМО, що хочемо на Руту
+            sessionStorage.setItem('redirect_to', 'ruta');
             if (typeof window.goToForm === 'function') {
                 window.goToForm();
             } else {
-                const loginBtn = document.querySelector('.header-btn');
-                if (loginBtn) loginBtn.click();
+                document.querySelector('.header-btn').click();
             }
         }
     };
 
-    // Таймер
     const targetDate = new Date("March 21, 2026 09:00:00").getTime();
     setInterval(() => {
         const now = new Date().getTime();
@@ -79,5 +63,4 @@ function initRutaUI() {
         document.getElementById("s-val").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
     }, 1000);
 }
-
 window.addEventListener('load', initRutaUI);
