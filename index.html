@@ -1,87 +1,168 @@
-/**
- * cheruta.js - Фінальна версія з фіксом накладання
- */
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Відділ народної творчості Черкаського ОЦНТ</title>
 
-function initRutaUI() {
-    const banner = document.querySelector('.ruta-container');
-    if (!banner) return;
+    <link rel="icon" type="image/png" href="фото_для_боту.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="contest.css">
+    
+    <style>
+        :root { --primary: #1e272e; --accent: #e67e22; --bg: #f5f6fa; --nav: #2f3640; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--primary); overflow-x: hidden; }
+        
+        /* Хедер */
+        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo-box { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 60px; border-radius: 8px; }
+        .logo-text h1 { font-size: 1.1rem; margin: 0; line-height: 1.2; }
+        .logo-text p { font-size: 0.85rem; margin: 0; color: #7f8c8d; }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .header-socials { display: flex; gap: 12px; }
+        .header-socials a { font-size: 1.4rem; color: var(--nav); transition: 0.3s; }
+        .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; font-size: 0.9rem; }
 
-    // Очищення старого інтерфейсу
-    const oldUI = document.getElementById('ruta-ui-layer');
-    if (oldUI) oldUI.remove();
+        /* Навігація */
+        nav { background: var(--nav); display: flex; justify-content: center; position: relative; }
+        nav a, .dropbtn { color: white; padding: 15px 20px; text-decoration: none; font-weight: 600; font-size: 14px; cursor: pointer; background: none; border: none; }
+        
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { 
+            display: none; position: absolute; background-color: white; min-width: 220px; 
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 0 0 8px 8px;
+        }
+        .dropdown-content a { color: var(--primary); padding: 12px 16px; display: block; border-bottom: 1px solid #eee; text-align: left; text-decoration: none; cursor: pointer; }
+        .dropdown:hover .dropdown-content { display: block; }
 
-    const uiHtml = `
-    <div id="ruta-ui-layer" style="
-        position: absolute; 
-        bottom: 0; 
-        left: 0; 
-        width: 100%; 
-        background: linear-gradient(to top, rgba(0,0,0,0.9) 40%, transparent);
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between;
-        padding: 10px 10px; 
-        box-sizing: border-box; 
-        z-index: 999;
-    ">
-        <div style="flex: 1; display: flex; justify-content: flex-start;">
-            <button onclick="window.open('https://narodocnt.online/polozhennya.pdf', '_blank')" 
-                style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; white-space: nowrap;">
-                ПОЛОЖЕННЯ
-            </button>
-        </div>
+        /* Контейнери */
+        .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        <div id="ruta-timer-display" style="display: flex; gap: 5px; color: #f1c40f; text-align: center; flex: 1; justify-content: center;">
-            <div class="t-u"><b id="d-val" style="display:block; font-size:16px;">00</b><small style="font-size:7px; color:white; text-transform:uppercase;">дн</small></div>
-            <div class="t-u"><b id="h-val" style="display:block; font-size:16px;">00</b><small style="font-size:7px; color:white; text-transform:uppercase;">год</small></div>
-            <div class="t-u"><b id="m-val" style="display:block; font-size:16px;">00</b><small style="font-size:7px; color:white; text-transform:uppercase;">хв</small></div>
-            <div class="t-u"><b id="s-val" style="display:block; font-size:16px;">00</b><small style="font-size:7px; color:white; text-transform:uppercase;">сек</small></div>
-        </div>
+        footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
+        .social-icons a { color: white; font-size: 2rem; margin: 0 12px; }
 
-        <div style="flex: 1; display: flex; justify-content: flex-end;">
-            <button onclick="goToGeneralForm()" 
-                style="background: #ff4500; border: none; color: white; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; white-space: nowrap;">
-                ЗАЯВКА
-            </button>
-        </div>
-    </div>
-    `;
+        /* Стиль для модалки колективів */
+        #modalBody { max-height: 70vh; overflow-y: auto; }
 
-    banner.style.position = 'relative';
-    banner.insertAdjacentHTML('beforeend', uiHtml);
+        @media (max-width: 600px) { .header-socials { display: none; } }
+    </style>
+</head>
+<body>
 
-    // Логіка відліку
-    const target = new Date("March 21, 2026 09:00:00").getTime();
+<header>
+    <div class="logo-box">
+        <img src="фото_для_боту.png" class="logo-img">
+        <div class="logo-text">
+            <h1>Відділ народної творчості</h1>
+            <p>Черкаського ОЦНТ</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="header-socials">
+            <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
+        </div>
+        <div class="auth-btn" id="loginBtn" onclick="handleAuthClick()">Увійти</div>
+    </div>
+</header>
 
-    const update = () => {
-        const now = new Date().getTime();
-        const diff = target - now;
+<nav>
+    <div class="dropdown">
+        <button class="dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-content">
+            <a onclick="openGenre('vocal')">Вокально-хоровий</a>
+            <a onclick="openGenre('choreographic')">Хореографічний</a>
+            <a onclick="openGenre('theatrical')">Театральний</a>
+            <a onclick="openGenre('instrumental')">Музично-інструментальний</a>
+        </div>
+    </div>
+    <a onclick="goToGeneralForm()" style="color: #f1c40f;">ПОДАТИ ЗАЯВКУ</a>
+</nav>
 
-        if (diff < 0) {
-            document.getElementById("ruta-timer-display").innerHTML = "<b style='font-size:10px; color:white;'>РОЗПОЧАТО!</b>";
-            return;
-        }
+    <div class="ruta-container" style="
+    position: relative; 
+    overflow: hidden; 
+    border-radius: 15px; 
+    width: 900px;      /* Встановлюємо ширину контейнера як у картинки */
+    margin: 20px auto; /* Центруємо контейнер: 0 зверху/знизу, auto зліва/справа */
+    max-width: 100%;   /* Щоб на мобільних він не вилазив за екран */
+">
+    <img src="cheruta.jpg" class="ruta-img" alt="Червона Рута" style="width: 100%; display: block;">
+</div>
 
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
+<div id="about"></div>
 
-        // Перевірка наявності елементів перед записом
-        const dEl = document.getElementById("d-val");
-        const hEl = document.getElementById("h-val");
-        const mEl = document.getElementById("m-val");
-        const sEl = document.getElementById("s-val");
+<div class="contest-container">
+    <img src="bitva.png" style="width:100%; max-width:400px; border-radius:10px; margin-bottom: 15px;">
+    <h2 id="festival-title">🏆 Битва вподобайків</h2>
+    <div id="rankingList">Завантаження рейтингу...</div>
+</div>
 
-        if (dEl) dEl.innerText = d.toString().padStart(2, '0');
-        if (hEl) hEl.innerText = h.toString().padStart(2, '0');
-        if (mEl) mEl.innerText = m.toString().padStart(2, '0');
-        if (sEl) sEl.innerText = s.toString().padStart(2, '0');
-    };
+<footer id="contacts">
+    <div class="social-icons">
+        <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+        <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+        <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
+    </div>
+    <p style="margin-top:20px;">Email: narodocnt@ukr.net</p>
+</footer>
 
-    setInterval(update, 1000);
-    update();
-}
+<div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
+    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative;" onclick="event.stopPropagation()">
+        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:28px;">&times;</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
 
-// Викликаємо функцію, коли вікно завантажене
-window.addEventListener('load', initRutaUI);
+<script src="collectives.js"></script>
+<script src="cheruta.js"></script> 
+<script src="contest.js"></script>
+
+<script>
+    const RUTA_WEBHOOK = "https://n8n.narodocnt.online/webhook/ruta-zayavka";
+    const GENERAL_FORM_URL = "https://n8n.narodocnt.online/webhook/2e38b09c-9ea5-4123-bdf0-b26dfdf7432c/n8n-form";
+    const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
+
+    // Авторизація
+    function handleAuthClick() {
+        const user = localStorage.getItem('user');
+        if (user) {
+            if (confirm(`Вийти з аккаунту ${user}?`)) {
+                localStorage.removeItem('user');
+                location.reload();
+            }
+        } else {
+            window.location.href = AUTH_URL;
+        }
+    }
+
+    // Загальна форма
+    function goToGeneralForm() {
+        if (!localStorage.getItem('user')) {
+            alert("Будь ласка, авторизуйтесь.");
+            handleAuthClick();
+        } else {
+            window.location.href = GENERAL_FORM_URL;
+        }
+    }
+
+    // Обробка входу після Google Redirect
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+        if (name) localStorage.setItem('user', decodeURIComponent(name));
+
+        const user = localStorage.getItem('user');
+        if (user) {
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = user;
+            btn.style.background = "#27ae60";
+            btn.style.color = "white";
+        }
+    });
+</script>
+</body>
+</html>
