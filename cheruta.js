@@ -77,31 +77,37 @@ function initRutaUI() {
 } // <-- ТУТ БУЛА ПОМИЛКА (закриття функції initRutaUI)
 
 /**
- * Функція обробки натискання на кнопку ЗАЯВКА
+/**
+ * Функція обробки натискання на кнопку ЗАЯВКА з перевіркою авторизації
  */
 function goToGeneralForm() {
-    // Перевірка авторизації
-    const user = localStorage.getItem('user') || window.currentUser; 
+    // 1. Спроба отримати користувача (з localStorage або глобальної змінної вашого сайту)
+    const userJson = localStorage.getItem('user');
+    let user = null;
 
-    if (!user) {
-        alert("🔒 Авторизуйтесь, будь ласка!\n\nЩоб подати заявку на 'Червону руту' та взяти участь у 'Битві вподобайків', потрібно увійти через Google на нашому сайті.");
-        
-        const loginBtn = document.querySelector('.login-btn') || document.querySelector('#auth-button');
-        if (loginBtn) loginBtn.click(); 
-        
-    } else {
-        // Якщо авторизований
-        let userName = "";
-        try {
-            const userData = typeof user === 'string' ? JSON.parse(user) : user;
-            userName = encodeURIComponent(userData.displayName || userData.name || "");
-        } catch(e) { console.error("User data parse error", e); }
-        
-        // Знадіть цей рядок у функції goToGeneralForm і замініть його:
-        const n8nFormUrl = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
-        window.open(n8nFormUrl, '_blank');
+    try {
+        if (userJson) user = JSON.parse(userJson);
+        else if (window.currentUser) user = window.currentUser;
+    } catch (e) {
+        console.error("Помилка парсингу даних користувача", e);
     }
-}
 
-// Запуск при завантаженні сторінки
-window.addEventListener('load', initRutaUI);
+    // 2. Якщо користувача не знайдено — показуємо попередження
+    if (!user) {
+        alert("🔒 Авторизуйтесь, будь ласка!\n\nЩоб подати заявку на 'Червону руту', потрібно увійти через Google на нашому сайті.");
+        
+        const loginBtn = document.querySelector('.login-btn') || document.querySelector('#auth-button') || document.querySelector('.auth-trigger');
+        if (loginBtn) {
+            loginBtn.click();
+        }
+        return;
+    }
+
+    // 3. Якщо авторизований — готуємо посилання
+    // Використовуємо саме те посилання, яке у вас працює в браузері
+    const userName = encodeURIComponent(user.displayName || user.name || "Учасник");
+    const n8nFormUrl = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
+
+    // 4. Відкриваємо форму
+    window.open(n8nFormUrl, '_blank');
+}
