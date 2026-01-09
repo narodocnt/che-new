@@ -1,5 +1,5 @@
 /**
- * cheruta.js - Фінальна версія: Кнопки по кутах + Компактний таймер
+ * cheruta.js - Фінальна версія: Кнопки по кутах + Таймер + Перевірка авторизації
  */
 
 function initRutaUI() {
@@ -43,7 +43,7 @@ function initRutaUI() {
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Таймер
+    // Логіка таймера
     const target = new Date("March 21, 2026 09:00:00").getTime();
 
     const update = () => {
@@ -74,33 +74,33 @@ function initRutaUI() {
 
     setInterval(update, 1000);
     update();
-    /**
+} // <-- ТУТ БУЛА ПОМИЛКА (закриття функції initRutaUI)
+
+/**
  * Функція обробки натискання на кнопку ЗАЯВКА
  */
 function goToGeneralForm() {
-    // 1. Перевіряємо, чи є дані користувача (Gemini/Google) у локальному сховищі або глобальній змінній
-    // Зазвичай після авторизації дані зберігаються в localStorage.user або аналогічно
+    // Перевірка авторизації
     const user = localStorage.getItem('user') || window.currentUser; 
 
     if (!user) {
-        // 2. Якщо користувач не авторизований — показуємо пропозицію
         alert("🔒 Авторизуйтесь, будь ласка!\n\nЩоб подати заявку на 'Червону руту' та взяти участь у 'Битві вподобайків', потрібно увійти через Google на нашому сайті.");
         
-        // Можна автоматично скролити до кнопки входу або відкривати вікно входу
         const loginBtn = document.querySelector('.login-btn') || document.querySelector('#auth-button');
         if (loginBtn) loginBtn.click(); 
         
     } else {
-        // 3. Якщо авторизований — перенаправляємо на форму n8n
-        // Отримуємо ім'я користувача для автозаповнення (якщо воно є)
-        const userData = typeof user === 'string' ? JSON.parse(user) : user;
-        const userName = encodeURIComponent(userData.displayName || userData.name || "");
+        // Якщо авторизований
+        let userName = "";
+        try {
+            const userData = typeof user === 'string' ? JSON.parse(user) : user;
+            userName = encodeURIComponent(userData.displayName || userData.name || "");
+        } catch(e) { console.error("User data parse error", e); }
         
         const n8nFormUrl = `https://n8n.narodocnt.online/form/cheruta?name=${userName}`;
-        
         window.open(n8nFormUrl, '_blank');
     }
 }
 
-// Запуск
+// Запуск при завантаженні сторінки
 window.addEventListener('load', initRutaUI);
