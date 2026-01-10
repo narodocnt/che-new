@@ -98,8 +98,8 @@ function goToGeneralForm() {
     }
 
     const userName = encodeURIComponent(user.displayName || user.name || "Учасник");
+// Використовуємо ТІЛЬКИ те посилання, яке у вас відкривається
     const n8nFormUrl = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
-
     window.open(n8nFormUrl, '_blank');
 }
 
