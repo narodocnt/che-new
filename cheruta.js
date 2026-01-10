@@ -1,10 +1,14 @@
 /**
- * cheruta.js - Фінальна версія: Кнопки по кутах + Таймер + Перевірка авторизації
+ * cheruta.js - ФІНАЛЬНА ВЕРСІЯ (ВИПРАВЛЕНА)
+ * Кнопки по кутах + Таймер + Перевірка авторизації
  */
 
 function initRutaUI() {
     const banner = document.querySelector('.ruta-container');
-    if (!banner) return;
+    if (!banner) {
+        console.log("Контейнер .ruta-container ще не завантажився, чекаємо...");
+        return;
+    }
 
     // Видаляємо старий інтерфейс, якщо він був
     const oldUI = document.getElementById('ruta-ui-layer');
@@ -43,7 +47,6 @@ function initRutaUI() {
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
 
-    // Логіка таймера
     const target = new Date("March 21, 2026 09:00:00").getTime();
 
     const update = () => {
@@ -74,13 +77,9 @@ function initRutaUI() {
 
     setInterval(update, 1000);
     update();
-} // <-- ТУТ БУЛА ПОМИЛКА (закриття функції initRutaUI)
+}
 
-/**
- * Функція обробки натискання на кнопку ЗАЯВКА з перевіркою авторизації
- */
 function goToGeneralForm() {
-    // 1. Спроба отримати користувача (з localStorage або глобальної змінної вашого сайту)
     const userJson = localStorage.getItem('user');
     let user = null;
 
@@ -88,25 +87,25 @@ function goToGeneralForm() {
         if (userJson) user = JSON.parse(userJson);
         else if (window.currentUser) user = window.currentUser;
     } catch (e) {
-        console.error("Помилка парсингу даних користувача", e);
+        console.error("User data error", e);
     }
 
-    // 2. Якщо користувача не знайдено — показуємо попередження
     if (!user) {
         alert("🔒 Авторизуйтесь, будь ласка!\n\nЩоб подати заявку на 'Червону руту', потрібно увійти через Google на нашому сайті.");
-        
         const loginBtn = document.querySelector('.login-btn') || document.querySelector('#auth-button') || document.querySelector('.auth-trigger');
-        if (loginBtn) {
-            loginBtn.click();
-        }
+        if (loginBtn) loginBtn.click();
         return;
     }
 
-    // 3. Якщо авторизований — готуємо посилання
-    // Використовуємо саме те посилання, яке у вас працює в браузері
     const userName = encodeURIComponent(user.displayName || user.name || "Учасник");
     const n8nFormUrl = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
 
-    // 4. Відкриваємо форму
     window.open(n8nFormUrl, '_blank');
+}
+
+// ЗАПУСК (Обов'язково!)
+if (document.readyState === 'loading') {
+    window.addEventListener('load', initRutaUI);
+} else {
+    initRutaUI();
 }
