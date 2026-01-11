@@ -13,22 +13,44 @@ async function loadRanking() {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         
-        // 1. Очищення від дублікатів (за посиланням на пост)
-        // 2. Перетворення рядків у числа для надійності
-        currentData = Array.from(new Map(rawData.map(item => [item.url, item])).values())
-            .map(item => ({
-                ...item,
-                likes: parseInt(item.likes) || 0,
-                comments: parseInt(item.comments) || 0,
-                shares: parseInt(item.shares) || 0
-            }));
+        // ОБ'ЄДНАННЯ ДАНИХ ЗА НАЗВОЮ КОЛЕКТИВУ (ГРУПУВАННЯ)
+        const groups = {};
+
+        rawData.forEach(item => {
+            // Отримуємо назву колективу (якщо порожньо — ставимо за замовчуванням)
+            let name = item.pageName && item.pageName.trim() !== "" 
+                       ? item.pageName.trim() 
+                       : `Колектив (пост №${item.row_number})`;
+            
+            // Якщо такий колектив уже є в нашому списку — додаємо показники
+            if (groups[name]) {
+                groups[name].likes += parseInt(item.likes) || 0;
+                groups[name].comments += parseInt(item.comments) || 0;
+                groups[name].shares += parseInt(item.shares) || 0;
+                // URL залишаємо від першого знайденого посту або можна не міняти
+            } else {
+                // Якщо колектив зустрівся вперше — створюємо новий запис
+                groups[name] = {
+                    pageName: name,
+                    likes: parseInt(item.likes) || 0,
+                    comments: parseInt(item.comments) || 0,
+                    shares: parseInt(item.shares) || 0,
+                    url: item.url, // посилання на основне відео
+                    media: item.media,
+                    row_number: item.row_number
+                };
+            }
+        });
+
+        // Перетворюємо об'єкт назад у масив для сортування
+        currentData = Object.values(groups);
         
         // Початковий рендер: режим "Всі разом"
         renderList('total'); 
     } catch (error) {
         console.error("Помилка завантаження рейтингу:", error);
         const list = document.getElementById('rankingList');
-        if (list) list.innerHTML = "<p style='text-align:center;'>Триває оновлення даних, зачекайте кілька секунд...</p>";
+        if (list) list.innerHTML = "<p style='text-align:center;'>Триває оновлення даних...</p>";
     }
 }
 
