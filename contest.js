@@ -13,44 +13,42 @@ async function loadRanking() {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         
-        // ОБ'ЄДНАННЯ ДАНИХ ЗА НАЗВОЮ КОЛЕКТИВУ (ГРУПУВАННЯ)
         const groups = {};
 
         rawData.forEach(item => {
-            // Отримуємо назву колективу (якщо порожньо — ставимо за замовчуванням)
-            let name = item.pageName && item.pageName.trim() !== "" 
-                       ? item.pageName.trim() 
-                       : `Колектив (пост №${item.row_number})`;
-            
-            // Якщо такий колектив уже є в нашому списку — додаємо показники
-            if (groups[name]) {
-                groups[name].likes += parseInt(item.likes) || 0;
-                groups[name].comments += parseInt(item.comments) || 0;
-                groups[name].shares += parseInt(item.shares) || 0;
-                // URL залишаємо від першого знайденого посту або можна не міняти
+            // ГРУПУВАННЯ за автором або назвою сторінки
+            // Якщо pageName порожній, пробуємо знайти інше поле, яке ідентифікує автора
+            let groupId = item.pageName || item.ownerName || item.ownerId || item.url;
+
+            if (groups[groupId]) {
+                // Додаємо цифри до вже існуючого учасника
+                groups[groupId].likes += parseInt(item.likes) || 0;
+                groups[groupId].comments += parseInt(item.comments) || 0;
+                groups[groupId].shares += parseInt(item.shares) || 0;
             } else {
-                // Якщо колектив зустрівся вперше — створюємо новий запис
-                groups[name] = {
-                    pageName: name,
+                // Створюємо нового учасника
+                groups[groupId] = {
+                    pageName: item.pageName || "Учасник", 
                     likes: parseInt(item.likes) || 0,
                     comments: parseInt(item.comments) || 0,
                     shares: parseInt(item.shares) || 0,
-                    url: item.url, // посилання на основне відео
-                    media: item.media,
-                    row_number: item.row_number
+                    url: item.url,
+                    media: item.media || 'фото_для_боту.png'
                 };
             }
         });
 
-        // Перетворюємо об'єкт назад у масив для сортування
-        currentData = Object.values(groups);
+        // Перетворюємо в масив і сортуємо за сумою показників
+        let combinedArray = Object.values(groups).sort((a, b) => {
+            return (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares);
+        });
+
+        // ОБМЕЖЕННЯ: Залишаємо лише ТОП-6 результатів
+        currentData = combinedArray.slice(0, 6);
         
-        // Початковий рендер: режим "Всі разом"
         renderList('total'); 
     } catch (error) {
-        console.error("Помилка завантаження рейтингу:", error);
-        const list = document.getElementById('rankingList');
-        if (list) list.innerHTML = "<p style='text-align:center;'>Триває оновлення даних...</p>";
+        console.error("Помилка:", error);
     }
 }
 
