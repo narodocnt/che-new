@@ -12,23 +12,32 @@ async function loadRanking() {
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
-        
         const groups = {};
 
         rawData.forEach(item => {
-            // ГРУПУВАННЯ за автором або назвою сторінки
-            // Якщо pageName порожній, пробуємо знайти інше поле, яке ідентифікує автора
-            let groupId = item.pageName || item.ownerName || item.ownerId || item.url;
+            let fullText = (item.pageName || "").trim();
+            
+            // УНІВЕРСАЛЬНИЙ ФІЛЬТР:
+            // Шукаємо текст після фрази "Назва Колективу:" або просто чистимо назву
+            let cleanName = fullText;
+            if (fullText.includes("Назва Колективу:")) {
+                cleanName = fullText.split("Назва Колективу:")[1].trim();
+            } else if (fullText.includes("колектив")) {
+                // Якщо приходить "Колектив (пост №...)", групуємо за номером, якщо назви немає
+                cleanName = fullText;
+            }
 
-            if (groups[groupId]) {
-                // Додаємо цифри до вже існуючого учасника
-                groups[groupId].likes += parseInt(item.likes) || 0;
-                groups[groupId].comments += parseInt(item.comments) || 0;
-                groups[groupId].shares += parseInt(item.shares) || 0;
+            // Якщо назва занадто довга, беремо перші 40 символів для ідентифікації
+            // Це допоможе об'єднати пости, якщо в кінці назви є зайві пробіли або крапки
+            let groupKey = cleanName.substring(0, 50).toLowerCase().trim();
+
+            if (groups[groupKey]) {
+                groups[groupKey].likes += parseInt(item.likes) || 0;
+                groups[groupKey].comments += parseInt(item.comments) || 0;
+                groups[groupKey].shares += parseInt(item.shares) || 0;
             } else {
-                // Створюємо нового учасника
-                groups[groupId] = {
-                    pageName: item.pageName || "Учасник", 
+                groups[groupKey] = {
+                    pageName: cleanName, // Тут буде чиста назва без "Назва фестивалю"
                     likes: parseInt(item.likes) || 0,
                     comments: parseInt(item.comments) || 0,
                     shares: parseInt(item.shares) || 0,
@@ -38,14 +47,12 @@ async function loadRanking() {
             }
         });
 
-        // Перетворюємо в масив і сортуємо за сумою показників
+        // Сортуємо та обрізаємо до ТОП-6
         let combinedArray = Object.values(groups).sort((a, b) => {
             return (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares);
         });
 
-        // ОБМЕЖЕННЯ: Залишаємо лише ТОП-6 результатів
         currentData = combinedArray.slice(0, 6);
-        
         renderList('total'); 
     } catch (error) {
         console.error("Помилка:", error);
