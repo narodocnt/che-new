@@ -253,20 +253,38 @@ const collectivesData = {
     </ol>`
 };
 
-// Функція відкриття модального вікна
-window.openGenre = function(genre) {
+/**
+ * collectives.js - Керування списками колективів
+ */
+
+const collectivesData = {
+    choreographic: `<h2>Хореографічний жанр</h2><ol><li>Народний аматорський ансамбль танцю «ТЯСМИН» — Кам’янський міський Будинок культури. Керівник: Одуд Ганна Михайлівна.</li><li>Зразковий аматорський хореографічний колектив «ЕКСКЛЮЗИВ» — с. Тіньки. Керівник: Костенко Лариса Іванівна.</li></ol>`,
+
+    vocal: `<h2>Вокально-хоровий жанр</h2><ol><li>Народна аматорська хорова капела — Звенигородський ЦКД. Керівник: Добендо Вікторія Олександрівна.</li><li>Аматорський вокально-хоровий гурт “Оберіг” — Корсунь-Шевченківський. Керівник: Сивокінь Світлана Іванівна.</li></ol>`,
+
+    theatrical: `<h2>Театральний жанр</h2><ol><li>Народний аматорський драматичний колектив — Звенигородський ЦКД. Керівник: Вельган Людмила Миколаївна.</li><li>Народний аматорський театральний колектив “Брама” — Корсунь-Шевченківський. Керівник: Давиденко Тамара Петрівна.</li></ol>`,
+
+    instrumental: `<h2>Музично-інструментальний жанр</h2><ol><li>Народний аматорський вокально-інструментальний ансамбль — Звенигородський Центр культури і дозвілля ім. Т. Г. Шевченка. Керівник: Загорулько Дмитро Володимирович.</li></ol>`
+};
+
+// --- ФУНКЦІЇ КЕРУВАННЯ ВІКНОМ ---
+
+function openGenre(genre) {
     const modal = document.getElementById('listModal');
     const body = document.getElementById('modalBody');
     
-    if (modal && body) {
-        // Просто вставляємо готовий HTML з масиву
-        body.innerHTML = collectivesData[genre] || "<p>Дані відсутні</p>";
+    if (collectivesData[genre]) {
+        body.innerHTML = collectivesData[genre];
         modal.style.display = 'flex';
+        
+        // БЛОКУЄМО прокрутку основного сайту
+        document.body.style.overflow = 'hidden';
     }
-};
+}
 
-// Функція закриття модального вікна
-window.closeModal = function() {
-    const modal = document.getElementById('listModal');
-    if (modal) modal.style.display = 'none';
+function closeModal() {
+    document.getElementById('listModal').style.display = 'none';
+    
+    // ПОВЕРТАЄМО прокрутку основного сайту
+    document.body.style.overflow = 'auto';
 };
