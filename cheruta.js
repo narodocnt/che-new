@@ -68,7 +68,7 @@ function goToGeneralForm(type = 'main') {
         url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
     } else {
         // Посилання для верхньої жовтої кнопки (Загальна заявка)
-        url = `https://n8n.narodocnt.online/webhook/ruta-zajavka/n8n-form?name=${userName}`;
+        url = `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
     }
 
     window.open(url, '_blank');
