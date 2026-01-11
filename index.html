@@ -117,8 +117,7 @@
 </div>
 
 <script src="collectives.js"></script>
-<script src="cheruta.js"></script>
-<script src="contest.js"></script>
+<script src="cheruta.js"></script> <script src="contest.js"></script>
 
 <script>
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
@@ -134,7 +133,19 @@
             window.location.href = AUTH_URL;
         }
     }
-
+function goToGeneralForm(type = 'main') {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert("🔒 Авторизуйтесь, будь ласка, через Google!");
+            handleAuthClick();
+            return;
+        }
+        const userName = encodeURIComponent(user);
+        let url = (type === 'cheruta') 
+            ? `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`
+            : `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
+        window.open(url, '_blank');
+    }
     document.addEventListener('DOMContentLoaded', function() {
         const params = new URLSearchParams(window.location.search);
         const name = params.get('name');
