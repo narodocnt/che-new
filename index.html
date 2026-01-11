@@ -80,14 +80,13 @@
     <div class="dropdown">
         <button class="dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-content">
-            <a onclick="openGenre('vocal')">Вокально-хоровий</a>
-            <a onclick="openGenre('choreographic')">Хореографічний</a>
-            <a onclick="openGenre('theatrical')">Театральний</a>
-            <a onclick="openGenre('instrumental')">Музично-інструментальний</a>
+            <a href="javascript:void(0)" onclick="openGenre('vocal')">Вокально-хоровий</a>
+            <a href="javascript:void(0)" onclick="openGenre('choreographic')">Хореографічний</a>
+            <a href="javascript:void(0)" onclick="openGenre('theatrical')">Театральний</a>
+            <a href="javascript:void(0)" onclick="openGenre('instrumental')">Музично-інструментальний</a>
         </div>
     </div>
     <a onclick="goToGeneralForm('main')" style="color: #f1c40f; cursor: pointer;">ПОДАТИ ЗАЯВКУ</a>
-
 </nav>
 
 <div class="ruta-container">
@@ -111,8 +110,9 @@
 
 <div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
     <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 10px; cursor:pointer; font-size:28px; font-weight: bold;">&times;</span>
-        <div id="modalBody" style="overflow-y: auto; padding-top: 10px;"></div>
+        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px; font-weight: bold; color: #333;">&times;</span>
+        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px;">
+            </div>
     </div>
 </div>
 
