@@ -63,12 +63,11 @@ function goToGeneralForm(type = 'main') {
     const userName = encodeURIComponent(user);
     let url = "";
 
-    // Розподіляємо посилання за типом
     if (type === 'cheruta') {
-        // Форма для Червоної Рути
+        // Посилання для банера "Червона Рута"
         url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
     } else {
-        // ЗАГАЛЬНА ФОРМА (ваше нове посилання)
+        // Посилання для верхньої жовтої кнопки (Загальна заявка)
         url = `https://n8n.narodocnt.online/webhook/ruta-zajavka/n8n-form?name=${userName}`;
     }
 
