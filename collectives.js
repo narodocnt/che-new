@@ -265,26 +265,20 @@ const collectivesData = {
     theatrical: `<h2>Театральний жанр</h2><ol><li>Народний аматорський драматичний колектив — Звенигородський ЦКД. Керівник: Вельган Людмила Миколаївна.</li><li>Народний аматорський театральний колектив “Брама” — Корсунь-Шевченківський. Керівник: Давиденко Тамара Петрівна.</li></ol>`,
 
     instrumental: `<h2>Музично-інструментальний жанр</h2><ol><li>Народний аматорський вокально-інструментальний ансамбль — Звенигородський Центр культури і дозвілля ім. Т. Г. Шевченка. Керівник: Загорулько Дмитро Володимирович.</li></ol>`
-};
 
-// --- ФУНКЦІЇ КЕРУВАННЯ ВІКНОМ ---
-
-function openGenre(genre) {
+        // Глобальні функції (вішаємо на об'єкт window, щоб HTML їх точно бачив)
+window.openGenre = function(genre) {
     const modal = document.getElementById('listModal');
     const body = document.getElementById('modalBody');
     
     if (collectivesData[genre]) {
         body.innerHTML = collectivesData[genre];
         modal.style.display = 'flex';
-        
-        // БЛОКУЄМО прокрутку основного сайту
-        document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden'; // Забороняємо прокрутку сайту
     }
-}
+};
 
-function closeModal() {
+window.closeModal = function() {
     document.getElementById('listModal').style.display = 'none';
-    
-    // ПОВЕРТАЄМО прокрутку основного сайту
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = 'auto'; // Повертаємо прокрутку сайту
 };
