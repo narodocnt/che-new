@@ -46,14 +46,26 @@ async function loadRanking() {
         });
 
         // Створення Заголовка з зірочкою
+       // ОНОВЛЕННЯ ЗАГОЛОВКА
         const headerContainer = document.getElementById('festival-header-container');
         if (headerContainer) {
             headerContainer.innerHTML = `
-                <h2 style="font-family: 'Lobster', cursive; color: #d35400; text-align: center; margin-bottom: 5px; font-size: 32px;">
-                    ${festivalTitle || "Битва вподобайків"} 
-                    <span id="info-star" style="cursor: pointer; color: #f1c40f; font-size: 24px; vertical-align: middle;">⭐</span>
+                <h2 style="font-family: 'Lobster', cursive; color: #d35400; text-align: center; font-size: 32px; margin-bottom: 15px;">
+                    🏆 ${detectedFestivalTitle || "Битва вподобайків"} 
+                    <span id="info-star" style="cursor: pointer; color: #f1c40f; font-size: 26px; transition: 0.3s;" title="Натисніть для пояснення">⭐</span>
                 </h2>
             `;
+            
+            // Додаємо дію на зірочку
+            setTimeout(() => {
+                const star = document.getElementById('info-star');
+                if (star) {
+                    star.onclick = () => {
+                        alert("ℹ️ ПРАВИЛА РЕЙТИНГУ:\n\nБали колективу рахуються за формулою:\n👁️ Перегляди + ❤️ Вподобайки + 🔄 Поширення\n\nДані оновлюються автоматично з Facebook.");
+                    };
+                }
+            }, 500);
+        }
             document.getElementById('info-star').onclick = () => {
                 alert("ℹ️ У розрахунку рейтингу колективів враховується сума кількості переглядів (👁️), вподобайок (❤️) та поширень (🔄).");
             };
