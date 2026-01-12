@@ -1,11 +1,10 @@
 /**
- * contest.js - Живий рейтинг фестивалів
+ * contest.js - Фінальна версія з розумним об'єднанням
  */
 
 let currentData = [];
 let lastWinner = null;
 
-// Функція завантаження та обробки даних
 async function loadRanking() {
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
@@ -18,45 +17,47 @@ async function loadRanking() {
         rawData.forEach(item => {
             let fullText = (item.pageName || "").trim();
             
-            // 1. ВИТЯГУЄМО НАЗВУ ФЕСТИВАЛЮ
+            // 1. ФІЛЬТР СМІТТЯ
+            if (fullText.includes("undefined") || fullText.includes("$json") || parseInt(item.likes) > 600) return;
+
+            // 2. ВИТЯГУЄМО НАЗВУ ФЕСТИВАЛЮ
             if (!detectedFestivalTitle && fullText.includes("Назва Колективу:")) {
-                detectedFestivalTitle = fullText.split("Назва Колективу:")[0]
-                    .replace(/Назва Фестивалю:/i, "")
-                    .replace(/[#*]/g, "")
-                    .trim();
+                detectedFestivalTitle = fullText.split("Назва Колективу:")[0].replace(/Назва Фестивалю:/i, "").replace(/[#*]/g, "").trim();
             }
 
-            // 2. ФІЛЬТР ТЕХНІЧНОГО СМІТТЯ
-            if (fullText.includes("undefined") || 
-                fullText.includes("$json") || 
-                fullText.includes("message.content") ||
-                (parseInt(item.likes) > 600)) {
-                return; 
+            // 3. ОЧИЩЕННЯ НАЗВИ КОЛЕКТИВУ
+            let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
+            
+            // Видаляємо все зайве для порівняння (лапки, пробіли, крапки)
+            let groupKey = name.toLowerCase()
+                .replace(/["'«»„“]/g, '') // Видаляємо всі види лапок
+                .replace(/духовий оркестр/gi, '') // Видаляємо спільні слова для кращого пошуку міста
+                .replace(/[^a-zа-яіїєґ0-9]/gi, '') // Лишаємо тільки букви та цифри
+                .trim();
+
+            // 4. РУЧНЕ ПРАВИЛО ДЛЯ КАМ'ЯНКИ ТА СМІЛИ (гарантія результату)
+            if (groupKey.includes("кам") || groupKey.includes("камянк")) {
+                name = "Духовий оркестр м. Кам’янка";
+                groupKey = "kamyanka_final";
+            } else if (groupKey.includes("сміл") || groupKey.includes("божидар")) {
+                name = "Духовий оркестр «Божидар» (м. Сміла)";
+                groupKey = "smila_final";
+            } else if (groupKey.includes("звенигород")) {
+                name = "Оркестр духових інструментів (м. Звенигородка)";
+                groupKey = "zveni_final";
+            } else if (groupKey.includes("христин") || groupKey.includes("великосеваст")) {
+                name = "Оркестр Великосевастянівського БК (Христинівка)";
+                groupKey = "hrist_final";
             }
 
-            // 3. ЧИСТКА НАЗВИ КОЛЕКТИВУ
-            let cleanName = fullText;
-            if (fullText.includes("Назва Колективу:")) {
-                cleanName = fullText.split("Назва Колективу:")[1].trim();
-            }
-
-            // 4. СПЕЦІАЛЬНЕ ОБ'ЄДНАННЯ ДЛЯ КАМ'ЯНКИ
-            let groupKey = cleanName.toLowerCase();
-            if (groupKey.includes("кам'ян") || groupKey.includes("камянк")) {
-                cleanName = "Духовий оркестр м. Кам’янка";
-                groupKey = "kamyanka_orchestra";
-            } else {
-                groupKey = cleanName.substring(0, 50).toLowerCase().trim();
-            }
-
-            // 5. ГРУПУВАННЯ ЛАЙКІВ
+            // 5. ГРУПУВАННЯ
             if (groups[groupKey]) {
                 groups[groupKey].likes += parseInt(item.likes) || 0;
                 groups[groupKey].comments += parseInt(item.comments) || 0;
                 groups[groupKey].shares += parseInt(item.shares) || 0;
             } else {
                 groups[groupKey] = {
-                    pageName: cleanName,
+                    pageName: name,
                     likes: parseInt(item.likes) || 0,
                     comments: parseInt(item.comments) || 0,
                     shares: parseInt(item.shares) || 0,
@@ -68,88 +69,37 @@ async function loadRanking() {
 
         // ОНОВЛЕННЯ ЗАГОЛОВКА
         const titleElement = document.getElementById('festival-title');
-        if (titleElement) {
-            titleElement.innerText = detectedFestivalTitle ? `🏆 ${detectedFestivalTitle}` : "🏆 Битва вподобайків";
-        }
+        if (titleElement) titleElement.innerText = detectedFestivalTitle ? `🏆 ${detectedFestivalTitle}` : "🏆 Битва вподобайків";
 
         // СОРТУВАННЯ ТА ТОП-6
-        let combinedArray = Object.values(groups).sort((a, b) => {
-            return (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares);
-        });
+        currentData = Object.values(groups)
+            .sort((a, b) => (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares))
+            .slice(0, 6);
 
-        currentData = combinedArray.slice(0, 6);
         renderList('total'); 
     } catch (error) {
         console.error("Помилка:", error);
     }
 }
 
-// Функція запуску конфетті
-function celebrate() {
-    if (typeof confetti === 'function') {
-        const duration = 3 * 1000;
-        const end = Date.now() + duration;
-
-        (function frame() {
-            confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0, y: 0.7 },
-                colors: ['#e67e22', '#f1c40f', '#1877f2']
-            });
-            confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1, y: 0.7 },
-                colors: ['#e67e22', '#f1c40f', '#1877f2']
-            });
-
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        }());
-    }
-}
-
-// Функція малювання карток на сторінці
 function renderList(filter = 'total') {
     const list = document.getElementById('rankingList');
     if (!list) return;
     
-    // Сортування
-    let sorted = [...currentData].sort((a, b) => {
-        const getScore = (item) => {
-            if (filter === 'likes') return item.likes;
-            if (filter === 'comments') return item.comments;
-            if (filter === 'shares') return item.shares;
-            return item.likes + item.comments + item.shares;
-        };
-        return getScore(b) - getScore(a);
-    });
-
-    // Ефект конфетті при зміні лідера
+    let sorted = [...currentData]; // Дані вже відсортовані в loadRanking
+    
     if (sorted.length > 0) {
-        const currentWinner = sorted[0].pageName;
-        if (lastWinner && lastWinner !== currentWinner) {
-            celebrate();
-        }
-        lastWinner = currentWinner;
+        if (lastWinner && lastWinner !== sorted[0].pageName) celebrate();
+        lastWinner = sorted[0].pageName;
     }
 
     list.innerHTML = '';
     const maxVal = Math.max(...sorted.map(item => item.likes + item.comments + item.shares)) || 1;
 
     sorted.forEach((item, index) => {
-        const score = filter === 'likes' ? item.likes : 
-                      filter === 'comments' ? item.comments : 
-                      filter === 'shares' ? item.shares : 
-                      (item.likes + item.comments + item.shares);
-        
+        const score = item.likes + item.comments + item.shares;
         const percentage = (score / maxVal) * 100;
-        const medalIcons = ['🥇', '🥈', '🥉'];
-        const medal = index < 3 ? medalIcons[index] : `#${index + 1}`;
+        const medal = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
 
         list.innerHTML += `
             <div class="rank-card">
@@ -167,10 +117,14 @@ function renderList(filter = 'total') {
                     </div>
                 </div>
                 <a href="${item.url}" target="_blank" class="btn-watch">Дивитись</a>
-            </div>
-        `;
+            </div>`;
     });
 }
 
-// Старт
+function celebrate() {
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', loadRanking);
