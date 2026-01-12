@@ -1,5 +1,5 @@
 /**
- * contest.js - Оновлений дизайн: Великі мініатюри, Lobster шрифт та високий контраст
+ * contest.js - ВЕРСІЯ: БЕЗ ДУБЛІКАТІВ + НОВИЙ КОНТРАСТНИЙ ДИЗАЙН
  */
 
 let currentData = [];
@@ -25,19 +25,25 @@ async function loadRanking() {
             let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
             let groupKey = name.toLowerCase().replace(/["'«»„“]/g, '').replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
 
-            // Розумне об'єднання
-            if (groupKey.includes("кам") || groupKey.includes("камянк")) {
-                name = "Духовий оркестр м. Кам’янка";
-                groupKey = "kamyanka_final";
+            // --- СУПЕР-ОБ'ЄДНАННЯ ДЛЯ ПРИБИРАННЯ ПОВТОРІВ ---
+            if (groupKey.includes("тальн") || groupKey.includes("сурми")) {
+                name = "Духовий оркестр «Сурми Тальнівщини»";
+                groupKey = "talne_final";
             } else if (groupKey.includes("сміл") || groupKey.includes("божидар")) {
                 name = "Оркестр «Божидар» (м. Сміла)";
                 groupKey = "smila_final";
+            } else if (groupKey.includes("кам") || groupKey.includes("камянк")) {
+                name = "Духовий оркестр м. Кам’янка";
+                groupKey = "kamyanka_final";
             } else if (groupKey.includes("звенигород")) {
                 name = "Оркестр духових інструментів (м. Звенигородка)";
                 groupKey = "zveni_final";
             } else if (groupKey.includes("христин") || groupKey.includes("великосеваст")) {
                 name = "Оркестр Великосевастянівського БК";
                 groupKey = "hrist_final";
+            } else if (groupKey.includes("водограй") || groupKey.includes("великоканів")) {
+                name = "Ансамбль «Водограй» (Золотоніський р-н)";
+                groupKey = "vodogray_final";
             }
 
             if (groups[groupKey]) {
@@ -60,22 +66,19 @@ async function loadRanking() {
         if (titleElement) {
             titleElement.innerText = detectedFestivalTitle || "Битва вподобайків";
             titleElement.style.fontFamily = "'Lobster', cursive";
-            titleElement.style.fontSize = "2.5rem";
-            titleElement.style.color = "#2c3e50";
-            titleElement.style.textShadow = "2px 2px 4px rgba(0,0,0,0.1)";
         }
 
         currentData = Object.values(groups)
             .sort((a, b) => (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares))
             .slice(0, 6);
 
-        renderList('total'); 
+        renderList(); 
     } catch (error) {
         console.error("Помилка:", error);
     }
 }
 
-function renderList(filter = 'total') {
+function renderList() {
     const list = document.getElementById('rankingList');
     if (!list) return;
     
@@ -85,47 +88,48 @@ function renderList(filter = 'total') {
     currentData.forEach((item, index) => {
         const score = item.likes + item.comments + item.shares;
         const percentage = (score / maxVal) * 100;
-        const rankNumber = index + 1;
 
-        // Створюємо картку як одне велике посилання
         list.innerHTML += `
-            <a href="${item.url}" target="_blank" class="rank-card-link" style="text-decoration: none; color: inherit;">
-                <div class="rank-card new-design" style="
+            <a href="${item.url}" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 15px;">
+                <div class="rank-card" style="
                     display: flex; 
                     align-items: center; 
                     background: white; 
-                    margin-bottom: 15px; 
-                    border-radius: 12px; 
+                    border-radius: 15px; 
                     overflow: hidden; 
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-                    border: 1px solid #eee;
-                    height: 120px;
-                    transition: transform 0.2s;
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.2); 
+                    height: 130px; 
+                    border: 2px solid #333;
                 ">
-                    <div class="rank-number-box" style="
-                        width: 60px; 
+                    <div style="
+                        width: 70px; 
                         text-align: center; 
                         font-family: 'Lobster', cursive; 
-                        font-size: 2rem; 
-                        color: #e67e22;
-                        border-right: 2px solid #f1f1f1;
+                        font-size: 2.5rem; 
+                        color: #2c3e50; 
+                        background: #f8f9fa;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-right: 2px solid #333;
                     ">
-                        ${rankNumber}
+                        ${index + 1}
                     </div>
                     
-                    <div class="photo-container" style="width: 120px; height: 100%;">
+                    <div style="width: 140px; height: 100%;">
                         <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='фото_для_боту.png'">
                     </div>
                     
-                    <div class="rank-details" style="flex-grow: 1; padding: 10px 15px; display: flex; flex-direction: column; justify-content: center;">
-                        <div class="rank-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                            <span class="rank-name" style="font-weight: 800; font-size: 1.1rem; color: #333; line-height: 1.2;">${item.pageName}</span>
-                            <span class="metric-info" style="font-weight: 900; color: #27ae60; font-size: 1.2rem; margin-left: 10px;">${score}</span>
+                    <div style="flex-grow: 1; padding: 10px 20px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 800; font-size: 1.15rem; color: #000; line-height: 1.1;">${item.pageName}</span>
+                            <span style="font-weight: 900; color: #d35400; font-size: 1.5rem;">${score}</span>
                         </div>
-                        <div class="progress-wrapper" style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
-                            <div class="progress-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #e67e22, #f1c40f); height: 100%;"></div>
+                        <div style="background: #dfe6e9; height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid #b2bec3;">
+                            <div style="width: ${percentage}%; background: linear-gradient(90deg, #f39c12, #e67e22); height: 100%;"></div>
                         </div>
-                        <div style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">Натисніть, щоб подивитись відео 🎥</div>
+                        <div style="font-size: 0.85rem; color: #636e72; margin-top: 8px; font-weight: bold;">▶ Клікніть, щоб дивитись відео</div>
                     </div>
                 </div>
             </a>`;
