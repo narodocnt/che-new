@@ -5,33 +5,44 @@ async function loadRanking() {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         const groups = {};
+        let detectedFestivalTitle = "";
 
         rawData.forEach(item => {
             let fullText = (item.pageName || "").trim();
             
-            // 1. ЖОРСТКИЙ ФІЛЬТР ТЕХНІЧНОГО СМІТТЯ
+            // 1. ВИТЯГУЄМО НАЗВУ ФЕСТИВАЛЮ (Title)
+            // Шукаємо текст до фрази "Назва Колективу:"
+            if (!detectedFestivalTitle && fullText.includes("Назва Колективу:")) {
+                detectedFestivalTitle = fullText.split("Назва Колективу:")[0]
+                    .replace(/Назва Фестивалю:/i, "")
+                    .replace(/[#*]/g, "")
+                    .trim();
+            }
+
+            // 2. ФІЛЬТР ТЕХНІЧНОГО СМІТТЯ
             if (fullText.includes("undefined") || 
                 fullText.includes("$json") || 
                 fullText.includes("message.content") ||
-                (parseInt(item.likes) > 500 && fullText.includes("Колектив"))) {
-                return; // Пропускаємо цей запис, не додаючи його в рейтинг
+                (parseInt(item.likes) > 600)) {
+                return; 
             }
 
-            // 2. УНІВЕРСАЛЬНА ЧИСТКА НАЗВИ
-            let cleanName = fullText
-                .replace(/Назва Фестивалю:.*?Назва Колективу:/i, "") // Прибираємо технічний заголовок
-                .replace(/Колектив \(пост №.*?\)/i, "Невідомий колектив")
-                .trim();
+            // 3. ЧИСТКА НАЗВИ КОЛЕКТИВУ
+            let cleanName = fullText;
+            if (fullText.includes("Назва Колективу:")) {
+                cleanName = fullText.split("Назва Колективу:")[1].trim();
+            }
 
-            // 3. СПЕЦІАЛЬНЕ ОБ'ЄДНАННЯ ДЛЯ КАМ'ЯНКИ
-            // Якщо в тексті є слово "Кам'янк" або посилання веде на їхній пост
+            // 4. СПЕЦІАЛЬНЕ ОБ'ЄДНАННЯ ДЛЯ КАМ'ЯНКИ
             let groupKey = cleanName.toLowerCase();
             if (groupKey.includes("кам'ян") || groupKey.includes("камянк")) {
                 cleanName = "Духовий оркестр м. Кам’янка";
                 groupKey = "kamyanka_orchestra";
+            } else {
+                groupKey = cleanName.substring(0, 50).toLowerCase().trim();
             }
 
-            // 4. ГРУПУВАННЯ
+            // 5. ГРУПУВАННЯ ЛАЙКІВ
             if (groups[groupKey]) {
                 groups[groupKey].likes += parseInt(item.likes) || 0;
                 groups[groupKey].comments += parseInt(item.comments) || 0;
@@ -48,15 +59,23 @@ async function loadRanking() {
             }
         });
 
-        // Сортуємо: Сміла з 30-40 лайками тепер стане на своє чесне місце
+        // ОНОВЛЕННЯ ЗАГОЛОВКА НА САЙТІ
+        const titleElement = document.getElementById('festival-title');
+        if (titleElement) {
+            // Якщо ШІ витягнув назву "Музична варта", ставимо її, інакше лишаємо стандарт
+            titleElement.innerText = detectedFestivalTitle ? `🏆 ${detectedFestivalTitle}` : "🏆 Битва вподобайків";
+        }
+
+        // СОРТУВАННЯ ТА ВИСВІТЛЕННЯ ТОП-6
         let combinedArray = Object.values(groups).sort((a, b) => {
             return (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares);
         });
 
-        // Залишаємо ТОП-6 реальних колективів
         currentData = combinedArray.slice(0, 6);
         renderList('total'); 
     } catch (error) {
         console.error("Помилка:", error);
     }
 }
+
+// Решта функцій (renderList, celebrate) залишаються без змін
