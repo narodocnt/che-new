@@ -1,5 +1,5 @@
 /**
- * contest.js - ВЕРСІЯ: ТОЧНА МАТЕМАТИКА (FACEBOOK-STYLE)
+ * contest.js - ВЕРСІЯ: ТОЧНА МАТЕМАТИКА + СНІЖИНКА
  */
 
 let currentData = [];
@@ -10,40 +10,42 @@ async function loadRanking() {
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
+        
+        // 1. ПЕРШИЙ КРОК: ВИДАЛЯЄМО ДУБЛІКАТИ ПОСИЛАНЬ (щоб не множити лайки)
+        // Створюємо Map, де ключем є URL. Це гарантує, що кожне відео врахується лише ОДИН раз.
+        const uniquePosts = Array.from(new Map(rawData.map(item => [item.url, item])).values());
+
         const groups = {};
 
-        rawData.forEach(item => {
+        uniquePosts.forEach(item => {
             let fullText = (item.pageName || "").trim();
             if (fullText.includes("undefined") || fullText.includes("$json")) return;
 
-            // 1. Очищення імені
+            // Чистимо назву
             let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
             let groupKey = name.toLowerCase().replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
 
-            // 2. Фільтр дублів (об'єднуємо Тальне, Смілу тощо)
-            if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (м. Сміла)"; groupKey = "smila"; }
+            // Об'єднання колективів за ключовими словами
+            if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (Сміла)"; groupKey = "smila"; }
             else if (groupKey.includes("тальн") || groupKey.includes("сурми")) { name = "Оркестр «Сурми Тальнівщини»"; groupKey = "talne"; }
+            else if (groupKey.includes("кам")) { name = "Оркестр м. Кам’янка"; groupKey = "kamyanka"; }
             else if (groupKey.includes("христин")) { name = "Оркестр Великосевастянівського БК"; groupKey = "hrist"; }
-            else if (groupKey.includes("кам")) { name = "Духовий оркестр м. Кам’янка"; groupKey = "kamyanka"; }
 
-            // 3. МАТЕМАТИКА (Беремо дані як у FB на скріншоті)
-            let likes = parseInt(item.likes) || 0;
-            let shares = parseInt(item.shares) || 0;
-            let comments = parseInt(item.comments) || 0;
-
-            // Сума = Лайки + Поширення + Коментарі (17 + 9 + 3 = 29)
-            let totalPoints = likes + shares + comments;
+            let l = parseInt(item.likes) || 0;
+            let s = parseInt(item.shares) || 0;
+            let c = parseInt(item.comments) || 0;
+            let total = l + s + c;
 
             if (groups[groupKey]) {
-                groups[groupKey].score += totalPoints;
-                groups[groupKey].breakdown.l += likes;
-                groups[groupKey].breakdown.s += shares;
-                groups[groupKey].breakdown.c += comments;
+                groups[groupKey].score += total;
+                groups[groupKey].breakdown.l += l;
+                groups[groupKey].breakdown.s += s;
+                groups[groupKey].breakdown.c += c;
             } else {
                 groups[groupKey] = {
                     pageName: name,
-                    score: totalPoints,
-                    breakdown: { l: likes, s: shares, c: comments },
+                    score: total,
+                    breakdown: { l: l, s: s, c: c },
                     url: item.url,
                     media: item.media || 'фото_для_боту.png'
                 };
@@ -73,24 +75,31 @@ function renderList() {
         const color = colors[index] || '#2c3e50';
 
         list.innerHTML += `
-            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 10px auto; max-width: 550px; width: 95%;">
-                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); height: 100px; border: 2.5px solid ${color};">
-                    <div style="width: 50px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 24px; display: flex; align-items: center; justify-content: center;">
+            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 12px auto; max-width: 550px; width: 95%;">
+                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2); height: 105px; border: 2px solid ${color}; position: relative;">
+                    
+                    <div style="width: 55px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 28px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                         ${index + 1}
                     </div>
-                    <div style="width: 120px;">
-                        <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;">
+                    
+                    <div style="width: 130px; position: relative;">
+                        <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='фото_для_боту.png'">
                     </div>
-                    <div style="flex-grow: 1; padding: 10px 15px; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                            <span style="font-weight: 800; font-size: 14px; color: #2c3e50; font-family: 'Lobster', cursive;">${item.pageName}</span>
-                            <span style="font-weight: 900; color: ${color}; font-size: 24px;">${item.score}</span>
+                    
+                    <div style="flex-grow: 1; padding: 10px 15px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-family: 'Lobster', cursive; font-size: 16px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.pageName}</span>
+                            <span style="font-weight: 900; color: ${color}; font-size: 24px; display: flex; align-items: center;">
+                                <span style="font-size: 18px; margin-right: 4px;">❄️</span>${item.score}
+                            </span>
                         </div>
-                        <div style="font-size: 11px; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;">
-                             👍 ${item.breakdown.l} + 🔄 ${item.breakdown.s} + 💬 ${item.breakdown.c}
+                        
+                        <div style="font-size: 11px; color: #7f8c8d; margin-bottom: 6px; font-weight: bold; letter-spacing: 0.5px;">
+                             👍 ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}
                         </div>
-                        <div style="background: #eee; height: 8px; border-radius: 4px; overflow: hidden;">
-                            <div style="width: ${percentage}%; background: ${color}; height: 100%;"></div>
+                        
+                        <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #ddd;">
+                            <div style="width: ${percentage}%; background: ${color}; height: 100%; transition: width 0.8s ease-out;"></div>
                         </div>
                     </div>
                 </div>
