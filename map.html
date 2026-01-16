@@ -96,55 +96,58 @@
         /**
          * ГОЛОВНА ФУНКЦІЯ: Завантаження рейтингу з n8n та малювання кордонів
          */
-     async function loadBattleData() {
+    async function loadBattleData() {
     console.log("Починаю завантаження даних битви...");
     try {
-        // 1. Отримуємо рейтинг з n8n
         const response = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
         const scores = await response.json();
         console.log("Дані рейтингу отримано:", scores);
 
-        // 2. Нове робоче посилання на GeoJSON громад Черкаської області
-        const geoResponse = await fetch('https://raw.githubusercontent.com/u-maps/admin-tg/main/data/geojson/47.geojson');
-        if (!geoResponse.ok) throw new Error("Не вдалося завантажити файл кордонів (404)");
+        // ВИКОРИСТОВУЄМО АЛЬТЕРНАТИВНЕ НАДІЙНЕ ДЖЕРЕЛО КОРДОНІВ
+        const geoResponse = await fetch('https://raw.githubusercontent.com/uablock/ukraine-geojson/master/cherkasy_region_hromadas.json');
+        if (!geoResponse.ok) throw new Error("Помилка завантаження файлу кордонів");
         
         const geoData = await geoResponse.json();
-        console.log("Кордони громад завантажено.");
-
         battleLayer.clearLayers();
 
         L.geoJson(geoData, {
             style: function(feature) {
-                // У цьому файлі назва громади зазвичай у полі feature.properties.name
                 const name = feature.properties.name;
-                const score = scores[name] || 0;
+                // Шукаємо, чи є бали для цієї громади (враховуючи відмінки)
+                let score = 0;
+                for (let key in scores) {
+                    if (name.includes(key) || key.includes(name)) {
+                        score = scores[key];
+                        break;
+                    }
+                }
                 
                 return {
-                    fillColor: score > 1000 ? '#8b0000' : 
-                               score > 500  ? '#d32f2f' : 
-                               score > 0    ? '#f44336' : '#cccccc',
+                    fillColor: score > 100 ? '#8b0000' : 
+                               score > 50  ? '#d32f2f' : 
+                               score > 0   ? '#f44336' : '#eeeeee',
                     weight: 1.5,
                     opacity: 1,
-                    color: 'white',
+                    color: '#999',
                     dashArray: '3',
-                    fillOpacity: 0.6
+                    fillOpacity: 0.7
                 };
             },
             onEachFeature: function(feature, layer) {
                 const name = feature.properties.name;
-                const score = scores[name] || 0;
-                layer.bindPopup(`<b>${name}</b><br>Рейтинг: ${score}`);
+                let score = 0;
+                for (let key in scores) {
+                    if (name.includes(key) || key.includes(name)) { score = scores[key]; break; }
+                }
+                layer.bindPopup(`<b>Громада: ${name}</b><br>Активність: ${score} балів`);
             }
         }).addTo(battleLayer);
         
-        console.log("Мапа громад успішно побудована.");
-
+        console.log("Кордони успішно намальовані.");
     } catch (error) {
-        console.error("Помилка завантаження даних битви:", error);
-        alert("Помилка завантаження: перевірте консоль (F12)");
+        console.error("Помилка:", error);
     }
 }
-
         // 4. Перемикач режимів
         function showLayer(type) {
             if (type === 'collectives') {
