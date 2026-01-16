@@ -3,51 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Культурна мапа Черкащини | ОЦНТ</title>
+    <title>Культурна мапа Черкащини | Битва вподобайків</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; }
+        :root { --primary: #8b0000; --accent: #ffcc00; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        #map { height: 100vh; width: 100%; } /* Карта на весь екран */
+        #map { height: 100vh; width: 100%; background: #f0f2f5; }
 
-        .back-btn {
+        /* Панель керування */
+        .controls {
             position: absolute;
             top: 20px;
-            left: 50px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
-            background: #8b0000;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: 0.3s;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #ddd;
         }
-        .back-btn:hover { background: #b30000; transform: scale(1.05); }
 
-        .map-title {
+        .map-btn {
+            border: none;
+            padding: 10px 22px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: 0.3s;
+            background: transparent;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-btn.active { background: var(--primary); color: white; }
+        .map-btn:hover:not(.active) { background: #f0f0f0; }
+
+        .back-home {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            left: 20px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 20px;
-            border-radius: 8px;
-            border-left: 5px solid #8b0000;
+            background: white;
+            color: var(--primary);
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            text-decoration: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 20px;
+        }
+
+        /* Легенда для битви вподобайків */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+            display: none; /* показуємо тільки в режимі битви */
         }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="back-btn">← На головну</a>
-    
-    <div class="map-title">
-        <h3 style="margin:0; color:#333;">Культурна мапа Черкащини</h3>
-        <small style="color:#666;">Народна творчість та колективи</small>
+    <a href="index.html" class="back-home" title="На головну">🏠</a>
+
+    <div class="controls">
+        <button id="btn-battle" class="map-btn active" onclick="switchMode('battle')">
+            🏆 Битва вподобайків
+        </button>
+        <button id="btn-collectives" class="map-btn" onclick="switchMode('collectives')">
+            🎭 Колективи
+        </button>
+    </div>
+
+    <div id="legend" class="legend">
+        <b>Рейтинг (лайки):</b><br>
+        <i style="background: #8b0000; width:15px; height:15px; display:inline-block"></i> > 500<br>
+        <i style="background: #d63031; width:15px; height:15px; display:inline-block"></i> 200 - 500<br>
+        <i style="background: #ff7675; width:15px; height:15px; display:inline-block"></i> 50 - 200<br>
+        <i style="background: #fab1a0; width:15px; height:15px; display:inline-block"></i> < 50
     </div>
 
     <div id="map"></div>
@@ -55,19 +105,95 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Ініціалізація карти (центр на Черкаській області)
-        var map = L.map('map').setView([49.444, 31.5], 9);
+        const RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+        const GEOJSON_URL = "https://raw.githubusercontent.com/uablock/ukraine-geojson/master/cherkasy_region_hromadas.json";
 
-        // Шар карти (світлий сучасний стиль)
+        var map = L.map('map').setView([49.444, 31.5], 9);
+        var geojsonLayer, collectivesLayer;
+        var rankingData = {};
+
+        // Базовий шар карти
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Головний маркер - ОЦНТ
-        var ocnt = L.marker([49.4438, 32.0699]).addTo(map);
-        ocnt.bindPopup("<b>Черкаський ОЦНТ</b><br>вул. Верхня Горова, 29").openPopup();
+        // Функція визначення кольору за рейтингом
+        function getColor(likes) {
+            return likes > 500  ? '#8b0000' :
+                   likes > 200  ? '#d63031' :
+                   likes > 50   ? '#ff7675' :
+                   likes > 0    ? '#fab1a0' : '#f0f0f0';
+        }
 
-        // Тут ми зможемо підключити ваш JSON з n8n для автоматичних точок
+        // Завантажуємо дані рейтингу з n8n
+        async function fetchRankingData() {
+            try {
+                const response = await fetch(RANKING_URL);
+                const data = await response.json();
+                // Припустимо, n8n повертає масив об'єктів [{name: "Назва", likes: 100}]
+                // Перетворюємо в зручний об'єкт { "Назва": 100 }
+                data.forEach(item => {
+                    rankingData[item.name] = item.likes;
+                });
+                loadGeoJson();
+            } catch (e) {
+                console.error("Помилка завантаження рейтингу:", e);
+                loadGeoJson(); // завантажуємо карту навіть без лайків
+            }
+        }
+
+        // Завантажуємо межі громад (GeoJSON)
+        function loadGeoJson() {
+            fetch(GEOJSON_URL)
+                .then(res => res.json())
+                .then(data => {
+                    geojsonLayer = L.geoJson(data, {
+                        style: function(feature) {
+                            let name = feature.properties.name; // Перевірте назву поля в GeoJSON
+                            let likes = rankingData[name] || 0;
+                            return {
+                                fillColor: getColor(likes),
+                                weight: 1.5,
+                                opacity: 1,
+                                color: 'white',
+                                fillOpacity: 0.7
+                            };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            let likes = rankingData[feature.properties.name] || 0;
+                            layer.bindPopup(`<b>Громада: ${feature.properties.name}</b><br>Лайків: ${likes}`);
+                            
+                            layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.9, weight: 3 }); });
+                            layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.7, weight: 1.5 }); });
+                        }
+                    }).addTo(map);
+                    document.getElementById('legend').style.display = 'block';
+                });
+        }
+
+        // Режим колективів (заглушка для розширення)
+        collectivesLayer = L.layerGroup();
+        // Приклад маркера ОЦНТ
+        L.marker([49.4438, 32.0699]).bindPopup("<b>Черкаський ОЦНТ</b>").addTo(collectivesLayer);
+
+        function switchMode(mode) {
+            document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+            if (mode === 'battle') {
+                document.getElementById('btn-battle').classList.add('active');
+                document.getElementById('legend').style.display = 'block';
+                if (geojsonLayer) map.addLayer(geojsonLayer);
+                map.removeLayer(collectivesLayer);
+            } else {
+                document.getElementById('btn-collectives').classList.add('active');
+                document.getElementById('legend').style.display = 'none';
+                if (geojsonLayer) map.removeLayer(geojsonLayer);
+                map.addLayer(collectivesLayer);
+            }
+        }
+
+        // Початок роботи
+        fetchRankingData();
+
     </script>
 </body>
 </html>
