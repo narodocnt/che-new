@@ -1,5 +1,5 @@
 /**
- * contest.js - ВЕРСІЯ: ТОЧНИЙ РЕЙТИНГ БЕЗ ДУБЛІКАТІВ
+ * contest.js - ФІКС: ТІЛЬКИ 6 КОЛЕКТИВІВ + ВЕСЬ ВАШ ДИЗАЙН
  */
 
 let currentData = [];
@@ -10,54 +10,64 @@ async function loadRanking() {
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
-        const groups = {};
+        
+        // 1. УНІКАЛЬНІСТЬ: Фільтруємо за URL, щоб дані не множилися
+        const uniquePosts = Array.from(new Map(rawData.map(item => [item.url, item])).values());
 
-        rawData.forEach(item => {
+        const groups = {};
+        let detectedFestivalTitle = "";
+
+        uniquePosts.forEach(item => {
             let fullText = (item.pageName || "").trim();
             if (fullText.includes("undefined") || fullText.includes("$json")) return;
 
+            if (!detectedFestivalTitle && fullText.includes("Назва Колективу:")) {
+                detectedFestivalTitle = fullText.split("Назва Колективу:")[0]
+                    .replace(/Назва Фестивалю:/i, "").replace(/[#*]/g, "").trim();
+            }
+
             let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
-            
-            // Створюємо ключ для об'єднання (Тальне, Сміла тощо)
             let groupKey = name.toLowerCase().replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
-            if (groupKey.includes("тальн") || groupKey.includes("сурми")) groupKey = "talne";
-            if (groupKey.includes("сміл") || groupKey.includes("божидар")) groupKey = "smila";
-            if (groupKey.includes("кам")) groupKey = "kamyanka";
+
+            // Об'єднання колективів за ключовими словами (Сміла, Тальне, Кам'янка, Христинівка)
+            if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (Сміла)"; groupKey = "smila"; }
+            else if (groupKey.includes("тальн") || groupKey.includes("сурми")) { name = "Оркестр «Сурми Тальнівщини»"; groupKey = "talne"; }
+            else if (groupKey.includes("кам")) { name = "Оркестр м. Кам’янка"; groupKey = "kamyanka"; }
+            else if (groupKey.includes("христин")) { name = "Оркестр Великосевастянівського БК"; groupKey = "hrist"; }
+            else if (groupKey.includes("водограй")) { name = "Ансамбль «Водограй» (Золотоніський р-н)"; groupKey = "vodogray"; }
 
             let l = parseInt(item.likes) || 0;
             let s = parseInt(item.shares) || 0;
             let c = parseInt(item.comments) || 0;
             let total = l + s + c;
 
-            // ВАЖЛИВО: Якщо ми вже бачили цей колектив, беремо тільки той запис, де БІЛЬШЕ балів
-            if (!groups[groupKey] || total > (groups[groupKey].likes + groups[groupKey].shares + groups[groupKey].comments)) {
+            if (groups[groupKey]) {
+                groups[groupKey].score += total;
+                groups[groupKey].breakdown.l += l;
+                groups[groupKey].breakdown.s += s;
+                groups[groupKey].breakdown.c += c;
+            } else {
                 groups[groupKey] = {
                     pageName: name,
-                    likes: l,
-                    shares: s,
-                    comments: c,
+                    score: total,
+                    breakdown: { l: l, s: s, c: c },
                     url: item.url,
                     media: item.media || 'фото_для_боту.png'
                 };
             }
         });
 
-        // Малюємо заголовок (без змін)
-        const headerContainer = document.getElementById('festival-header-container');
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-                <div style="text-align: center; margin: 20px 0; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto;">
-                    <h2 style="font-family: 'Lobster', cursive; color: #b33939; font-size: 28px; margin-bottom: 5px;">Обласний фестиваль «Музична варта»</h2>
-                    <h3 style="font-family: 'Lobster', cursive; color: #2c3e50; font-size: 22px; margin-top: 0;">
-                        до Дня Збройних Сил України <span id="info-star" style="cursor: pointer; color: #2980b9; font-size: 30px;">*</span>
-                    </h3>
-                </div>`;
-            document.getElementById('info-star').onclick = () => alert("ℹ️ Рейтинг: ❤️ Лайки + 🔄 Поширення + 💬 Коментарі");
+        const titleElement = document.getElementById('festival-title');
+        if (titleElement) {
+            titleElement.style.fontFamily = "'Lobster', cursive";
+            titleElement.innerHTML = `${detectedFestivalTitle || "Битва вподобайків"} <span id="info-trigger" style="cursor: pointer; color: #3498db; font-size: 32px; vertical-align: middle;">❄️</span>`;
+            document.getElementById('info-trigger').onclick = showRules;
         }
 
+        // --- ГОЛОВНА ЗМІНА: ПЕРШІ 6 ---
         currentData = Object.values(groups)
-            .sort((a, b) => (b.likes + b.shares + b.comments) - (a.likes + a.shares + a.comments))
-            .slice(0, 10);
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6); // Тут ми обрізаємо список рівно до 6 позицій
 
         renderList(); 
     } catch (error) {
@@ -65,33 +75,51 @@ async function loadRanking() {
     }
 }
 
+function showRules() {
+    const rulesText = `
+        ❄️ ПРАВИЛА РЕЙТИНГУ:
+        --------------------------
+        Рейтинг рахується автоматично:
+        👍 1 вподобайка = 1 бал
+        🔄 1 поширення = 1 бал
+        💬 1 коментар = 1 бал
+        Рейтинг оновлюється двічі на добу.
+    `;
+    alert(rulesText);
+}
+
 function renderList() {
     const list = document.getElementById('rankingList');
     if (!list) return;
     list.innerHTML = '';
     
-    const maxVal = Math.max(...currentData.map(item => item.likes + item.shares + item.comments)) || 1;
-    const accentColors = ['#f1c40f', '#95a5a6', '#e67e22', '#3498db', '#9b59b6', '#2ecc71', '#1abc9c', '#34495e', '#e74c3c', '#d35400'];
+    const maxVal = Math.max(...currentData.map(item => item.score)) || 1;
+    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
 
     currentData.forEach((item, index) => {
-        const total = item.likes + item.shares + item.comments;
-        const percentage = (total / maxVal) * 100;
-        const color = accentColors[index] || '#2c3e50';
+        const percentage = (item.score / maxVal) * 100;
+        const color = colors[index] || '#2c3e50';
 
         list.innerHTML += `
-            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 12px auto; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto;">
-                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); height: 100px; border: 2px solid ${color}; position: relative;">
-                    <div style="width: 45px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 24px; display: flex; align-items: center; justify-content: center;">${index + 1}</div>
-                    <div style="width: 100px; min-width: 100px; height: 100%;"><img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;"></div>
-                    <div style="flex-grow: 1; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;">
-                        <div style="font-weight: 800; font-size: 14px; color: #000; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.pageName}</div>
-                        <div style="font-size: 13px; font-weight: bold; color: #444; display: flex; align-items: center; gap: 5px;">
-                            <span>❤️ ${item.likes}</span> + <span>🔄 ${item.shares}</span> + <span>💬 ${item.comments}</span>
-                            <span style="color: ${color}; font-size: 18px; font-weight: 900; margin-left: auto;">= ${total}</span>
-                        </div>
+            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 12px auto; max-width: 550px; width: 95%;">
+                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); height: 95px; border: 2.5px solid ${color};">
+                    <div style="width: 50px; min-width: 50px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 26px; display: flex; align-items: center; justify-content: center;">
+                        ${index + 1}
                     </div>
-                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: #eee;">
-                        <div style="width: ${percentage}%; height: 100%; background: ${color};"></div>
+                    <div style="width: 110px; min-width: 110px;">
+                        <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='фото_для_боту.png'">
+                    </div>
+                    <div style="flex-grow: 1; padding: 10px 15px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-family: 'Lobster', cursive; font-size: 15px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.pageName}</span>
+                            <span style="font-weight: 900; color: ${color}; font-size: 22px; margin-left: 10px;">${item.score}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;">
+                             👍 ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}
+                        </div>
+                        <div style="background: #eee; height: 10px; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${percentage}%; background: ${color}; height: 100%;"></div>
+                        </div>
                     </div>
                 </div>
             </a>`;
