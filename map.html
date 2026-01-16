@@ -37,7 +37,7 @@
         var collectivesLayer = L.layerGroup().addTo(map);
         
         // Створюємо порожній шар для битви, щоб він був глобально доступним
-        var battleLayer = L.geoJson(null).addTo(map); 
+        var battleLayer = L.geoJson(null); // Створюємо шар, але НЕ додаємо відразу
         map.removeLayer(battleLayer); // Ховаємо його при старті
 
         // Відображення маркерів міст
@@ -50,56 +50,69 @@
         }
 
         // ОСНОВНА ФУНКЦІЯ (назва має бути однаковою всюди)
-        async function loadBattleData() {
-            try {
-                console.log("Завантаження даних з n8n...");
-                const res = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
-                const scores = await res.json();
-                console.log("Дані отримано:", scores);
-                
-                battleLayer.clearLayers();
+       // ... (початок коду залишається таким самим)
 
-                // Використовуємо hromadasGeoJSON з вашого файлу hromadas-data.js
-                L.geoJson(hromadasGeoJSON, {
-                    style: function(feature) {
-                        const name = feature.properties.name;
-                        const score = scores[name] || 0;
-                        return {
-                            fillColor: score > 50 ? '#8b0000' : score > 0 ? '#f44336' : '#cccccc',
-                            weight: 2,
-                            color: 'white',
-                            fillOpacity: 0.7
-                        };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        const name = feature.properties.name;
-                        const score = scores[name] || 0;
-                        layer.bindPopup(`<b>Громада: ${name}</b><br>Балів: ${score}`);
+// Функція малювання (використовуємо одну назву всюди)
+async function loadBattleData() {
+    try {
+        console.log("Завантаження даних...");
+        const res = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
+        const scores = await res.json();
+        console.log("Дані отримано:", scores);
+        
+        battleLayer.clearLayers();
+
+        L.geoJson(hromadasGeoJSON, {
+            style: function(feature) {
+                const name = feature.properties.name;
+                // Робимо пошук по всьому тексту ключа, бо в n8n вони довгі
+                let score = 0;
+                for (let key in scores) {
+                    if (key.includes(name)) {
+                        score = scores[key];
+                        break;
                     }
-                }).addTo(battleLayer);
-                
-                map.addLayer(battleLayer); // Показуємо шар після завантаження
-                
-            } catch (e) {
-                console.error("Помилка завантаження битви:", e);
-            }
-        }
+                }
 
-        function showLayer(type) {
-            if (type === 'collectives') {
-                document.getElementById('btn-col').classList.add('active');
-                document.getElementById('btn-bat').classList.remove('active');
-                map.addLayer(collectivesLayer);
-                map.removeLayer(battleLayer);
-            } else {
-                document.getElementById('btn-bat').classList.add('active');
-                document.getElementById('btn-col').classList.remove('active');
-                map.removeLayer(collectivesLayer);
-                
-                // Викликаємо функцію завантаження
-                loadBattleData();
+                return {
+                    fillColor: score > 30 ? '#8b0000' : 
+                               score > 10 ? '#d32f2f' : 
+                               score > 0  ? '#f44336' : '#cccccc',
+                    weight: 2,
+                    color: 'white',
+                    fillOpacity: 0.7
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                const name = feature.properties.name;
+                let score = 0;
+                for (let key in scores) {
+                    if (key.includes(name)) { score = scores[key]; break; }
+                }
+                layer.bindPopup(`<b>Громада: ${name}</b><br>Балів: ${score}`);
             }
-        }
+        }).addTo(battleLayer);
+        
+        map.addLayer(battleLayer); // Додаємо на карту тільки після побудови
+        
+    } catch (e) {
+        console.error("Помилка:", e);
+    }
+}
+
+function showLayer(type) {
+    if (type === 'collectives') {
+        document.getElementById('btn-col').classList.add('active');
+        document.getElementById('btn-bat').classList.remove('active');
+        map.addLayer(collectivesLayer);
+        if (map.hasLayer(battleLayer)) map.removeLayer(battleLayer);
+    } else {
+        document.getElementById('btn-bat').classList.add('active');
+        document.getElementById('btn-col').classList.remove('active');
+        map.removeLayer(collectivesLayer);
+        loadBattleData(); // Тепер назва збігається!
+    }
+}
     </script>
 </body>
 </html>
