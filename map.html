@@ -45,63 +45,58 @@
         }
 
         async function loadBattleData() {
-            console.log("Завантаження даних...");
-            try {
-                // 1. Отримуємо рейтинг
-                const scoresRes = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
-                const scores = await scoresRes.json();
-                console.log("Рейтинг отримано:", scores);
+    console.log("Завантаження даних...");
+    try {
+        // 1. Отримуємо рейтинг
+        const scoresRes = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
+        const scores = await scoresRes.json();
+        console.log("Очищений рейтинг:", scores);
 
-                // 2. Завантажуємо GeoJSON кордонів (Стабільне джерело)
-                // Спробуємо офіційний репозиторій громад України
-                const geoRes = await fetch('https://raw.githubusercontent.com/uablock/ukraine-geojson/master/cherkasy_region_hromadas.json');
-                const geoData = await geoRes.json();
-                console.log("Кордони завантажено.");
+        // 2. ЗАПАСНЕ ПОСИЛАННЯ (якщо перше не працює)
+        const geoUrl = 'https://raw.githubusercontent.com/u-maps/admin-tg/main/data/geojson/47.geojson';
+        const geoRes = await fetch(geoUrl);
+        
+        if (!geoRes.ok) throw new Error("Файл кордонів все ще недоступний");
+        
+        const geoData = await geoRes.json();
+        console.log("Кордони успішно завантажено");
 
-                if (battleLayer) map.removeLayer(battleLayer);
+        if (battleLayer) map.removeLayer(battleLayer);
 
-                battleLayer = L.geoJson(geoData, {
-                    style: function(feature) {
-                        const name = feature.properties.name;
-                        // Пошук збігів у назвах
-                        let score = 0;
-                        for (let key in scores) {
-                            if (name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())) {
-                                score = scores[key];
-                                break;
-                            }
-                        }
+        battleLayer = L.geoJson(geoData, {
+            style: function(feature) {
+                // В цьому файлі назва громади лежить в feature.properties.name
+                const name = feature.properties.name || "";
+                let score = 0;
 
-                        return {
-                            fillColor: score > 500 ? '#8b0000' : score > 100 ? '#d32f2f' : score > 0 ? '#f44336' : '#dddddd',
-                            weight: 2,
-                            opacity: 1,
-                            color: 'white',
-                            dashArray: '3',
-                            fillOpacity: 0.7
-                        };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        const name = feature.properties.name;
-                        let score = 0;
-                        for (let key in scores) {
-                            if (name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())) {
-                                score = scores[key];
-                                break;
-                            }
-                        }
-                        layer.bindPopup(`<b>Громада: ${name}</b><br>Активність: ${score}`);
+                // Шукаємо збіг назви громади з ключами з n8n
+                for (let key in scores) {
+                    if (name.includes(key.replace('ська', ''))) {
+                        score = scores[key];
+                        break;
                     }
-                }).addTo(map);
+                }
 
-                // Приховуємо колективи, показуємо битву
-                map.removeLayer(collectivesLayer);
-                
-            } catch (err) {
-                console.error("Критична помилка:", err);
-                alert("Не вдалося завантажити кордони громад. Перевірте консоль (F12)");
+                return {
+                    fillColor: score > 50 ? '#8b0000' : score > 20 ? '#d32f2f' : score > 0 ? '#f44336' : '#cccccc',
+                    weight: 1.5,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 0.7
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                const name = feature.properties.name || "Громада";
+                layer.bindPopup(`<b>${name}</b>`);
             }
-        }
+        }).addTo(map);
+
+    } catch (err) {
+        console.error("Помилка:", err);
+        alert("Помилка зв'язку з сервером громад. Спробуйте пізніше.");
+    }
+}
 
         function showLayer(type) {
             if (type === 'collectives') {
