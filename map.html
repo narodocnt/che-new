@@ -31,11 +31,14 @@
     <script src="hromadas-data.js"></script>
 
     <script>
-        var map = L.map('map').setView([49.444, 32.0], 8);
+       var map = L.map('map').setView([49.444, 32.0], 8);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         var collectivesLayer = L.layerGroup().addTo(map);
-        var battleLayer = L.geoJson(null);
+        
+        // Створюємо порожній шар для битви, щоб він був глобально доступним
+        var battleLayer = L.geoJson(null).addTo(map); 
+        map.removeLayer(battleLayer); // Ховаємо його при старті
 
         // Відображення маркерів міст
         if (typeof mapCollectives !== 'undefined') {
@@ -46,43 +49,54 @@
             });
         }
 
-async function drawBattleMap() {
-    try {
-        const res = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
-        const scores = await res.json();
-        
-        battleLayer.clearLayers();
+        // ОСНОВНА ФУНКЦІЯ (назва має бути однаковою всюди)
+        async function loadBattleData() {
+            try {
+                console.log("Завантаження даних з n8n...");
+                const res = await fetch('https://n8n.narodocnt.online/webhook/get-battle-stats');
+                const scores = await res.json();
+                console.log("Дані отримано:", scores);
+                
+                battleLayer.clearLayers();
 
-        L.geoJson(hromadasGeoJSON, {
-            style: function(feature) {
-                const name = feature.properties.name;
-                const score = scores[name] || 0;
-                return {
-                    fillColor: score > 50 ? '#8b0000' : score > 0 ? '#f44336' : '#cccccc',
-                    weight: 2,
-                    color: 'white',
-                    fillOpacity: 0.7
-                };
-            },
-            onEachFeature: function(feature, layer) {
-                const name = feature.properties.name;
-                const score = scores[name] || 0;
-                layer.bindPopup(`<b>Громада: ${name}</b><br>Балів: ${score}`);
+                // Використовуємо hromadasGeoJSON з вашого файлу hromadas-data.js
+                L.geoJson(hromadasGeoJSON, {
+                    style: function(feature) {
+                        const name = feature.properties.name;
+                        const score = scores[name] || 0;
+                        return {
+                            fillColor: score > 50 ? '#8b0000' : score > 0 ? '#f44336' : '#cccccc',
+                            weight: 2,
+                            color: 'white',
+                            fillOpacity: 0.7
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const name = feature.properties.name;
+                        const score = scores[name] || 0;
+                        layer.bindPopup(`<b>Громада: ${name}</b><br>Балів: ${score}`);
+                    }
+                }).addTo(battleLayer);
+                
+                map.addLayer(battleLayer); // Показуємо шар після завантаження
+                
+            } catch (e) {
+                console.error("Помилка завантаження битви:", e);
             }
-        }).addTo(battleLayer);
-    } catch (e) {
-        console.error(e);
-    }
-}
+        }
+
         function showLayer(type) {
             if (type === 'collectives') {
                 document.getElementById('btn-col').classList.add('active');
                 document.getElementById('btn-bat').classList.remove('active');
                 map.addLayer(collectivesLayer);
-                if (battleLayer) map.removeLayer(battleLayer);
+                map.removeLayer(battleLayer);
             } else {
                 document.getElementById('btn-bat').classList.add('active');
                 document.getElementById('btn-col').classList.remove('active');
+                map.removeLayer(collectivesLayer);
+                
+                // Викликаємо функцію завантаження
                 loadBattleData();
             }
         }
