@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта громад та колективів</title>
+    <title>Інтерактивна карта громад Черкащини</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        #map { width: 100vw; height: 100vh; background: #f0f0f0; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+        #map { width: 100vw; height: 100vh; background: #fff; }
 
-        /* Стиль маркера-цифри */
-        .marker-number {
-            background-color: #e67e22; /* Помаранчевий колір */
+        /* Стиль цифри на карті */
+        .marker-number-icon {
+            background-color: #d35400; /* Темно-помаранчевий */
             color: white;
             border-radius: 50%;
             width: 30px;
@@ -22,41 +22,49 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-family: Arial, sans-serif;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
             cursor: pointer;
             transition: transform 0.2s ease-in-out, background-color 0.2s;
-            z-index: 500;
         }
 
-        /* Збільшення при наведенні */
-        .marker-number:hover {
+        /* Ефект збільшення при наведенні */
+        .marker-number-icon:hover {
             transform: scale(1.6);
-            background-color: #d35400;
+            background-color: #2980b9; /* Змінює колір на синій при наведенні */
             z-index: 1000 !important;
         }
 
-        /* Стилізація таблиці у попапі */
-        .popup-table-container {
-            max-height: 250px;
+        /* Стилізація вікна з таблицею (Popup) */
+        .popup-container {
+            min-width: 350px;
+            max-height: 300px;
             overflow-y: auto;
-            min-width: 250px;
+        }
+        .hromada-title {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+            border-bottom: 2px solid #d35400;
+            padding-bottom: 5px;
         }
         .collectives-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
         }
         .collectives-table th, .collectives-table td {
             border: 1px solid #ddd;
-            padding: 5px;
+            padding: 6px;
             font-size: 12px;
             text-align: left;
         }
-        .collectives-table th { background-color: #f8f8f8; }
-        
-        .leaflet-popup-content-wrapper { border-radius: 8px; }
+        .collectives-table th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        .collectives-table tr:nth-child(even) { background-color: #fafafa; }
     </style>
 </head>
 <body>
@@ -69,81 +77,79 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // 1. Створення карти (CRS.Simple ідеально підходить для статичних зображень-карт)
+    // 1. Створення карти. Використовуємо CRS.Simple для роботи з малюнком JPG
     const map = L.map('map', {
         crs: L.CRS.Simple,
         minZoom: -2,
         maxZoom: 2
     });
 
-    // 2. Налаштування меж вашого зображення map.jpg
-    // Координати підібрані так, щоб широта/довгота з hromadas-data.js приблизно збігалися з картинкою
+    // 2. Налаштування меж картинки map.jpg
+    // Важливо: ці координати мають відповідати масштабу карти у hromadas-data.js
     const bounds = [[48.3, 29.5], [50.2, 33.0]]; 
     const image = L.imageOverlay('map.jpg', bounds).addTo(map);
     map.fitBounds(bounds);
 
-    // 3. Функція для пошуку колективів у тексті collectives.js
-    function findCollectives(hromadaName) {
-        let foundList = [];
-        
-        // Перебираємо всі категорії (choreographic, vocal, theatrical, instrumental)
-        for (let key in collectivesData) {
-            const htmlString = collectivesData[key];
+    // 3. Функція для динамічного пошуку колективів у файлі collectives.js
+    function getCollectivesByHromada(hromadaName) {
+        let list = [];
+        // Проходимо по всіх жанрах у об'єкті collectivesData
+        for (let genre in collectivesData) {
+            const htmlString = collectivesData[genre];
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, 'text/html');
             const items = doc.querySelectorAll('li');
             
             items.forEach(li => {
-                // Якщо в тексті пункту списку є назва громади
-                if (li.textContent.includes(hromadaName)) {
-                    foundList.push(li.innerHTML);
+                // Якщо в описі колективу згадується назва громади
+                if (li.textContent.toLowerCase().includes(hromadaName.toLowerCase())) {
+                    list.push(li.innerHTML);
                 }
             });
         }
-        return foundList;
+        return list;
     }
 
-    // 4. Логіка виведення точок
-    if (typeof hromadasGeoJSON !== 'undefined' && hromadasGeoJSON.features) {
+    // 4. Додавання точок з hromadasGeoJSON
+    if (typeof hromadasGeoJSON !== 'undefined') {
         hromadasGeoJSON.features.forEach(feature => {
             const name = feature.name;
-            const collectives = findCollectives(name);
+            const collectives = getCollectivesByHromada(name);
             const count = collectives.length;
 
-            // Створюємо маркер, якщо координати існують
+            // Малюємо цифру тільки якщо знайдено колективи (або цифру 0)
             if (feature.lat && feature.lng) {
                 const icon = L.divIcon({
-                    className: 'custom-icon',
-                    html: `<div class="marker-number">${count}</div>`,
+                    className: 'custom-div-icon',
+                    html: `<div class="marker-number-icon">${count}</div>`,
                     iconSize: [30, 30],
                     iconAnchor: [15, 15]
                 });
 
                 const marker = L.marker([feature.lat, feature.lng], { icon: icon }).addTo(map);
 
-                // Формуємо вміст таблиці для кліку
-                let tableHtml = `
-                    <div class="popup-table-container">
-                        <strong>${name}</strong>
+                // Генерація таблиці для Popup
+                let tableRows = collectives.length > 0 
+                    ? collectives.map((item, index) => `<tr><td>${index + 1}</td><td>${item}</td></tr>`).join('')
+                    : '<tr><td colspan="2" style="text-align:center">Дані відсутні</td></tr>';
+
+                const popupHtml = `
+                    <div class="popup-container">
+                        <h3 class="hromada-title">${name}</h3>
                         <table class="collectives-table">
                             <thead>
                                 <tr><th>№</th><th>Колектив</th></tr>
                             </thead>
                             <tbody>
-                                ${collectives.length > 0 
-                                    ? collectives.map((text, i) => `<tr><td>${i+1}</td><td>${text}</td></tr>`).join('')
-                                    : '<tr><td colspan="2">Колективів не знайдено</td></tr>'
-                                }
+                                ${tableRows}
                             </tbody>
                         </table>
                     </div>
                 `;
 
-                marker.bindPopup(tableHtml, { maxWidth: 400 });
+                marker.bindPopup(popupHtml, { maxWidth: 450 });
             }
         });
-    } else {
-        console.error("Помилка: hromadasGeoJSON не знайдено або має невірну структуру.");
     }
 </script>
 
