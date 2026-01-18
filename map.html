@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Культурна Карта Черкащини</title>
     <style>
-        body { margin: 0; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { margin: 0; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: sans-serif; }
         .map-container { position: relative; width: 900px; height: 736px; background: white; box-shadow: 0 0 30px rgba(0,0,0,0.1); }
         #base-map { width: 100%; height: 100%; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
@@ -12,16 +12,15 @@
         .badge { cursor: pointer; transition: 0.2s; }
         .badge:hover { transform: scale(1.2); }
         .badge circle { fill: #cc0000; stroke: white; stroke-width: 2; }
-        .badge text { fill: white; font-family: Arial; font-size: 12px; font-weight: bold; pointer-events: none; }
+        .badge text { fill: white; font-size: 12px; font-weight: bold; pointer-events: none; }
 
         #popup {
             position: absolute; display: none; background: white; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 15px; z-index: 100;
-            min-width: 250px; border-left: 5px solid #cc0000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 15px; z-index: 100;
+            min-width: 280px; max-width: 400px; border-left: 5px solid #cc0000;
         }
         .pop-h { font-weight: bold; color: #8b0000; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 16px; }
-        .pop-item { display: flex; align-items: center; margin: 6px 0; font-size: 14px; border-bottom: 1px solid #f9f9f9; padding-bottom: 4px; }
-        .pop-icon { margin-right: 10px; font-size: 18px; }
+        .pop-item { margin: 8px 0; font-size: 13px; line-height: 1.4; color: #333; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -40,57 +39,62 @@
 <script src="collectives.js"></script>
 
 <script>
-    const svg = document.getElementById('svg-layer');
-    const popup = document.getElementById('popup');
-    const icons = { vocal: "🎤", dance: "💃", music: "🎻", theatre: "🎭", other: "✨" };
+    window.onload = function() {
+        const svg = document.getElementById('svg-layer');
+        const popup = document.getElementById('popup');
+        const popName = document.getElementById('pop-name');
+        const popList = document.getElementById('pop-list');
 
-    function init() {
+        // Функція для витягування колективів з вашого HTML-тексту
+        function parseCollectives(hromadaName) {
+            let found = [];
+            // Перебираємо всі жанри у вашому файлі collectivesData (choreographic, vocal і т.д.)
+            for (let genre in collectivesData) {
+                const htmlString = collectivesData[genre];
+                // Створюємо тимчасовий елемент для парсингу HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlString;
+                
+                // Шукаємо всі елементи списку <li>
+                const items = tempDiv.querySelectorAll('li');
+                items.forEach(li => {
+                    // Перевіряємо, чи містить рядок назву громади
+                    if (li.innerText.toLowerCase().includes(hromadaName.toLowerCase())) {
+                        found.push(li.innerText);
+                    }
+                });
+            }
+            return found;
+        }
+
         svg.innerHTML = '';
         
         hromadasGeoJSON.features.forEach(h => {
-            // ФІЛЬТР: шукаємо всі колективи, де назва громади збігається
-            const myCollectives = allCollectives.filter(c => 
-                c.hromada.trim().toLowerCase() === h.name.trim().toLowerCase()
-            );
-
+            const list = parseCollectives(h.name.replace(" міська громада", "").replace(" селищна громада", "").replace(" сільська громада", ""));
+            
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("class", "badge");
             g.innerHTML = `
                 <circle cx="${h.x}" cy="${h.y}" r="13" />
-                <text x="${h.x}" y="${h.y + 4}" text-anchor="middle">${myCollectives.length}</text>
+                <text x="${h.x}" y="${h.y + 4}" text-anchor="middle">${list.length}</text>
             `;
 
             g.onclick = (e) => {
                 e.stopPropagation();
-                showPopup(h.name, myCollectives, h.x, h.y);
+                popName.innerText = h.name;
+                popList.innerHTML = list.length > 0 
+                    ? list.map(item => `<div class="pop-item">${item}</div>`).join('')
+                    : "<div style='color:gray'>Колективів не знайдено</div>";
+                
+                popup.style.display = 'block';
+                popup.style.left = (h.x > 500 ? h.x - 320 : h.x + 20) + 'px';
+                popup.style.top = (h.y - 40) + 'px';
             };
             svg.appendChild(g);
         });
-    }
 
-    function showPopup(name, list, x, y) {
-        document.getElementById('pop-name').innerText = name;
-        const listDiv = document.getElementById('pop-list');
-        
-        if (list.length === 0) {
-            listDiv.innerHTML = "<div style='color:gray'>Колективів поки не додано</div>";
-        } else {
-            listDiv.innerHTML = list.map(c => `
-                <div class="pop-item">
-                    <span class="pop-icon">${icons[c.type] || "🎭"}</span>
-                    <span>${c.name}</span>
-                </div>
-            `).join('');
-        }
-
-        popup.style.display = 'block';
-        // Розумне позиціонування: якщо точка справа, показуємо вікно зліва
-        popup.style.left = (x > 500 ? x - 270 : x + 20) + 'px';
-        popup.style.top = (y - 40) + 'px';
-    }
-
-    document.addEventListener('click', () => popup.style.display = 'none');
-    window.onload = init;
+        document.addEventListener('click', () => popup.style.display = 'none');
+    };
 </script>
 </body>
 </html>
