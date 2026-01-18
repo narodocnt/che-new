@@ -2,134 +2,91 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Культурна Карта Черкащини</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; padding: 20px; }
+        body { margin: 0; padding: 20px; background: #333; display: flex; justify-content: center; }
         
         .map-wrapper { 
             position: relative; 
+            /* Фіксуємо розмір контейнера точно як у картинки */
             width: 900px; 
             height: 736px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
-            border-radius: 5px; 
             background: #fff;
+            line-height: 0; /* Прибирає мікро-відступ під картинкою */
         }
 
-        #base-map { width: 100%; height: 100%; display: block; }
+        #base-map { 
+            width: 900px; 
+            height: 736px; 
+            display: block; 
+        }
 
-        /* Стиль баджів з цифрами */
-        .badge { cursor: pointer; transition: transform 0.2s ease; }
-        .badge:hover { transform: scale(1.3); }
+        svg { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 900px; 
+            height: 736px; 
+            pointer-events: none; /* Щоб кліки проходили крізь SVG на групи */
+        }
+
+        .badge { cursor: pointer; pointer-events: auto; transition: 0.2s; }
+        .badge:hover { opacity: 0.8; }
         .badge circle { fill: #cc0000; stroke: white; stroke-width: 2; }
-        .badge text { fill: white; font-size: 11px; font-weight: bold; font-family: sans-serif; pointer-events: none; }
+        .badge text { fill: white; font-family: Arial; font-size: 11px; font-weight: bold; }
 
-        /* Віконце (Popup) */
         #popup {
-            position: absolute;
-            display: none;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            padding: 12px;
-            z-index: 1000;
-            min-width: 230px;
-            border: 1px solid #ddd;
+            position: absolute; display: none; background: white;
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 15px; z-index: 1000; min-width: 200px; line-height: 1.4;
         }
-
-        .pop-title { font-weight: bold; color: #8b0000; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 14px; }
-        .pop-item { display: flex; align-items: center; padding: 5px 0; font-size: 13px; color: #333; }
-        .pop-icon { margin-right: 10px; font-size: 16px; min-width: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="map-wrapper">
-    <img src="map.jpg" id="base-map" alt="Карта Черкаської області">
-    
-    <svg id="svg-layer" viewBox="0 0 900 736" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></svg>
+    <img src="map.jpg" id="base-map">
+    <svg id="svg-layer" viewBox="0 0 900 736"></svg>
     
     <div id="popup">
-        <div class="pop-title" id="pop-name">Назва громади</div>
+        <div id="pop-name" style="font-weight:bold; color:#8b0000; margin-bottom:5px;"></div>
         <div id="pop-list"></div>
     </div>
 </div>
 
 <script src="hromadas-data.js"></script>
-<script src="collectives.js"></script>
-
 <script>
     const svg = document.getElementById('svg-layer');
     const popup = document.getElementById('popup');
-    const popName = document.getElementById('pop-name');
-    const popList = document.getElementById('pop-list');
 
-    // Налаштування значків жанрів
-    const genreIcons = {
-        "vocal": "🎤",
-        "dance": "💃",
-        "music": "🎻",
-        "theatre": "🎭",
-        "default": "🎭"
-    };
+    // Очищуємо SVG перед малюванням (про всяк випадок)
+    svg.innerHTML = '';
 
-    // Основна функція малювання точок
-    function initMap() {
-        hromadasGeoJSON.features.forEach(hromada => {
-            // Фільтруємо колективи з файлу collectives.js для цієї громади
-            const localCollectives = typeof allCollectives !== 'undefined' 
-                ? allCollectives.filter(c => c.hromada === hromada.name)
-                : (hromada.collectives || []);
+    hromadasGeoJSON.features.forEach(h => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", "badge");
 
-            const count = localCollectives.length;
+        // Малюємо кружечок. Координати x та y беруться прямо з вашого файлу
+        g.innerHTML = `
+            <circle cx="${h.x}" cy="${h.y}" r="12" />
+            <text x="${h.x}" y="${h.y + 4}" text-anchor="middle">0</text>
+        `;
 
-            // Створюємо елемент SVG
-            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            g.setAttribute("class", "badge");
+        g.onclick = (e) => {
+            e.stopPropagation();
+            const rect = document.querySelector('.map-wrapper').getBoundingClientRect();
+            // Розрахунок позиції вікна відносно контейнера
+            popup.style.display = 'block';
+            popup.style.left = (h.x + 15) + 'px';
+            popup.style.top = (h.y - 50) + 'px';
+            document.getElementById('pop-name').innerText = h.name;
+            document.getElementById('pop-list').innerText = "Колективи завантажуються...";
+        };
 
-            g.innerHTML = `
-                <circle cx="${hromada.x}" cy="${hromada.y}" r="12" />
-                <text x="${hromada.x}" y="${hromada.y + 4}" text-anchor="middle">${count}</text>
-            `;
-
-            // Клік по точці
-            g.onclick = (e) => {
-                e.stopPropagation();
-                showPopup(hromada.name, localCollectives, e.pageX, e.pageY);
-            };
-
-            svg.appendChild(g);
-        });
-    }
-
-    function showPopup(name, list, x, y) {
-        popName.innerText = name;
-        
-        if (list.length === 0) {
-            popList.innerHTML = "<div class='pop-item'>Дані про колективи відсутні</div>";
-        } else {
-            popList.innerHTML = list.map(c => `
-                <div class="pop-item">
-                    <span class="pop-icon">${genreIcons[c.type] || genreIcons.default}</span>
-                    <span>${c.name}</span>
-                </div>
-            `).join('');
-        }
-
-        popup.style.display = 'block';
-        
-        // Позиціювання віконця (зміщення, щоб не перекривати курсор)
-        popup.style.left = (x - 200) + 'px'; 
-        popup.style.top = (y - 120) + 'px';
-    }
-
-    // Закриття вікна при кліку на будь-яке інше місце карти
-    document.addEventListener('click', () => {
-        popup.style.display = 'none';
+        svg.appendChild(g);
     });
 
-    // Запуск карти
-    window.onload = initMap;
+    document.addEventListener('click', () => popup.style.display = 'none');
 </script>
 
 </body>
