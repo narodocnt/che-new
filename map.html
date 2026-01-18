@@ -4,90 +4,93 @@
     <meta charset="UTF-8">
     <title>Культурна Карта Черкащини</title>
     <style>
-        body { margin: 0; padding: 20px; background: #333; display: flex; justify-content: center; }
-        
-        .map-wrapper { 
-            position: relative; 
-            /* Фіксуємо розмір контейнера точно як у картинки */
-            width: 900px; 
-            height: 736px; 
-            background: #fff;
-            line-height: 0; /* Прибирає мікро-відступ під картинкою */
-        }
+        body { margin: 0; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .map-container { position: relative; width: 900px; height: 736px; background: white; box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+        #base-map { width: 100%; height: 100%; display: block; }
+        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
-        #base-map { 
-            width: 900px; 
-            height: 736px; 
-            display: block; 
-        }
-
-        svg { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 900px; 
-            height: 736px; 
-            pointer-events: none; /* Щоб кліки проходили крізь SVG на групи */
-        }
-
-        .badge { cursor: pointer; pointer-events: auto; transition: 0.2s; }
-        .badge:hover { opacity: 0.8; }
+        .badge { cursor: pointer; transition: 0.2s; }
+        .badge:hover { transform: scale(1.2); }
         .badge circle { fill: #cc0000; stroke: white; stroke-width: 2; }
-        .badge text { fill: white; font-family: Arial; font-size: 11px; font-weight: bold; }
+        .badge text { fill: white; font-family: Arial; font-size: 12px; font-weight: bold; pointer-events: none; }
 
         #popup {
-            position: absolute; display: none; background: white;
-            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            padding: 15px; z-index: 1000; min-width: 200px; line-height: 1.4;
+            position: absolute; display: none; background: white; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 15px; z-index: 100;
+            min-width: 250px; border-left: 5px solid #cc0000;
         }
+        .pop-h { font-weight: bold; color: #8b0000; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 16px; }
+        .pop-item { display: flex; align-items: center; margin: 6px 0; font-size: 14px; border-bottom: 1px solid #f9f9f9; padding-bottom: 4px; }
+        .pop-icon { margin-right: 10px; font-size: 18px; }
     </style>
 </head>
 <body>
 
-<div class="map-wrapper">
+<div class="map-container">
     <img src="map.jpg" id="base-map">
     <svg id="svg-layer" viewBox="0 0 900 736"></svg>
     
     <div id="popup">
-        <div id="pop-name" style="font-weight:bold; color:#8b0000; margin-bottom:5px;"></div>
+        <div class="pop-h" id="pop-name"></div>
         <div id="pop-list"></div>
     </div>
 </div>
 
 <script src="hromadas-data.js"></script>
+<script src="collectives.js"></script>
+
 <script>
     const svg = document.getElementById('svg-layer');
     const popup = document.getElementById('popup');
+    const icons = { vocal: "🎤", dance: "💃", music: "🎻", theatre: "🎭", other: "✨" };
 
-    // Очищуємо SVG перед малюванням (про всяк випадок)
-    svg.innerHTML = '';
+    function init() {
+        svg.innerHTML = '';
+        
+        hromadasGeoJSON.features.forEach(h => {
+            // ФІЛЬТР: шукаємо всі колективи, де назва громади збігається
+            const myCollectives = allCollectives.filter(c => 
+                c.hromada.trim().toLowerCase() === h.name.trim().toLowerCase()
+            );
 
-    hromadasGeoJSON.features.forEach(h => {
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.setAttribute("class", "badge");
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", "badge");
+            g.innerHTML = `
+                <circle cx="${h.x}" cy="${h.y}" r="13" />
+                <text x="${h.x}" y="${h.y + 4}" text-anchor="middle">${myCollectives.length}</text>
+            `;
 
-        // Малюємо кружечок. Координати x та y беруться прямо з вашого файлу
-        g.innerHTML = `
-            <circle cx="${h.x}" cy="${h.y}" r="12" />
-            <text x="${h.x}" y="${h.y + 4}" text-anchor="middle">0</text>
-        `;
+            g.onclick = (e) => {
+                e.stopPropagation();
+                showPopup(h.name, myCollectives, h.x, h.y);
+            };
+            svg.appendChild(g);
+        });
+    }
 
-        g.onclick = (e) => {
-            e.stopPropagation();
-            const rect = document.querySelector('.map-wrapper').getBoundingClientRect();
-            // Розрахунок позиції вікна відносно контейнера
-            popup.style.display = 'block';
-            popup.style.left = (h.x + 15) + 'px';
-            popup.style.top = (h.y - 50) + 'px';
-            document.getElementById('pop-name').innerText = h.name;
-            document.getElementById('pop-list').innerText = "Колективи завантажуються...";
-        };
+    function showPopup(name, list, x, y) {
+        document.getElementById('pop-name').innerText = name;
+        const listDiv = document.getElementById('pop-list');
+        
+        if (list.length === 0) {
+            listDiv.innerHTML = "<div style='color:gray'>Колективів поки не додано</div>";
+        } else {
+            listDiv.innerHTML = list.map(c => `
+                <div class="pop-item">
+                    <span class="pop-icon">${icons[c.type] || "🎭"}</span>
+                    <span>${c.name}</span>
+                </div>
+            `).join('');
+        }
 
-        svg.appendChild(g);
-    });
+        popup.style.display = 'block';
+        // Розумне позиціонування: якщо точка справа, показуємо вікно зліва
+        popup.style.left = (x > 500 ? x - 270 : x + 20) + 'px';
+        popup.style.top = (y - 40) + 'px';
+    }
 
     document.addEventListener('click', () => popup.style.display = 'none');
+    window.onload = init;
 </script>
-
 </body>
 </html>
