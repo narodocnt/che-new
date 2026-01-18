@@ -2,48 +2,42 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Карта культурних колективів Черкащини</title>
+    <title>Карта громад Черкащини</title>
     <style>
-        body { margin: 0; background: #fdfdfd; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { margin: 0; background: #333; display: flex; justify-content: center; padding: 20px; font-family: sans-serif; }
         
+        /* Важливо: Контейнер має бути рівно 900x736 */
         .map-container { 
             position: relative; 
-            width: 100%; 
-            max-width: 900px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            background: #fff;
+            width: 900px; 
+            height: 736px; 
+            background: white;
+            overflow: hidden;
         }
 
-        #base-map { width: 100%; height: auto; display: block; }
-        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        #base-map { width: 900px; height: 736px; display: block; }
+        #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
-        /* Крапки на мапі */
-        .badge { cursor: pointer; transition: opacity 0.2s; }
-        .badge:hover { opacity: 0.7; }
+        .badge { cursor: pointer; }
         .badge circle { fill: #cc0000; stroke: white; stroke-width: 2; }
-        .badge text { fill: white; font-size: 12px; font-weight: bold; pointer-events: none; text-anchor: middle; dominant-baseline: central; }
+        .badge text { fill: white; font-size: 11px; font-weight: bold; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
 
-        /* Віконце з колективами */
         #popup {
-            position: absolute; display: none; background: white; border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2); padding: 15px; z-index: 100;
-            min-width: 260px; max-width: 350px; border-top: 5px solid #cc0000;
-            line-height: 1.5; color: #333; pointer-events: none;
+            position: absolute; display: none; background: white; border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); padding: 15px; z-index: 100;
+            min-width: 250px; border-left: 5px solid #cc0000;
         }
-        .pop-title { font-weight: bold; color: #8b0000; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 15px; }
-        .pop-list { font-size: 13px; max-height: 300px; overflow-y: auto; }
-        .pop-item { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid #f0f0f0; }
     </style>
 </head>
 <body>
 
-<div class="map-container" id="map-resizer">
+<div class="map-container" id="container">
     <img src="map.jpg" id="base-map">
-    <svg id="svg-layer" viewBox="0 0 900 736" preserveAspectRatio="xMidYMid meet"></svg>
+    <svg id="svg-layer" viewBox="0 0 900 736"></svg>
     
     <div id="popup">
-        <div class="pop-title" id="pop-name"></div>
-        <div class="pop-list" id="pop-content"></div>
+        <div id="pop-name" style="font-weight:bold; color:#8b0000; margin-bottom:5px;"></div>
+        <div id="pop-content" style="font-size:13px; color:#333;"></div>
     </div>
 </div>
 
@@ -51,73 +45,54 @@
 <script src="collectives.js"></script>
 
 <script>
-    window.onload = function() {
-        const svg = document.getElementById('svg-layer');
-        const popup = document.getElementById('popup');
-        const popContent = document.getElementById('pop-content');
-        const popName = document.getElementById('pop-name');
+    const svg = document.getElementById('svg-layer');
+    const popup = document.getElementById('popup');
 
-        // Функція для чистого пошуку назви (напр. "Набутівська")
-        function getCleanName(fullName) {
-            return fullName
-                .replace(" міська громада", "")
-                .replace(" селищна громада", "")
-                .replace(" сільська громада", "")
-                .trim();
-        }
+    // КОРЕКТОР КООРДИНАТ: Клікніть на мапу, щоб отримати X та Y для hromadas-data.js
+    svg.addEventListener('click', function(e) {
+        const rect = svg.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        console.log(`Координати для громади: { "name": "НАЗВА", "x": ${x}, "y": ${y} },`);
+    });
 
-        function findCollectives(fullName) {
-            const searchName = getCleanName(fullName).toLowerCase();
-            let results = [];
+    function init() {
+        svg.innerHTML = '';
+        hromadasGeoJSON.features.forEach(h => {
+            // Пошук тільки за коротким словом (напр. "Драбівська")
+            const searchName = h.name.split(' ')[0].toLowerCase();
+            let count = 0;
+            let list = [];
 
-            // Проходимо по всіх ключах об'єкта collectivesData (choreographic, vocal і т.д.)
             for (let genre in collectivesData) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(collectivesData[genre], 'text/html');
-                const items = doc.querySelectorAll('li');
-                
-                items.forEach(li => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = collectivesData[genre];
+                tempDiv.querySelectorAll('li').forEach(li => {
                     if (li.innerText.toLowerCase().includes(searchName)) {
-                        results.push(li.innerText);
+                        count++;
+                        list.push(li.innerText);
                     }
                 });
             }
-            return results;
-        }
 
-        hromadasGeoJSON.features.forEach(h => {
-            const collectives = findCollectives(h.name);
-            
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("class", "badge");
+            g.innerHTML = `<circle cx="${h.x}" cy="${h.y}" r="12" /><text x="${h.x}" y="${h.y}">${count}</text>`;
 
-            g.innerHTML = `
-                <circle cx="${h.x}" cy="${h.y}" r="12" />
-                <text x="${h.x}" y="${h.y}">${collectives.length}</text>
-            `;
-
-            g.onclick = function(e) {
+            g.onclick = (e) => {
                 e.stopPropagation();
-                popName.innerText = h.name;
-                popContent.innerHTML = collectives.length > 0 
-                    ? collectives.map(item => `<div class="pop-item">${item}</div>`).join('')
-                    : "<div style='color:gray'>Колективів не знайдено</div>";
-
-                const rect = document.getElementById('map-resizer').getBoundingClientRect();
-                const scale = rect.width / 900;
-
+                document.getElementById('pop-name').innerText = h.name;
+                document.getElementById('pop-content').innerHTML = list.length > 0 ? list.join('<br><br>') : "Дані відсутні";
                 popup.style.display = 'block';
-                // Авто-корекція позиції (якщо точка справа - вікно зліва)
-                popup.style.left = (h.x * scale > rect.width / 2) ? (h.x * scale - 280) + 'px' : (h.x * scale + 20) + 'px';
-                popup.style.top = (h.y * scale - 40) + 'px';
+                popup.style.left = (h.x > 450 ? h.x - 270 : h.x + 20) + 'px';
+                popup.style.top = (h.y - 30) + 'px';
             };
-
             svg.appendChild(g);
         });
+    }
 
-        document.addEventListener('click', () => popup.style.display = 'none');
-    };
+    document.addEventListener('click', (e) => { if(e.target.tagName !== 'g') popup.style.display = 'none'; });
+    window.onload = init;
 </script>
-
 </body>
 </html>
