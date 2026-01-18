@@ -3,154 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивна карта громад Черкащини</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <title>Культурна Карта Черкащини</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
-        #map { width: 100vw; height: 100vh; background: #fff; }
-
-        /* Стиль цифри на карті */
-        .marker-number-icon {
-            background-color: #d35400; /* Темно-помаранчевий */
-            color: white;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-            cursor: pointer;
-            transition: transform 0.2s ease-in-out, background-color 0.2s;
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; padding: 20px; }
+        
+        .map-wrapper { 
+            position: relative; 
+            width: 900px; 
+            height: 736px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+            border-radius: 5px; 
+            background: #fff;
         }
 
-        /* Ефект збільшення при наведенні */
-        .marker-number-icon:hover {
-            transform: scale(1.6);
-            background-color: #2980b9; /* Змінює колір на синій при наведенні */
-            z-index: 1000 !important;
-        }
+        #base-map { width: 100%; height: 100%; display: block; }
 
-        /* Стилізація вікна з таблицею (Popup) */
-        .popup-container {
-            min-width: 350px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .hromada-title {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-            font-size: 16px;
-            border-bottom: 2px solid #d35400;
-            padding-bottom: 5px;
-        }
-        .collectives-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .collectives-table th, .collectives-table td {
+        /* Стиль баджів з цифрами */
+        .badge { cursor: pointer; transition: transform 0.2s ease; }
+        .badge:hover { transform: scale(1.3); }
+        .badge circle { fill: #cc0000; stroke: white; stroke-width: 2; }
+        .badge text { fill: white; font-size: 11px; font-weight: bold; font-family: sans-serif; pointer-events: none; }
+
+        /* Віконце (Popup) */
+        #popup {
+            position: absolute;
+            display: none;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            padding: 12px;
+            z-index: 1000;
+            min-width: 230px;
             border: 1px solid #ddd;
-            padding: 6px;
-            font-size: 12px;
-            text-align: left;
         }
-        .collectives-table th {
-            background-color: #f2f2f2;
-            position: sticky;
-            top: 0;
-        }
-        .collectives-table tr:nth-child(even) { background-color: #fafafa; }
+
+        .pop-title { font-weight: bold; color: #8b0000; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 14px; }
+        .pop-item { display: flex; align-items: center; padding: 5px 0; font-size: 13px; color: #333; }
+        .pop-icon { margin-right: 10px; font-size: 16px; min-width: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div class="map-wrapper">
+    <img src="map.jpg" id="base-map" alt="Карта Черкаської області">
+    
+    <svg id="svg-layer" viewBox="0 0 900 736" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></svg>
+    
+    <div id="popup">
+        <div class="pop-title" id="pop-name">Назва громади</div>
+        <div id="pop-list"></div>
+    </div>
+</div>
 
-<script src="collectives.js"></script>
 <script src="hromadas-data.js"></script>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="collectives.js"></script>
 
 <script>
-    // 1. Створення карти. Використовуємо CRS.Simple для роботи з малюнком JPG
-    const map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: -2,
-        maxZoom: 2
-    });
+    const svg = document.getElementById('svg-layer');
+    const popup = document.getElementById('popup');
+    const popName = document.getElementById('pop-name');
+    const popList = document.getElementById('pop-list');
 
-    // 2. Налаштування меж картинки map.jpg
-    // Важливо: ці координати мають відповідати масштабу карти у hromadas-data.js
-    const bounds = [[48.3, 29.5], [50.2, 33.0]]; 
-    const image = L.imageOverlay('map.jpg', bounds).addTo(map);
-    map.fitBounds(bounds);
+    // Налаштування значків жанрів
+    const genreIcons = {
+        "vocal": "🎤",
+        "dance": "💃",
+        "music": "🎻",
+        "theatre": "🎭",
+        "default": "🎭"
+    };
 
-    // 3. Функція для динамічного пошуку колективів у файлі collectives.js
-    function getCollectivesByHromada(hromadaName) {
-        let list = [];
-        // Проходимо по всіх жанрах у об'єкті collectivesData
-        for (let genre in collectivesData) {
-            const htmlString = collectivesData[genre];
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlString, 'text/html');
-            const items = doc.querySelectorAll('li');
-            
-            items.forEach(li => {
-                // Якщо в описі колективу згадується назва громади
-                if (li.textContent.toLowerCase().includes(hromadaName.toLowerCase())) {
-                    list.push(li.innerHTML);
-                }
-            });
-        }
-        return list;
-    }
+    // Основна функція малювання точок
+    function initMap() {
+        hromadasGeoJSON.features.forEach(hromada => {
+            // Фільтруємо колективи з файлу collectives.js для цієї громади
+            const localCollectives = typeof allCollectives !== 'undefined' 
+                ? allCollectives.filter(c => c.hromada === hromada.name)
+                : (hromada.collectives || []);
 
-    // 4. Додавання точок з hromadasGeoJSON
-    if (typeof hromadasGeoJSON !== 'undefined') {
-        hromadasGeoJSON.features.forEach(feature => {
-            const name = feature.name;
-            const collectives = getCollectivesByHromada(name);
-            const count = collectives.length;
+            const count = localCollectives.length;
 
-            // Малюємо цифру тільки якщо знайдено колективи (або цифру 0)
-            if (feature.lat && feature.lng) {
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="marker-number-icon">${count}</div>`,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
+            // Створюємо елемент SVG
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", "badge");
 
-                const marker = L.marker([feature.lat, feature.lng], { icon: icon }).addTo(map);
+            g.innerHTML = `
+                <circle cx="${hromada.x}" cy="${hromada.y}" r="12" />
+                <text x="${hromada.x}" y="${hromada.y + 4}" text-anchor="middle">${count}</text>
+            `;
 
-                // Генерація таблиці для Popup
-                let tableRows = collectives.length > 0 
-                    ? collectives.map((item, index) => `<tr><td>${index + 1}</td><td>${item}</td></tr>`).join('')
-                    : '<tr><td colspan="2" style="text-align:center">Дані відсутні</td></tr>';
+            // Клік по точці
+            g.onclick = (e) => {
+                e.stopPropagation();
+                showPopup(hromada.name, localCollectives, e.pageX, e.pageY);
+            };
 
-                const popupHtml = `
-                    <div class="popup-container">
-                        <h3 class="hromada-title">${name}</h3>
-                        <table class="collectives-table">
-                            <thead>
-                                <tr><th>№</th><th>Колектив</th></tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
-                marker.bindPopup(popupHtml, { maxWidth: 450 });
-            }
+            svg.appendChild(g);
         });
     }
+
+    function showPopup(name, list, x, y) {
+        popName.innerText = name;
+        
+        if (list.length === 0) {
+            popList.innerHTML = "<div class='pop-item'>Дані про колективи відсутні</div>";
+        } else {
+            popList.innerHTML = list.map(c => `
+                <div class="pop-item">
+                    <span class="pop-icon">${genreIcons[c.type] || genreIcons.default}</span>
+                    <span>${c.name}</span>
+                </div>
+            `).join('');
+        }
+
+        popup.style.display = 'block';
+        
+        // Позиціювання віконця (зміщення, щоб не перекривати курсор)
+        popup.style.left = (x - 200) + 'px'; 
+        popup.style.top = (y - 120) + 'px';
+    }
+
+    // Закриття вікна при кліку на будь-яке інше місце карти
+    document.addEventListener('click', () => {
+        popup.style.display = 'none';
+    });
+
+    // Запуск карти
+    window.onload = initMap;
 </script>
 
 </body>
