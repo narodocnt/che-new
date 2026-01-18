@@ -1,8 +1,6 @@
 const hromadasGeoJSON = {
   "type": "FeatureCollection",
   "features": [
-   const hromadasGeoJSON = {
-    "features": [
         { "name": "Шрамківська", "x": 650, "y": 120 },
         { "name": "Драбівська", "x": 720, "y": 180 },
         { "name": "Чорнобаївська", "x": 780, "y": 320 },
