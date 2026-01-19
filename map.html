@@ -11,105 +11,115 @@
             margin: 0; 
             background: #fdfdfd; 
             display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
+            justify-content: center; 
+            align-items: flex-start; 
+            padding-top: 20px;
             font-family: 'Segoe UI', sans-serif; 
         }
         
-        /* Розташування заголовка та кнопок зліва */
-        .header-container {
-            width: 900px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .map-toggle-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .toggle-btn {
-            padding: 12px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #cc0000;
-            background: white;
-            color: #cc0000;
-            border-radius: 30px;
-            transition: all 0.3s;
-            text-align: center;
-            min-width: 220px;
-        }
-
-        .toggle-btn.active {
-            background: #cc0000;
-            color: white;
-            box-shadow: 0 4px 15px rgba(204, 0, 0, 0.3);
-        }
-
+        /* Контейнер карти */
         .map-container { 
             position: relative; 
             width: 900px; 
             height: 736px; 
             background: white; 
             box-shadow: 0 0 40px rgba(0,0,0,0.1); 
+            overflow: hidden;
         }
-        
+
+        /* Накладання інтерфейсу поверх карти */
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            pointer-events: none; /* Пропускає кліки на карту під собою */
+        }
+
+        .map-overlay * { pointer-events: auto; } /* Повертає клікабельність кнопкам */
+
+        .map-title {
+            font-family: 'Marck Script', cursive; 
+            color: #8b0000; 
+            font-size: 48px; 
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .map-toggle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #cc0000;
+            background: rgba(255, 255, 255, 0.9);
+            color: #cc0000;
+            border-radius: 25px;
+            transition: all 0.3s;
+            text-align: center;
+            width: 200px;
+        }
+
+        .toggle-btn.active {
+            background: #cc0000;
+            color: white;
+        }
+
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
-        /* Покращена видимість цифр */
-        .badge { cursor: pointer; transition: all 0.3s ease; }
+        /* Стилі цифр */
+        .badge { cursor: pointer; }
         .badge text { 
             font-family: 'EB Garamond', serif; 
-            font-size: 30px; 
             font-weight: 800; 
             text-anchor: middle; 
             dominant-baseline: middle;
             paint-order: stroke;
-            stroke: #ffffff; /* Біла обводка для контрасту */
-            stroke-width: 5px;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            stroke: #ffffff;
+            stroke-width: 3px;
         }
         
-        .mode-collectives text { fill: #cc0000; } /* Червоний для колективів */
-        .mode-battle text { fill: #ff9900; }      /* Помаранчево-золотий для битви */
+        /* Менші цифри для колективів */
+        .mode-collectives text { 
+            fill: #cc0000; 
+            font-size: 20px; 
+        }
 
-        .badge:hover text { 
-            font-size: 38px; 
-            stroke-width: 6px;
+        /* Помітніші цифри для битви */
+        .mode-battle text { 
+            fill: #e67e22; 
+            font-size: 24px;
+            stroke-width: 4px;
         }
 
         #popup {
             position: absolute; display: none; background: white; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 20px; z-index: 100;
-            width: 350px; border-top: 4px solid #cc0000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 15px; z-index: 100;
+            width: 300px; border-top: 4px solid #cc0000;
         }
 
-        .pop-h { font-family: 'Marck Script', cursive; font-size: 24px; color: #8b0000; margin-bottom: 10px; border-bottom: 1px solid #eee; }
-        .pop-scroll { max-height: 300px; overflow-y: auto; }
-        .pop-item { font-size: 14px; margin-bottom: 8px; line-height: 1.4; color: #333; padding-bottom: 4px; border-bottom: 1px solid #f0f0f0; }
+        .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 8px; }
+        .pop-scroll { max-height: 250px; overflow-y: auto; font-size: 13px; }
     </style>
 </head>
 <body>
 
-<div class="header-container">
-    <h1 style="font-family: 'Marck Script', cursive; color: #8b0000; font-size: 52px; margin: 0;">Культурна мапа</h1>
-    
-    <div class="map-toggle-container">
-        <button id="btn-collectives" class="toggle-btn active" onclick="switchMode('collectives')">Колективи</button>
-        <button id="btn-battle" class="toggle-btn" onclick="switchMode('battle')">Битва вподобайків</button>
-    </div>
-</div>
-    
 <div class="map-container" id="container">
+    <div class="map-overlay">
+        <h1 class="map-title">Культурна мапа</h1>
+        <div class="map-toggle-container">
+            <button id="btn-collectives" class="toggle-btn active" onclick="switchMode('collectives')">Колективи</button>
+            <button id="btn-battle" class="toggle-btn" onclick="switchMode('battle')">Битва вподобайків</button>
+        </div>
+    </div>
+
     <img src="map.jpg" id="base-map">
     <svg id="svg-layer" viewBox="0 0 900 736"></svg>
     
@@ -126,7 +136,7 @@
     let currentMode = 'collectives'; 
     let battleData = {}; 
 
-    // Завантаження рейтингу вподобайок прямо з N8N
+    // Покращена функція завантаження: шукає будь-які схожі поля
     async function loadBattleRatings() {
         const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
         try {
@@ -135,25 +145,27 @@
             battleData = {}; 
 
             rawData.forEach(item => {
-                // Використовуємо поле громади з вашого N8N
-                if (item.hromadaName) {
-                    const key = item.hromadaName.toLowerCase()
+                // Шукаємо назву громади у полях: hromadaName, name, або hromada
+                let nameStr = item.hromadaName || item.name || item.hromada || "";
+                // Шукаємо бали у полях: totalScore, likes, або score
+                let scoreVal = item.totalScore || item.likes || item.score || 0;
+
+                if (nameStr) {
+                    const key = nameStr.toLowerCase()
                         .replace(/ міська громада| селищна громада| сільська громада/gi, "")
                         .trim();
-                    battleData[key] = parseInt(item.totalScore) || 0;
+                    battleData[key] = parseInt(scoreVal) || 0;
                 }
             });
-            if(currentMode === 'battle') renderMapPoints();
+            console.log("Дані битви готові:", battleData);
         } catch (e) {
             console.error("Помилка завантаження Битви:", e);
         }
     }
 
-    // Ваш надійний пошук колективів
     function findCollectives(fullName) {
         const shortName = fullName.toLowerCase()
-            .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-            .trim();
+            .replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
 
         let results = [];
         for (let key in collectivesData) {
@@ -193,8 +205,7 @@
             let displayValue = 0;
             let list = [];
             const hromadaKey = h.name.toLowerCase()
-                .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-                .trim();
+                .replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
 
             if (currentMode === 'collectives') {
                 list = findCollectives(h.name);
@@ -215,18 +226,17 @@
                     document.getElementById('pop-name').innerText = h.name;
                     
                     if (currentMode === 'collectives') {
-                        document.getElementById('pop-content').innerHTML = list.map(i => `<div class="pop-item">${i}</div>`).join('');
+                        document.getElementById('pop-content').innerHTML = list.map(i => `<div style="margin-bottom:5px; border-bottom:1px solid #f0f0f0;">${i}</div>`).join('');
                     } else {
                         document.getElementById('pop-content').innerHTML = `
                             <div style="text-align:center; padding:10px;">
-                                <div style="font-size:16px; color:#666;">Результат у Битві:</div>
-                                <div style="font-size:32px; color:#ff9900; font-weight:bold;">${displayValue}</div>
-                                <div style="font-size:14px; color:#999;">вподобайків</div>
+                                <div style="font-size:24px; color:#e67e22; font-weight:bold;">${displayValue}</div>
+                                <div style="font-size:14px; color:#666;">вподобайків у Битві</div>
                             </div>`;
                     }
                     
                     popup.style.display = 'block';
-                    popup.style.left = (h.x > 500 ? h.x - 370 : h.x + 20) + 'px';
+                    popup.style.left = (h.x > 500 ? h.x - 320 : h.x + 20) + 'px';
                     popup.style.top = (h.y - 50) + 'px';
                 };
                 svg.appendChild(g);
