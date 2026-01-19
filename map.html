@@ -94,22 +94,35 @@
 <script src="collectives.js"></script>
 
 <script>
-    window.onload = function() {
-        const svg = document.getElementById('svg-layer');
-        const popup = document.getElementById('popup');
+   function findCollectives(fullName) {
+    // 1. Отримуємо чистий корінь назви (наприклад, "Багач", "Драбів", "Чорнобай")
+    // Відрізаємо "івська", "івська", "ська" та інші закінчення
+    const rootName = fullName
+        .replace(/ міська громада| селищна громада| сільська громада/gi, "")
+        .replace(/(івська|ська|е)$/i, "") 
+        .trim()
+        .toLowerCase();
 
-        function findCollectives(fullName) {
-            const searchName = fullName.replace(/ міська громада| селищна громада| сільська громада/gi, "").trim().toLowerCase();
-            let results = [];
-            for (let genre in collectivesData) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = collectivesData[genre];
-                tempDiv.querySelectorAll('li').forEach(li => {
-                    if (li.innerText.toLowerCase().includes(searchName)) results.push(li.innerText);
-                });
+    let results = [];
+    
+    // 2. Переглядаємо всі жанри у collectivesData
+    for (let genre in collectivesData) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = collectivesData[genre];
+        const items = tempDiv.querySelectorAll('li');
+        
+        items.forEach(li => {
+            const text = li.innerText;
+            // Якщо корінь назви громади є в тексті колективу
+            if (text.toLowerCase().includes(rootName)) {
+                if (!results.includes(text)) {
+                    results.push(text);
+                }
             }
-            return results;
-        }
+        });
+    }
+    return results;
+}
 
         hromadasGeoJSON.features.forEach(h => {
             const list = findCollectives(h.name);
