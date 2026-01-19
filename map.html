@@ -65,6 +65,123 @@
         const svg = document.getElementById('svg-layer');
         const popup = document.getElementById('popup');
 
+        <script src="hromadas-data.js"></script>
+<script src="collectives.js"></script>
+
+<script>
+    // --- 1. ПЕРЕМІННІ ПОВИННІ БУТИ НА ПОЧАТКУ ---
+    let currentMode = 'collectives'; 
+    let battleData = {}; 
+
+    // --- 2. ФУНКЦІЯ ЗАВАНТАЖЕННЯ ДАНИХ ---
+    async function loadBattleRatings() {
+        const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+        try {
+            const response = await fetch(N8N_URL);
+            const rawData = await response.json();
+            
+            // Очищуємо перед завантаженням
+            battleData = {}; 
+
+            rawData.forEach(item => {
+                let fullText = (item.pageName || "").toLowerCase();
+                let score = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+                
+                // Спрощена логіка мапінгу: шукаємо ключове слово в назві поста
+                // Наприклад, якщо в пості є "Багач", записуємо бали в "багачівська"
+                if (fullText.includes("багач")) battleData["багачівська"] = score;
+                else if (fullText.includes("шевченк") && !fullText.includes("корсунь")) battleData["шевченківська"] = score;
+                else if (fullText.includes("сміл")) battleData["смілянська"] = score;
+                else if (fullText.includes("канів")) battleData["канівська"] = score;
+                else if (fullText.includes("золотоно")) battleData["золотоніська"] = score;
+                // Додайте інші громади за таким же принципом
+            });
+        } catch (e) {
+            console.error("Помилка завантаження рейтингу:", e);
+        }
+    }
+
+    // --- 3. ВАША ІСНУЮЧА ФУНКЦІЯ ПОШУКУ (findCollectives) ---
+    function findCollectives(fullName) {
+        const rootName = fullName
+            .replace(/ міська громада| селищна громада| сільська громада/gi, "")
+            .substring(0, 5).toLowerCase();
+
+        let results = [];
+        for (let key in collectivesData) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = collectivesData[key];
+            const items = tempDiv.getElementsByTagName('li');
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].innerText.toLowerCase().includes(rootName)) {
+                    if (!results.includes(items[i].innerText)) results.push(items[i].innerText);
+                }
+            }
+        }
+        return results;
+    }
+
+    // --- 4. НОВА ФУНКЦІЯ ПЕРЕМИКАННЯ ---
+    function switchMode(mode) {
+        currentMode = mode;
+        document.getElementById('btn-collectives').classList.toggle('active', mode === 'collectives');
+        document.getElementById('btn-battle').classList.toggle('active', mode === 'battle');
+        renderMapPoints();
+    }
+
+    // --- 5. ФУНКЦІЯ МАЛЮВАННЯ (renderMapPoints) ---
+    function renderMapPoints() {
+        const svg = document.getElementById('svg-layer');
+        svg.innerHTML = ''; 
+
+        hromadasGeoJSON.features.forEach(h => {
+            let displayValue = 0;
+            let list = [];
+            const hromadaKey = h.name.toLowerCase().replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
+
+            if (currentMode === 'collectives') {
+                list = findCollectives(h.name);
+                displayValue = list.length;
+            } else {
+                displayValue = battleData[hromadaKey] || 0;
+            }
+
+            if (displayValue > 0) {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", "badge");
+                const color = currentMode === 'battle' ? "#f1c40f" : "#cc0000";
+                
+                g.innerHTML = `<text x="${h.x}" y="${h.y}" style="fill: ${color}">${displayValue}</text>`;
+
+                g.onclick = (e) => {
+                    e.stopPropagation();
+                    const popup = document.getElementById('popup');
+                    document.getElementById('pop-name').innerText = h.name;
+                    if (currentMode === 'collectives') {
+                        document.getElementById('pop-content').innerHTML = list.map(i => `<div class="pop-item">${i}</div>`).join('');
+                    } else {
+                        document.getElementById('pop-content').innerHTML = `<div class="pop-item" style="font-size:18px; text-align:center; padding:10px;">Рейтинг: <b>${displayValue}</b> балів</div>`;
+                    }
+                    popup.style.display = 'block';
+                    popup.style.left = (h.x > 500 ? h.x - 340 : h.x + 20) + 'px';
+                    popup.style.top = (h.y - 50) + 'px';
+                };
+                svg.appendChild(g);
+            }
+        });
+    }
+
+    // --- 6. ЗАПУСК ПРИ ЗАВАНТАЖЕННІ ---
+    window.onload = async function() {
+        await loadBattleRatings(); 
+        renderMapPoints();
+        
+        document.addEventListener('click', () => {
+            document.getElementById('popup').style.display = 'none';
+        });
+    };
+</script>
+
   function findCollectives(fullName) {
     // 1. Повна назва громади (напр. "Шевченківська сільська громада")
     const searchName = fullName.toLowerCase().trim();
