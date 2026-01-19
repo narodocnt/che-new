@@ -65,11 +65,11 @@
         const svg = document.getElementById('svg-layer');
         const popup = document.getElementById('popup');
 
-   function findCollectives(fullName) {
-    // 1. Повна назва громади для точного пошуку (напр. "Шевченківська міська громада")
+  function findCollectives(fullName) {
+    // 1. Повна назва громади (напр. "Шевченківська сільська громада")
     const searchName = fullName.toLowerCase().trim();
     
-    // 2. Короткий варіант для пошуку всередині тексту (напр. "шевченківська")
+    // 2. Назва без слова "громада" (напр. "шевченківська")
     const shortName = fullName
         .replace(/ міська громада| селищна громада| сільська громада/gi, "")
         .toLowerCase()
@@ -88,16 +88,21 @@
         for (let i = 0; i < items.length; i++) {
             const text = items[i].innerText;
             const textLower = text.toLowerCase();
-            
-            // РОЗДІЛЯЄМО ТЕКСТ: Назва колективу — заклад, ГРОМАДА.
-            // Ми шукаємо назву громади ТІЛЬКИ у другій частині рядка
-            const parts = textLower.split('—'); 
-            const addressPart = parts.length > 1 ? parts[1] : textLower;
 
-            // Перевіряємо, чи є назва громади в "адресній" частині
-            if (addressPart.includes(shortName) || addressPart.includes(searchName)) {
-                if (!results.includes(text)) {
-                    results.push(text);
+            // ФІЛЬТР: Розбиваємо рядок, щоб дивитися тільки на частину з адресою (після тире)
+            const addressPart = textLower.includes('—') ? textLower.split('—')[1] : textLower;
+
+            // ЛОГІКА ДЛЯ ШЕВЧЕНКІВСЬКОЇ ГРОМАДИ
+            if (shortName === "шевченківська") {
+                // Додаємо тільки якщо є "шевченківська", але НЕМАЄ "корсунь"
+                if (addressPart.includes("шевченківська") && !addressPart.includes("корсунь")) {
+                    if (!results.includes(text)) results.push(text);
+                }
+            } 
+            // ЛОГІКА ДЛЯ ВСІХ ІНШИХ ГРОМАД
+            else {
+                if (addressPart.includes(shortName)) {
+                    if (!results.includes(text)) results.push(text);
                 }
             }
         }
