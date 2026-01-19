@@ -76,9 +76,9 @@
     </div>
 </header>
 
-<nav>
+<nav class="main-nav">
     <div class="dropdown">
-        <button class="dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
+        <button class="nav-btn dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-content">
             <a href="javascript:void(0)" onclick="openGenre('vocal')">Вокально-хоровий</a>
             <a href="javascript:void(0)" onclick="openGenre('choreographic')">Хореографічний</a>
@@ -86,28 +86,93 @@
             <a href="javascript:void(0)" onclick="openGenre('instrumental')">Музично-інструментальний</a>
         </div>
     </div>
-    <a href="map.html" class="menu-btn map-btn">Культурна мапа</a>
 
+    <a href="map.html" class="nav-btn">КУЛЬТУРНА МАПА</a>
+
+    <a href="zayavka.html" class="nav-btn">ПОДАТИ ЗАЯВКУ</a>
+</nav>
 <style>
-    /* Стиль для кнопки, щоб вона виглядала як інші ваші кнопки */
-    .map-btn {
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #2f3640;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        font-weight: bold;
-        transition: background 0.3s;
-        margin: 0 5px;
+    /* Контейнер для кнопок */
+    .main-nav {
+        display: flex;
+        gap: 10px; /* Відступ між кнопками */
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
     }
-    .map-btn:hover {
-        background-color: #ff9900;
+
+    /* Загальний стиль для всіх кнопок */
+    .nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 45px; /* Фіксована висота для всіх */
+        padding: 0 25px;
+        background-color: #6c757d; /* Шляхетний сірий */
+        color: white !important;
+        text-decoration: none;
+        border-radius: 8px; /* Сучасне легке закруглення */
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    /* Ефект при наведенні (однаковий для всіх) */
+    .nav-btn:hover {
+        background-color: #5a6268; /* Трохи темніший сірий */
+        opacity: 0.9;
+        transform: translateY(-2px); /* Легке підняття вгору */
+    }
+
+    /* Стилізація випадаючого списку */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 220px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        z-index: 1000;
+        border-radius: 8px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+
+    .dropdown-content a {
+        color: #333;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f1f1;
+        transition: background 0.2s;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f8f9fa;
+        color: #cc0000;
+    }
+
+    /* Показувати меню при наведенні */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    /* Іконка стрілочки */
+    .fa-caret-down {
+        margin-left: 8px;
     }
 </style>
-    <a onclick="goToGeneralForm('main')" style="color: #f1c40f; cursor: pointer;">ПОДАТИ ЗАЯВКУ</a>
-</nav>
-
+    
 <div class="ruta-container">
     <img src="cheruta.jpg" alt="Червона Рута" style="width: 100%; display: block;">
 </div>
