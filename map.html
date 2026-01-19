@@ -65,43 +65,41 @@
         const svg = document.getElementById('svg-layer');
         const popup = document.getElementById('popup');
 
-      function findCollectives(fullName) {
-    // 1. Готуємо корінь назви для гнучкого пошуку
+     function findCollectives(fullName) {
+    // 1. Отримуємо корінь назви (напр. "багач")
+    // Це дозволить знайти і "Багачеве", і "Багачівська", і навіть "Багачівска"
     const rootName = fullName
         .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-        .replace(/(івська|ська|е)$/i, "") 
-        .trim()
+        .substring(0, 5) // Беремо перші 5 літер (напр. "багач")
         .toLowerCase();
 
     let results = [];
     
-    // 2. Отримуємо всі назви категорій (vocal, choreographic, theatrical, instrumental)
-    const genres = Object.keys(collectivesData);
-    
-    genres.forEach(genre => {
-        const htmlString = collectivesData[genre];
-        if (!htmlString) return; // Пропускаємо, якщо категорія порожня
+    // 2. Перебираємо ВСІ ключі об'єкта collectivesData
+    for (let key in collectivesData) {
+        const htmlContent = collectivesData[key];
+        if (!htmlContent) continue;
 
+        // Створюємо віртуальний елемент для парсингу HTML
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlString;
+        tempDiv.innerHTML = htmlContent;
         
-        // Вибираємо всі елементи списку
-        const items = tempDiv.querySelectorAll('li');
+        // Шукаємо ВСІ елементи списку (li) у цій категорії
+        const items = tempDiv.getElementsByTagName('li');
         
-        items.forEach(li => {
-            const text = li.innerText;
+        for (let i = 0; i < items.length; i++) {
+            const text = items[i].innerText;
             const textLower = text.toLowerCase();
             
-            // Перевірка на збіг назви громади в тексті колективу
+            // Якщо текст колективу містить корінь назви громади
             if (textLower.includes(rootName)) {
-                // Додаємо в масив, якщо такого тексту ще немає (уникнення дублікатів)
+                // Додаємо, якщо такого колективу ще немає в списку результатів
                 if (!results.includes(text)) {
                     results.push(text);
                 }
             }
-        });
-    });
-    
+        }
+    }
     return results;
 }
 
