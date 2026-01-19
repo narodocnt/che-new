@@ -3,116 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <title>Культурна мапа</title>
-    <link rel="icon" type="image/jpg" href="narodocnt.jpg">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=EB+Garamond:wght@600&display=swap');
-
-        body { 
-            margin: 0; 
-            background: #fdfdfd; 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-start; 
-            padding-top: 20px;
-            font-family: 'Segoe UI', sans-serif; 
-        }
+        body { margin: 0; background: #f0f0f0; display: flex; justify-content: center; padding-top: 20px; font-family: sans-serif; }
         
-        /* Контейнер карти */
         .map-container { 
-            position: relative; 
-            width: 900px; 
-            height: 736px; 
-            background: white; 
-            box-shadow: 0 0 40px rgba(0,0,0,0.1); 
-            overflow: hidden;
+            position: relative; width: 900px; height: 736px; 
+            background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        /* Накладання інтерфейсу поверх карти */
-        .map-overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 20;
-            pointer-events: none; /* Пропускає кліки на карту під собою */
+        /* Напис та кнопки прямо на карті */
+        .map-ui {
+            position: absolute; top: 25px; left: 25px; z-index: 100;
+            pointer-events: none;
+        }
+        .map-ui * { pointer-events: auto; }
+
+        .map-title { 
+            font-family: 'Marck Script', cursive; color: #8b0000; 
+            font-size: 46px; margin: 0 0 15px 0;
+            text-shadow: 2px 2px 4px white;
         }
 
-        .map-overlay * { pointer-events: auto; } /* Повертає клікабельність кнопкам */
-
-        .map-title {
-            font-family: 'Marck Script', cursive; 
-            color: #8b0000; 
-            font-size: 48px; 
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
-        }
-
-        .map-toggle-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        .map-toggle-container { display: flex; flex-direction: column; gap: 8px; }
+        
         .toggle-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #cc0000;
-            background: rgba(255, 255, 255, 0.9);
-            color: #cc0000;
-            border-radius: 25px;
-            transition: all 0.3s;
-            text-align: center;
-            width: 200px;
+            padding: 10px 20px; font-size: 15px; font-weight: bold; cursor: pointer;
+            border: 2px solid #cc0000; background: rgba(255,255,255,0.9); color: #cc0000;
+            border-radius: 20px; transition: 0.3s; width: 190px;
         }
-
-        .toggle-btn.active {
-            background: #cc0000;
-            color: white;
-        }
+        .toggle-btn.active { background: #cc0000; color: white; }
 
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
         /* Стилі цифр */
-        .badge { cursor: pointer; }
         .badge text { 
-            font-family: 'EB Garamond', serif; 
-            font-weight: 800; 
-            text-anchor: middle; 
-            dominant-baseline: middle;
-            paint-order: stroke;
-            stroke: #ffffff;
-            stroke-width: 3px;
+            font-family: 'EB Garamond', serif; font-weight: 800; text-anchor: middle; 
+            dominant-baseline: middle; paint-order: stroke; stroke: #ffffff; stroke-width: 3px;
         }
-        
-        /* Менші цифри для колективів */
-        .mode-collectives text { 
-            fill: #cc0000; 
-            font-size: 20px; 
-        }
-
-        /* Помітніші цифри для битви */
-        .mode-battle text { 
-            fill: #e67e22; 
-            font-size: 24px;
-            stroke-width: 4px;
-        }
+        .mode-collectives text { fill: #cc0000; font-size: 18px; } /* Менші цифри */
+        .mode-battle text { fill: #e67e22; font-size: 24px; stroke-width: 4px; } /* Більші бали */
 
         #popup {
-            position: absolute; display: none; background: white; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 15px; z-index: 100;
-            width: 300px; border-top: 4px solid #cc0000;
+            position: absolute; display: none; background: white; border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); padding: 15px; z-index: 200;
+            width: 280px; border-top: 4px solid #cc0000;
         }
-
         .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 8px; }
-        .pop-scroll { max-height: 250px; overflow-y: auto; font-size: 13px; }
+        .pop-scroll { max-height: 200px; overflow-y: auto; font-size: 13px; }
     </style>
 </head>
 <body>
 
-<div class="map-container" id="container">
-    <div class="map-overlay">
+<div class="map-container">
+    <div class="map-ui">
         <h1 class="map-title">Культурна мапа</h1>
         <div class="map-toggle-container">
             <button id="btn-collectives" class="toggle-btn active" onclick="switchMode('collectives')">Колективи</button>
@@ -136,53 +81,35 @@
     let currentMode = 'collectives'; 
     let battleData = {}; 
 
-    // Покращена функція завантаження: шукає будь-які схожі поля
     async function loadBattleRatings() {
-        const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+        // Використовуємо шлях Webhook з вашого n8n
+        const N8N_URL = "https://n8n.narodocnt.online/webhook/get-battle-stats";
         try {
             const response = await fetch(N8N_URL);
             const rawData = await response.json();
+            const stats = Array.isArray(rawData) ? rawData[0] : rawData;
             battleData = {}; 
-
-            rawData.forEach(item => {
-                // Шукаємо назву громади у полях: hromadaName, name, або hromada
-                let nameStr = item.hromadaName || item.name || item.hromada || "";
-                // Шукаємо бали у полях: totalScore, likes, або score
-                let scoreVal = item.totalScore || item.likes || item.score || 0;
-
-                if (nameStr) {
-                    const key = nameStr.toLowerCase()
-                        .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-                        .trim();
-                    battleData[key] = parseInt(scoreVal) || 0;
-                }
-            });
-            console.log("Дані битви готові:", battleData);
-        } catch (e) {
-            console.error("Помилка завантаження Битви:", e);
-        }
+            for (let name in stats) {
+                const key = name.toLowerCase().replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "").trim();
+                battleData[key] = stats[name];
+            }
+            if(currentMode === 'battle') renderMapPoints();
+        } catch (e) { console.error("Error:", e); }
     }
 
     function findCollectives(fullName) {
-        const shortName = fullName.toLowerCase()
-            .replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
-
+        const shortName = fullName.toLowerCase().replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
         let results = [];
         for (let key in collectivesData) {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = collectivesData[key];
-            const items = tempDiv.getElementsByTagName('li');
-            
+            const div = document.createElement('div');
+            div.innerHTML = collectivesData[key];
+            const items = div.getElementsByTagName('li');
             for (let i = 0; i < items.length; i++) {
                 const text = items[i].innerText;
-                const textLower = text.toLowerCase();
-                const addressPart = textLower.includes('—') ? textLower.split('—')[1] : textLower;
-
+                const addr = text.toLowerCase().includes('—') ? text.toLowerCase().split('—')[1] : text.toLowerCase();
                 if (shortName === "шевченківська") {
-                    if (addressPart.includes("шевченківська") && !addressPart.includes("корсунь")) {
-                        results.push(text);
-                    }
-                } else if (addressPart.includes(shortName)) {
+                    if (addr.includes("шевченківська") && !addr.includes("корсунь")) results.push(text);
+                } else if (addr.includes(shortName)) {
                     results.push(text);
                 }
             }
@@ -200,44 +127,28 @@
     function renderMapPoints() {
         const svg = document.getElementById('svg-layer');
         svg.innerHTML = ''; 
-
         hromadasGeoJSON.features.forEach(h => {
-            let displayValue = 0;
-            let list = [];
-            const hromadaKey = h.name.toLowerCase()
-                .replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
-
+            let val = 0; let list = [];
+            const key = h.name.toLowerCase().replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "").trim();
             if (currentMode === 'collectives') {
                 list = findCollectives(h.name);
-                displayValue = list.length;
-            } else {
-                displayValue = battleData[hromadaKey] || 0;
-            }
+                val = list.length;
+            } else { val = battleData[key] || 0; }
 
-            if (displayValue > 0) {
+            if (val > 0) {
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 g.setAttribute("class", `badge ${currentMode === 'collectives' ? 'mode-collectives' : 'mode-battle'}`);
-                
-                g.innerHTML = `<text x="${h.x}" y="${h.y}">${displayValue}</text>`;
-
+                g.innerHTML = `<text x="${h.x}" y="${h.y}">${val}</text>`;
                 g.onclick = (e) => {
                     e.stopPropagation();
-                    const popup = document.getElementById('popup');
+                    const p = document.getElementById('popup');
                     document.getElementById('pop-name').innerText = h.name;
-                    
-                    if (currentMode === 'collectives') {
-                        document.getElementById('pop-content').innerHTML = list.map(i => `<div style="margin-bottom:5px; border-bottom:1px solid #f0f0f0;">${i}</div>`).join('');
-                    } else {
-                        document.getElementById('pop-content').innerHTML = `
-                            <div style="text-align:center; padding:10px;">
-                                <div style="font-size:24px; color:#e67e22; font-weight:bold;">${displayValue}</div>
-                                <div style="font-size:14px; color:#666;">вподобайків у Битві</div>
-                            </div>`;
-                    }
-                    
-                    popup.style.display = 'block';
-                    popup.style.left = (h.x > 500 ? h.x - 320 : h.x + 20) + 'px';
-                    popup.style.top = (h.y - 50) + 'px';
+                    document.getElementById('pop-content').innerHTML = currentMode === 'collectives' ? 
+                        list.map(i => `<div style="margin-bottom:5px; border-bottom:1px solid #eee;">${i}</div>`).join('') :
+                        `<div style="text-align:center;"><div style="font-size:30px; color:#e67e22;">${val}</div>балів</div>`;
+                    p.style.display = 'block';
+                    p.style.left = (h.x > 500 ? h.x - 300 : h.x + 20) + 'px';
+                    p.style.top = (h.y - 50) + 'px';
                 };
                 svg.appendChild(g);
             }
@@ -247,9 +158,7 @@
     window.onload = async function() {
         await loadBattleRatings(); 
         renderMapPoints();
-        document.addEventListener('click', () => {
-            document.getElementById('popup').style.display = 'none';
-        });
+        document.addEventListener('click', () => document.getElementById('popup').style.display = 'none');
     };
 </script>
 </body>
