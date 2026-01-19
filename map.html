@@ -9,33 +9,32 @@
 
         body { margin: 0; background: #fdfdfd; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Segoe UI', sans-serif; }
         
+        .map-toggle-container { margin-bottom: 20px; display: flex; gap: 10px; }
+        .toggle-btn {
+            padding: 10px 25px; font-size: 16px; font-weight: bold; cursor: pointer;
+            border: 2px solid #cc0000; background: white; color: #cc0000;
+            border-radius: 25px; transition: all 0.3s;
+        }
+        .toggle-btn.active { background: #cc0000; color: white; }
+        .toggle-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
         .map-container { position: relative; width: 900px; height: 736px; background: white; box-shadow: 0 0 40px rgba(0,0,0,0.1); }
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
         .badge { cursor: pointer; transition: all 0.3s ease; }
         .badge text { 
-            fill: #cc0000; 
-            font-family: 'EB Garamond', serif; 
-            font-size: 26px; 
-            font-weight: bold; 
-            text-anchor: middle; 
-            dominant-baseline: middle;
+            fill: #cc0000; font-family: 'EB Garamond', serif; font-size: 26px; 
+            font-weight: bold; text-anchor: middle; dominant-baseline: middle;
             filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.8));
         }
-
-        .badge:hover text { 
-            fill: #ff9900; 
-            font-size: 34px; 
-            filter: drop-shadow(0 0 5px rgba(255,153,0,0.6));
-        }
+        .badge:hover text { fill: #ff9900; font-size: 34px; filter: drop-shadow(0 0 5px rgba(255,153,0,0.6)); }
 
         #popup {
             position: absolute; display: none; background: white; border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 20px; z-index: 100;
             width: 320px; border-top: 4px solid #cc0000;
         }
-
         .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .pop-scroll { max-height: 250px; overflow-y: auto; padding-right: 10px; }
         .pop-scroll::-webkit-scrollbar { width: 6px; }
@@ -52,35 +51,8 @@
     <button id="btn-collectives" class="toggle-btn active" onclick="switchMode('collectives')">Колективи</button>
     <button id="btn-battle" class="toggle-btn" onclick="switchMode('battle')">Битва вподобайків</button>
 </div>
-
-<style>
-    .map-toggle-container {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 10px;
-    }
-    .toggle-btn {
-        padding: 10px 25px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        border: 2px solid #cc0000;
-        background: white;
-        color: #cc0000;
-        border-radius: 25px;
-        transition: all 0.3s;
-    }
-    .toggle-btn.active {
-        background: #cc0000;
-        color: white;
-    }
-    .toggle-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-</style>
     
-<div class="map-container" id="container">
+<div class="map-container">
     <img src="map.jpg" id="base-map">
     <svg id="svg-layer" viewBox="0 0 900 736"></svg>
     <div id="popup">
@@ -93,67 +65,56 @@
 <script src="collectives.js"></script>
 
 <script>
-    window.onload = function() {
-        const svg = document.getElementById('svg-layer');
-        const popup = document.getElementById('popup');
-
-        <script src="hromadas-data.js"></script>
-<script src="collectives.js"></script>
-
-<script>
-    // --- 1. ПЕРЕМІННІ ПОВИННІ БУТИ НА ПОЧАТКУ ---
     let currentMode = 'collectives'; 
     let battleData = {}; 
 
-    // --- 2. ФУНКЦІЯ ЗАВАНТАЖЕННЯ ДАНИХ ---
     async function loadBattleRatings() {
         const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
         try {
             const response = await fetch(N8N_URL);
             const rawData = await response.json();
-            
-            // Очищуємо перед завантаженням
             battleData = {}; 
-
             rawData.forEach(item => {
                 let fullText = (item.pageName || "").toLowerCase();
                 let score = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
                 
-                // Спрощена логіка мапінгу: шукаємо ключове слово в назві поста
-                // Наприклад, якщо в пості є "Багач", записуємо бали в "багачівська"
+                // Авто-мапінг (шукаємо назву в тексті посту)
                 if (fullText.includes("багач")) battleData["багачівська"] = score;
                 else if (fullText.includes("шевченк") && !fullText.includes("корсунь")) battleData["шевченківська"] = score;
                 else if (fullText.includes("сміл")) battleData["смілянська"] = score;
                 else if (fullText.includes("канів")) battleData["канівська"] = score;
                 else if (fullText.includes("золотоно")) battleData["золотоніська"] = score;
-                // Додайте інші громади за таким же принципом
+                else if (fullText.includes("корсунь")) battleData["корсунь-шевченківська"] = score;
             });
-        } catch (e) {
-            console.error("Помилка завантаження рейтингу:", e);
-        }
+        } catch (e) { console.error("Помилка N8N:", e); }
     }
 
-    // --- 3. ВАША ІСНУЮЧА ФУНКЦІЯ ПОШУКУ (findCollectives) ---
     function findCollectives(fullName) {
-        const rootName = fullName
-            .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-            .substring(0, 5).toLowerCase();
-
+        const shortName = fullName.replace(/ міська громада| селищна громада| сільська громада/gi, "").toLowerCase().trim();
         let results = [];
+        
         for (let key in collectivesData) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = collectivesData[key];
             const items = tempDiv.getElementsByTagName('li');
+            
             for (let i = 0; i < items.length; i++) {
-                if (items[i].innerText.toLowerCase().includes(rootName)) {
-                    if (!results.includes(items[i].innerText)) results.push(items[i].innerText);
+                const text = items[i].innerText;
+                const textLower = text.toLowerCase();
+                const addressPart = textLower.includes('—') ? textLower.split('—')[1] : textLower;
+
+                if (shortName === "шевченківська") {
+                    if (addressPart.includes("шевченківська") && !addressPart.includes("корсунь")) {
+                        if (!results.includes(text)) results.push(text);
+                    }
+                } else if (addressPart.includes(shortName)) {
+                    if (!results.includes(text)) results.push(text);
                 }
             }
         }
         return results;
     }
 
-    // --- 4. НОВА ФУНКЦІЯ ПЕРЕМИКАННЯ ---
     function switchMode(mode) {
         currentMode = mode;
         document.getElementById('btn-collectives').classList.toggle('active', mode === 'collectives');
@@ -161,7 +122,6 @@
         renderMapPoints();
     }
 
-    // --- 5. ФУНКЦІЯ МАЛЮВАННЯ (renderMapPoints) ---
     function renderMapPoints() {
         const svg = document.getElementById('svg-layer');
         svg.innerHTML = ''; 
@@ -192,7 +152,7 @@
                     if (currentMode === 'collectives') {
                         document.getElementById('pop-content').innerHTML = list.map(i => `<div class="pop-item">${i}</div>`).join('');
                     } else {
-                        document.getElementById('pop-content').innerHTML = `<div class="pop-item" style="font-size:18px; text-align:center; padding:10px;">Рейтинг: <b>${displayValue}</b> балів</div>`;
+                        document.getElementById('pop-content').innerHTML = `<div class="pop-item" style="font-size:18px; text-align:center; padding:10px;">Битва вподобайків: <b>${displayValue}</b> балів</div>`;
                     }
                     popup.style.display = 'block';
                     popup.style.left = (h.x > 500 ? h.x - 340 : h.x + 20) + 'px';
@@ -203,82 +163,10 @@
         });
     }
 
-    // --- 6. ЗАПУСК ПРИ ЗАВАНТАЖЕННІ ---
     window.onload = async function() {
         await loadBattleRatings(); 
         renderMapPoints();
-        
-        document.addEventListener('click', () => {
-            document.getElementById('popup').style.display = 'none';
-        });
-    };
-</script>
-
-  function findCollectives(fullName) {
-    // 1. Повна назва громади (напр. "Шевченківська сільська громада")
-    const searchName = fullName.toLowerCase().trim();
-    
-    // 2. Назва без слова "громада" (напр. "шевченківська")
-    const shortName = fullName
-        .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-        .toLowerCase()
-        .trim();
-
-    let results = [];
-    
-    for (let key in collectivesData) {
-        const htmlContent = collectivesData[key];
-        if (!htmlContent) continue;
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
-        const items = tempDiv.getElementsByTagName('li');
-        
-        for (let i = 0; i < items.length; i++) {
-            const text = items[i].innerText;
-            const textLower = text.toLowerCase();
-
-            // ФІЛЬТР: Розбиваємо рядок, щоб дивитися тільки на частину з адресою (після тире)
-            const addressPart = textLower.includes('—') ? textLower.split('—')[1] : textLower;
-
-            // ЛОГІКА ДЛЯ ШЕВЧЕНКІВСЬКОЇ ГРОМАДИ
-            if (shortName === "шевченківська") {
-                // Додаємо тільки якщо є "шевченківська", але НЕМАЄ "корсунь"
-                if (addressPart.includes("шевченківська") && !addressPart.includes("корсунь")) {
-                    if (!results.includes(text)) results.push(text);
-                }
-            } 
-            // ЛОГІКА ДЛЯ ВСІХ ІНШИХ ГРОМАД
-            else {
-                if (addressPart.includes(shortName)) {
-                    if (!results.includes(text)) results.push(text);
-                }
-            }
-        }
-    }
-    return results;
-}
-
-        hromadasGeoJSON.features.forEach(h => {
-            const list = findCollectives(h.name);
-            if (list.length === 0) return;
-
-            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            g.setAttribute("class", "badge");
-            g.innerHTML = `<text x="${h.x}" y="${h.y}">${list.length}</text>`;
-
-            g.onclick = (e) => {
-                e.stopPropagation();
-                document.getElementById('pop-name').innerText = h.name;
-                document.getElementById('pop-content').innerHTML = list.map(i => `<div class="pop-item">${i}</div>`).join('');
-                popup.style.display = 'block';
-                popup.style.left = (h.x > 500 ? h.x - 340 : h.x + 20) + 'px';
-                popup.style.top = (h.y - 50) + 'px';
-            };
-            svg.appendChild(g);
-        });
-
-        document.addEventListener('click', () => popup.style.display = 'none');
+        document.addEventListener('click', () => { document.getElementById('popup').style.display = 'none'; });
     };
 </script>
 </body>
