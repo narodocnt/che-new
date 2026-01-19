@@ -64,27 +64,45 @@
         const svg = document.getElementById('svg-layer');
         const popup = document.getElementById('popup');
 
-        function findCollectives(fullName) {
-            const rootName = fullName
-                .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-                .replace(/(івська|ська|е)$/i, "") 
-                .trim()
-                .toLowerCase();
+      function findCollectives(fullName) {
+    // 1. Готуємо корінь назви для гнучкого пошуку
+    const rootName = fullName
+        .replace(/ міська громада| селищна громада| сільська громада/gi, "")
+        .replace(/(івська|ська|е)$/i, "") 
+        .trim()
+        .toLowerCase();
 
-            let results = [];
-            for (let genre in collectivesData) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = collectivesData[genre];
-                const items = tempDiv.querySelectorAll('li');
-                items.forEach(li => {
-                    const text = li.innerText;
-                    if (text.toLowerCase().includes(rootName)) {
-                        if (!results.includes(text)) results.push(text);
-                    }
-                });
+    let results = [];
+    
+    // 2. Отримуємо всі назви категорій (vocal, choreographic, theatrical, instrumental)
+    const genres = Object.keys(collectivesData);
+    
+    genres.forEach(genre => {
+        const htmlString = collectivesData[genre];
+        if (!htmlString) return; // Пропускаємо, якщо категорія порожня
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlString;
+        
+        // Вибираємо всі елементи списку
+        const items = tempDiv.querySelectorAll('li');
+        
+        items.forEach(li => {
+            const text = li.innerText;
+            const textLower = text.toLowerCase();
+            
+            // Перевірка на збіг назви громади в тексті колективу
+            if (textLower.includes(rootName)) {
+                // Додаємо в масив, якщо такого тексту ще немає (уникнення дублікатів)
+                if (!results.includes(text)) {
+                    results.push(text);
+                }
             }
-            return results;
-        }
+        });
+    });
+    
+    return results;
+}
 
         hromadasGeoJSON.features.forEach(h => {
             const list = findCollectives(h.name);
