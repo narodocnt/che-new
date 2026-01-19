@@ -1,5 +1,5 @@
 /**
- * contest.js - ФІКС: ТІЛЬКИ 6 КОЛЕКТИВІВ + ВЕСЬ ВАШ ДИЗАЙН
+ * contest.js - ФІКС: ПРЯМЕ ПРИСВОЄННЯ РЕЙТИНГУ (БЕЗ НАКОПИЧЕННЯ)
  */
 
 let currentData = [];
@@ -11,7 +11,7 @@ async function loadRanking() {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         
-        // 1. УНІКАЛЬНІСТЬ: Фільтруємо за URL, щоб дані не множилися
+        // 1. УНІКАЛЬНІСТЬ: Фільтруємо за URL
         const uniquePosts = Array.from(new Map(rawData.map(item => [item.url, item])).values());
 
         const groups = {};
@@ -29,7 +29,7 @@ async function loadRanking() {
             let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
             let groupKey = name.toLowerCase().replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
 
-            // Об'єднання колективів за ключовими словами (Сміла, Тальне, Кам'янка, Христинівка)
+            // Об'єднання за ключами
             if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (Сміла)"; groupKey = "smila"; }
             else if (groupKey.includes("тальн") || groupKey.includes("сурми")) { name = "Оркестр «Сурми Тальнівщини»"; groupKey = "talne"; }
             else if (groupKey.includes("кам")) { name = "Оркестр м. Кам’янка"; groupKey = "kamyanka"; }
@@ -41,33 +41,35 @@ async function loadRanking() {
             let c = parseInt(item.comments) || 0;
             let total = l + s + c;
 
+            // ФІКС ТУТ: Замість += використовуємо перевірку на найбільше значення
             if (groups[groupKey]) {
-                groups[groupKey].score += total;
-                groups[groupKey].breakdown.l += l;
-                groups[groupKey].breakdown.s += s;
-                groups[groupKey].breakdown.c += c;
+                // Якщо ми знайшли пост цього ж колективу з більшим рейтингом - оновлюємо
+                if (total > groups[groupKey].score) {
+                    groups[groupKey].score = total;
+                    groups[groupKey].breakdown = { l: l, s: s, c: c };
+                }
             } else {
                 groups[groupKey] = {
                     pageName: name,
-                    score: total,
+                    score: total, // Перше присвоєння
                     breakdown: { l: l, s: s, c: c },
                     url: item.url,
-                    media: item.media || 'фото_для_боту.png'
+                    media: item.media || 'narodocnt.jpg'
                 };
             }
         });
 
+        // Відображення заголовка
         const titleElement = document.getElementById('festival-title');
         if (titleElement) {
-            titleElement.style.fontFamily = "'Lobster', cursive";
             titleElement.innerHTML = `${detectedFestivalTitle || "Битва вподобайків"} <span id="info-trigger" style="cursor: pointer; color: #3498db; font-size: 32px; vertical-align: middle;">❄️</span>`;
             document.getElementById('info-trigger').onclick = showRules;
         }
 
-        // --- ГОЛОВНА ЗМІНА: ПЕРШІ 6 ---
+        // ПЕРШІ 6
         currentData = Object.values(groups)
             .sort((a, b) => b.score - a.score)
-            .slice(0, 6); // Тут ми обрізаємо список рівно до 6 позицій
+            .slice(0, 6);
 
         renderList(); 
     } catch (error) {
@@ -75,18 +77,9 @@ async function loadRanking() {
     }
 }
 
+// Решта функцій (showRules, renderList) залишаються без змін...
 function showRules() {
-    const rulesText = `
-        ❄️ ПРАВИЛА РЕЙТИНГУ:
-        --------------------------
-        Рейтинг оновлюється двічі на добу
-        і рахується автоматично:
-        👍 1 вподобайка = 1 бал
-        🔄 1 поширення = 1 бал
-        💬 1 коментар = 1 бал
-        
-    `;
-    alert(rulesText);
+    alert("❄️ ПРАВИЛА РЕЙТИНГУ:\n--------------------------\n👍 1 вподобайка = 1 бал\n🔄 1 поширення = 1 бал\n💬 1 коментар = 1 бал");
 }
 
 function renderList() {
