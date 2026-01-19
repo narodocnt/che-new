@@ -4,27 +4,18 @@
     <meta charset="UTF-8">
     <title>Культурна мапа</title>
     <style>
-        /* Підключаємо художній шрифт */
         @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=EB+Garamond:wght@600&display=swap');
 
         body { margin: 0; background: #fdfdfd; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Segoe UI', sans-serif; }
         
-        .map-container { 
-            position: relative; 
-            width: 900px; 
-            height: 736px; 
-            background: white;
-            box-shadow: 0 0 40px rgba(0,0,0,0.1);
-        }
-
+        .map-container { position: relative; width: 900px; height: 736px; background: white; box-shadow: 0 0 40px rgba(0,0,0,0.1); }
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
-        /* СТИЛЬ ЦИФРИ */
         .badge { cursor: pointer; transition: all 0.3s ease; }
         .badge text { 
             fill: #cc0000; 
-            font-family: 'EB Garamond', serif; /* Художній шрифт */
+            font-family: 'EB Garamond', serif; 
             font-size: 26px; 
             font-weight: bold; 
             text-anchor: middle; 
@@ -32,48 +23,24 @@
             filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.8));
         }
 
-        /* ЕФЕКТ ПРИ НАВЕДЕННІ */
         .badge:hover text { 
-            fill: #ff9900; /* Золотавий колір */
+            fill: #ff9900; 
             font-size: 34px; 
             filter: drop-shadow(0 0 5px rgba(255,153,0,0.6));
         }
 
-        /* СТИЛЬ ВІКНА (POPUP) */
         #popup {
             position: absolute; display: none; background: white; border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 20px; z-index: 100;
             width: 320px; border-top: 4px solid #cc0000;
         }
 
-        .pop-h { 
-            font-family: 'Marck Script', cursive; 
-            font-size: 22px; 
-            color: #8b0000; 
-            margin-bottom: 10px; 
-            border-bottom: 1px solid #eee; 
-        }
-
-        /* ПРОКРУТКА ДЛЯ КОЛЕКТИВІВ */
-        .pop-scroll {
-            max-height: 250px; /* Висота вікна прокрутки */
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        /* Красивий скролбар */
+        .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 10px; border-bottom: 1px solid #eee; }
+        .pop-scroll { max-height: 250px; overflow-y: auto; padding-right: 10px; }
         .pop-scroll::-webkit-scrollbar { width: 6px; }
         .pop-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .pop-scroll::-webkit-scrollbar-thumb { background: #cc0000; border-radius: 10px; }
-
-        .pop-item { 
-            font-size: 14px; 
-            margin-bottom: 8px; 
-            line-height: 1.4; 
-            color: #333;
-            border-bottom: 1px solid #f9f9f9;
-            padding-bottom: 4px;
-        }
+        .pop-item { font-size: 14px; margin-bottom: 8px; line-height: 1.4; color: #333; border-bottom: 1px solid #f9f9f9; padding-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -83,7 +50,6 @@
 <div class="map-container" id="container">
     <img src="map.jpg" id="base-map">
     <svg id="svg-layer" viewBox="0 0 900 736"></svg>
-    
     <div id="popup">
         <div class="pop-h" id="pop-name"></div>
         <div class="pop-scroll" id="pop-content"></div>
@@ -94,39 +60,35 @@
 <script src="collectives.js"></script>
 
 <script>
-   function findCollectives(fullName) {
-    // 1. Отримуємо чистий корінь назви (наприклад, "Багач", "Драбів", "Чорнобай")
-    // Відрізаємо "івська", "івська", "ська" та інші закінчення
-    const rootName = fullName
-        .replace(/ міська громада| селищна громада| сільська громада/gi, "")
-        .replace(/(івська|ська|е)$/i, "") 
-        .trim()
-        .toLowerCase();
+    window.onload = function() {
+        const svg = document.getElementById('svg-layer');
+        const popup = document.getElementById('popup');
 
-    let results = [];
-    
-    // 2. Переглядаємо всі жанри у collectivesData
-    for (let genre in collectivesData) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = collectivesData[genre];
-        const items = tempDiv.querySelectorAll('li');
-        
-        items.forEach(li => {
-            const text = li.innerText;
-            // Якщо корінь назви громади є в тексті колективу
-            if (text.toLowerCase().includes(rootName)) {
-                if (!results.includes(text)) {
-                    results.push(text);
-                }
+        function findCollectives(fullName) {
+            const rootName = fullName
+                .replace(/ міська громада| селищна громада| сільська громада/gi, "")
+                .replace(/(івська|ська|е)$/i, "") 
+                .trim()
+                .toLowerCase();
+
+            let results = [];
+            for (let genre in collectivesData) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = collectivesData[genre];
+                const items = tempDiv.querySelectorAll('li');
+                items.forEach(li => {
+                    const text = li.innerText;
+                    if (text.toLowerCase().includes(rootName)) {
+                        if (!results.includes(text)) results.push(text);
+                    }
+                });
             }
-        });
-    }
-    return results;
-}
+            return results;
+        }
 
         hromadasGeoJSON.features.forEach(h => {
             const list = findCollectives(h.name);
-            if (list.length === 0) return; // Не малюємо нулі, якщо хочете бачити тільки активні
+            if (list.length === 0) return;
 
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("class", "badge");
