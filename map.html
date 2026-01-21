@@ -25,9 +25,9 @@
             top: 20px;
             left: 20px;
             z-index: 100;
-            pointer-events: none; /* Пропускає кліки до карти */
+            pointer-events: none;
         }
-        .map-controls * { pointer-events: auto; } /* Кнопки знову клікабельні */
+        .map-controls * { pointer-events: auto; }
 
         .map-title { 
             font-family: 'Marck Script', cursive; 
@@ -58,7 +58,7 @@
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
 
-        /* Стилі цифр (Колективи - менші, Битва - більші) */
+        /* Стилі цифр */
         .badge text { 
             font-family: 'EB Garamond', serif; 
             font-weight: 800; 
@@ -73,10 +73,10 @@
         #popup {
             position: absolute; display: none; background: white; border-radius: 10px;
             box-shadow: 0 5px 25px rgba(0,0,0,0.3); padding: 15px; z-index: 200;
-            width: 280px; border-top: 5px solid #cc0000;
+            width: 300px; border-top: 5px solid #cc0000;
         }
-        .pop-h { font-family: 'Marck Script', cursive; font-size: 20px; color: #8b0000; margin-bottom: 5px; }
-        .pop-scroll { max-height: 200px; overflow-y: auto; font-size: 13px; line-height: 1.4; }
+        .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 5px; }
+        .pop-scroll { max-height: 250px; overflow-y: auto; font-size: 13px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -106,31 +106,27 @@
     let currentMode = 'collectives';
     let battleData = {};
 
-    // Завантаження даних без дублювання
     async function loadBattleRatings() {
         const N8N_URL = "https://n8n.narodocnt.online/webhook/get-battle-stats";
         try {
             const response = await fetch(N8N_URL);
             const data = await response.json();
-            
-            // Очищуємо старі дані перед записом нових
             battleData = {}; 
             
-            // Якщо n8n повертає об'єкт { "Громада": бали }, беремо його прямо
+            // Отримуємо об'єкт із n8n (він приходить як перший елемент масиву або об'єкт)
             const stats = Array.isArray(data) ? data[0] : data;
 
             for (let name in stats) {
-                // Очищаємо назву громади для ключа (напр. "Звенигородська")
                 const key = name.toLowerCase()
                     .replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "")
                     .trim();
-                battleData[key] = stats[name]; // Записуємо фінальне число
+                // Тепер stats[name] — це об'єкт {score, collective, leader}
+                battleData[key] = stats[name]; 
             }
             if(currentMode === 'battle') renderMapPoints();
         } catch (e) { console.error("Помилка n8n:", e); }
     }
 
-    // Функція пошуку колективів (ваша оригінальна логіка)
     function findCollectives(fullName) {
         const shortName = fullName.toLowerCase().replace(/ міська громада| селищна громада| сільська громада/gi, "").trim();
         let results = [];
@@ -164,6 +160,13 @@
         const svg = document.getElementById('svg-layer');
         svg.innerHTML = ''; 
         
+        // Створюємо рейтинг для розрахунку місць
+        let ranking = [];
+        if (currentMode === 'battle') {
+            ranking = Object.entries(battleData)
+                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+        }
+
         hromadasGeoJSON.features.forEach(h => {
             let val = 0;
             let list = [];
@@ -173,7 +176,7 @@
                 list = findCollectives(h.name);
                 val = list.length;
             } else {
-                val = battleData[key] || 0;
+                val = (battleData[key] && battleData[key].score) ? battleData[key].score : 0;
             }
 
             if (val > 0) {
@@ -184,14 +187,40 @@
                 g.onclick = (e) => {
                     e.stopPropagation();
                     const p = document.getElementById('popup');
+                    const popContent = document.getElementById('pop-content');
                     document.getElementById('pop-name').innerText = h.name;
-                    document.getElementById('pop-content').innerHTML = currentMode === 'collectives' ? 
-                        list.map(i => `<div style="border-bottom:1px solid #eee; padding:3px 0;">${i}</div>`).join('') :
-                        `<div style="text-align:center; padding:10px;"><b style="font-size:28px; color:#f39c12;">${val}</b><br>балів</div>`;
+                    
+                    if (currentMode === 'collectives') {
+                        popContent.innerHTML = list.map(i => `<div style="border-bottom:1px solid #eee; padding:5px 0;">${i}</div>`).join('');
+                    } else {
+                        const data = battleData[key];
+                        const place = ranking.findIndex(item => item[0] === key) + 1;
+                        
+                        popContent.innerHTML = `
+                            <div style="padding:5px;">
+                                <div style="font-size:16px; font-weight:bold; color:#333; margin-bottom:5px; line-height:1.2;">
+                                    ${data.collective || "Колектив"}
+                                </div>
+                                <div style="font-size:13px; color:#666; margin-bottom:12px;">
+                                    Керівник: <b>${data.leader || "Не вказано"}</b>
+                                </div>
+                                
+                                <div style="background:#fef5e7; border:1px solid #f39c12; border-radius:8px; padding:10px; text-align:center;">
+                                    <div style="font-size:11px; color:#d35400; text-transform:uppercase; letter-spacing:1px;">Рейтинг:</div>
+                                    <div style="font-size:28px; font-weight:bold; color:#d35400; line-height:1;">${data.score}</div>
+                                    <div style="font-size:14px; font-weight:bold; color:#2c3e50; margin-top:8px; padding-top:8px; border-top:1px solid #f39c12;">
+                                        Ваше місце — ${place}
+                                    </div>
+                                </div>
+                                <p style="font-size:11px; color:#999; margin-top:10px; text-align:center; font-style:italic;">
+                                    Дані оновлюються автоматично
+                                </p>
+                            </div>`;
+                    }
                     
                     p.style.display = 'block';
-                    p.style.left = (h.x > 450 ? h.x - 300 : h.x + 20) + 'px';
-                    p.style.top = (h.y - 50) + 'px';
+                    p.style.left = (h.x > 450 ? h.x - 320 : h.x + 20) + 'px';
+                    p.style.top = (h.y - 120) + 'px';
                 };
                 svg.appendChild(g);
             }
