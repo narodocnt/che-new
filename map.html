@@ -4,83 +4,27 @@
     <meta charset="UTF-8">
     <title>Культурна мапа Черкащини</title>
     <link rel="icon" type="image/jpg" href="narodocnt.jpg">
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=EB+Garamond:wght@800&display=swap');
-        
         body { margin: 0; background: #f4f4f4; display: flex; justify-content: center; align-items: flex-start; padding-top: 10px; font-family: sans-serif; }
-        
-        .map-wrapper {
-            position: relative;
-            width: 900px;
-            height: 736px;
-            background: white;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        /* Заголовок та кнопки ПРЯМО НА КАРТІ */
-        .map-controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            pointer-events: none;
-        }
+        .map-wrapper { position: relative; width: 900px; height: 736px; background: white; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
+        .map-controls { position: absolute; top: 20px; left: 20px; z-index: 100; pointer-events: none; }
         .map-controls * { pointer-events: auto; }
-
-        .map-title { 
-            font-family: 'Marck Script', cursive; 
-            color: #8b0000; 
-            font-size: 42px; 
-            margin: 0 0 15px 0;
-            text-shadow: 2px 2px 4px rgba(255,255,255,0.9);
-        }
-
+        .map-title { font-family: 'Marck Script', cursive; color: #8b0000; font-size: 42px; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(255,255,255,0.9); }
         .btn-group { display: flex; flex-direction: column; gap: 8px; }
-        
-        .toggle-btn {
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #cc0000;
-            background: rgba(255, 255, 255, 0.9);
-            color: #cc0000;
-            border-radius: 20px;
-            transition: 0.3s;
-            width: 180px;
-            text-align: center;
-        }
-
+        .toggle-btn { padding: 8px 18px; font-size: 14px; font-weight: bold; cursor: pointer; border: 2px solid #cc0000; background: rgba(255, 255, 255, 0.9); color: #cc0000; border-radius: 20px; transition: 0.3s; width: 180px; text-align: center; }
         .toggle-btn.active { background: #cc0000; color: white; }
-
         #base-map { width: 900px; height: 736px; display: block; }
         #svg-layer { position: absolute; top: 0; left: 0; width: 900px; height: 736px; z-index: 10; }
-
-        /* Стилі цифр */
-        .badge text { 
-            font-family: 'EB Garamond', serif; 
-            font-weight: 800; 
-            text-anchor: middle; 
-            dominant-baseline: middle;
-            paint-order: stroke;
-            stroke: #ffffff;
-        }
+        .badge text { font-family: 'EB Garamond', serif; font-weight: 800; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #ffffff; }
         .mode-collectives text { fill: #cc0000; font-size: 16px; stroke-width: 3px; } 
-        .mode-battle text { fill: #f39c12; font-size: 24px; stroke-width: 4px; }
-
-        #popup {
-            position: absolute; display: none; background: white; border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.3); padding: 15px; z-index: 200;
-            width: 300px; border-top: 5px solid #cc0000;
-        }
+        .mode-battle text { fill: #f39c12; font-size: 24px; stroke-width: 4px; cursor: pointer; }
+        #popup { position: absolute; display: none; background: white; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.3); padding: 15px; z-index: 200; width: 300px; border-top: 5px solid #cc0000; pointer-events: auto; }
         .pop-h { font-family: 'Marck Script', cursive; font-size: 22px; color: #8b0000; margin-bottom: 5px; }
-        .pop-scroll { max-height: 250px; overflow-y: auto; font-size: 13px; line-height: 1.4; }
+        .pop-scroll { max-height: 250px; overflow-y: auto; font-size: 14px; line-height: 1.4; }
     </style>
 </head>
 <body>
-
 <div class="map-wrapper">
     <div class="map-controls">
         <h1 class="map-title">Культурна мапа</h1>
@@ -89,10 +33,8 @@
             <button id="btn-battle" class="toggle-btn" onclick="switchMode('battle')">Битва вподобайків</button>
         </div>
     </div>
-
     <img src="map.jpg" id="base-map">
     <svg id="svg-layer" viewBox="0 0 900 736"></svg>
-    
     <div id="popup">
         <div class="pop-h" id="pop-name"></div>
         <div id="pop-content" class="pop-scroll"></div>
@@ -112,19 +54,13 @@
             const response = await fetch(N8N_URL);
             const data = await response.json();
             battleData = {}; 
-            
-            // Отримуємо об'єкт із n8n (він приходить як перший елемент масиву або об'єкт)
             const stats = Array.isArray(data) ? data[0] : data;
-
             for (let name in stats) {
-                const key = name.toLowerCase()
-                    .replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "")
-                    .trim();
-                // Тепер stats[name] — це об'єкт {score, collective, leader}
+                const key = name.toLowerCase().replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "").trim();
                 battleData[key] = stats[name]; 
             }
             if(currentMode === 'battle') renderMapPoints();
-        } catch (e) { console.error("Помилка n8n:", e); }
+        } catch (e) { console.error("Error loading battle stats:", e); }
     }
 
     function findCollectives(fullName) {
@@ -138,12 +74,9 @@
                 const text = items[i].innerText;
                 const parts = text.toLowerCase().split('—');
                 const addr = parts.length > 1 ? parts[1] : text.toLowerCase();
-                
                 if (shortName === "шевченківська") {
                     if (addr.includes("шевченківська") && !addr.includes("корсунь")) results.push(text);
-                } else if (addr.includes(shortName)) {
-                    results.push(text);
-                }
+                } else if (addr.includes(shortName)) results.push(text);
             }
         }
         return [...new Set(results)];
@@ -159,24 +92,23 @@
     function renderMapPoints() {
         const svg = document.getElementById('svg-layer');
         svg.innerHTML = ''; 
-        
-        // Створюємо рейтинг для розрахунку місць
         let ranking = [];
+        
         if (currentMode === 'battle') {
             ranking = Object.entries(battleData)
-                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+                .map(([k, v]) => [k, typeof v === 'object' ? v.score : v])
+                .sort((a, b) => b[1] - a[1]);
         }
 
         hromadasGeoJSON.features.forEach(h => {
-            let val = 0;
-            let list = [];
             const key = h.name.toLowerCase().replace(/ міська громада| селищна громада| сільська громада|ська|цька/gi, "").trim();
+            let val = 0;
 
             if (currentMode === 'collectives') {
-                list = findCollectives(h.name);
-                val = list.length;
+                val = findCollectives(h.name).length;
             } else {
-                val = (battleData[key] && battleData[key].score) ? battleData[key].score : 0;
+                const d = battleData[key];
+                val = (d && typeof d === 'object') ? d.score : (d || 0);
             }
 
             if (val > 0) {
@@ -189,48 +121,43 @@
                     const p = document.getElementById('popup');
                     const popContent = document.getElementById('pop-content');
                     document.getElementById('pop-name').innerText = h.name;
-                    
+
                     if (currentMode === 'collectives') {
-                        popContent.innerHTML = list.map(i => `<div style="border-bottom:1px solid #eee; padding:5px 0;">${i}</div>`).join('');
+                        popContent.innerHTML = findCollectives(h.name).map(i => `<div style="border-bottom:1px solid #eee; padding:5px 0;">${i}</div>`).join('');
                     } else {
-                        const data = battleData[key];
+                        const d = battleData[key];
                         const place = ranking.findIndex(item => item[0] === key) + 1;
                         
+                        // Захист від пустих даних
+                        const colName = (d && d.collective) ? d.collective : "Колектив громади";
+                        const leaderName = (d && d.leader) ? d.leader : "Інформація уточнюється";
+
                         popContent.innerHTML = `
                             <div style="padding:5px;">
-                                <div style="font-size:16px; font-weight:bold; color:#333; margin-bottom:5px; line-height:1.2;">
-                                    ${data.collective || "Колектив"}
-                                </div>
-                                <div style="font-size:13px; color:#666; margin-bottom:12px;">
-                                    Керівник: <b>${data.leader || "Не вказано"}</b>
-                                </div>
-                                
+                                <div style="font-weight:bold; font-size:16px; color:#333; margin-bottom:5px; line-height:1.2;">${colName}</div>
+                                <div style="font-size:13px; color:#666; margin-bottom:12px;">Керівник: <b>${leaderName}</b></div>
                                 <div style="background:#fef5e7; border:1px solid #f39c12; border-radius:8px; padding:10px; text-align:center;">
-                                    <div style="font-size:11px; color:#d35400; text-transform:uppercase; letter-spacing:1px;">Рейтинг:</div>
-                                    <div style="font-size:28px; font-weight:bold; color:#d35400; line-height:1;">${data.score}</div>
-                                    <div style="font-size:14px; font-weight:bold; color:#2c3e50; margin-top:8px; padding-top:8px; border-top:1px solid #f39c12;">
+                                    <div style="font-size:11px; color:#d35400; text-transform:uppercase;">Рейтинг:</div>
+                                    <div style="font-size:28px; font-weight:bold; color:#d35400;">${val}</div>
+                                    <div style="font-size:15px; font-weight:bold; color:#2c3e50; border-top:1px solid #f39c12; margin-top:8px; padding-top:8px;">
                                         Ваше місце — ${place}
                                     </div>
                                 </div>
-                                <p style="font-size:11px; color:#999; margin-top:10px; text-align:center; font-style:italic;">
-                                    Дані оновлюються автоматично
-                                </p>
+                                <div style="font-size:11px; color:#999; margin-top:10px; text-align:center; font-style:italic;">Дані оновлюються автоматично</div>
                             </div>`;
                     }
-                    
                     p.style.display = 'block';
                     p.style.left = (h.x > 450 ? h.x - 320 : h.x + 20) + 'px';
-                    p.style.top = (h.y - 120) + 'px';
+                    p.style.top = (h.y - 100) + 'px';
                 };
                 svg.appendChild(g);
             }
         });
     }
 
-    window.onload = async function() {
-        await loadBattleRatings();
-        renderMapPoints();
-        document.addEventListener('click', () => document.getElementById('popup').style.display = 'none');
+    window.onload = async function() { 
+        await loadBattleRatings(); 
+        document.addEventListener('click', () => document.getElementById('popup').style.display = 'none'); 
     };
 </script>
 </body>
