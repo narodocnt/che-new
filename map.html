@@ -2,37 +2,51 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивна мапа колективів Черкащини</title>
-
+    <title>Карта громад Черкащини</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
-        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { margin: 0; padding: 0; }
         #map { height: 100vh; width: 100%; }
         
-        /* Стиль для панелі Битви Вподобайків */
-        .battle-info {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            min-width: 200px;
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
+        
+        .map-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        
+        .active-btn { background: #3498db; color: white; }
+        .inactive-btn { background: #eee; color: #555; }
     </style>
 </head>
 <body>
 
+    <div class="map-controls">
+        <button id="btn-collectives" class="map-btn active-btn" onclick="setMode('collectives')">Колективи</button>
+        <button id="btn-battle" class="map-btn inactive-btn" onclick="setMode('battle')">Битва вподобайків</button>
+    </div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script src="hromadas-data.js"></script>
     <script src="collectives-list.js"></script>
-
     <script src="map.js"></script>
-
-    <script src="map-battle.js"></script>
-
 </body>
 </html>
