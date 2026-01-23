@@ -1,77 +1,46 @@
-/**
- * map.js
- * Основна логіка мапи
- */
-// Створюємо глобальну змінну map, щоб інші файли її бачили
 const map = L.map('map').setView([49.2, 31.5], 8);
+let currentMode = 'collectives'; // Початковий режим
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-function style(feature) {
-    return {
-        fillColor: '#3498db',
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.6
-    };
-}
-
-function highlightFeature(e) {
-    var layer = e.target;
-    layer.setStyle({
-        weight: 3,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.8
-    });
-    layer.bringToFront();
-}
-
-function resetHighlight(e) {
-    geojson.resetStyle(e.target);
+// Функція зміни режиму
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btn-collectives').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+    document.getElementById('btn-battle').className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+    
+    // Закриваємо всі попапи при зміні режиму
+    map.closePopup();
 }
 
 function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: function (e) {
-            const hromadaName = feature.properties.name.trim().toLowerCase();
-            const collectives = collectivesList[hromadaName];
-            
-            let popupContent = `<div style="min-width: 250px;">
-                <h3 style="margin: 0 0 10px 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                    ${feature.properties.name}
-                </h3>`;
+    // Якщо у вас були точки (Center of hromada), Leaflet може автоматично ставити маркер
+    layer.on('click', function (e) {
+        const name = feature.properties.name.trim().toLowerCase();
+        let content = `<h3>${feature.properties.name}</h3>`;
 
-            if (collectives && collectives.length > 0) {
-                popupContent += `
-                    <div style="margin-bottom: 10px; font-weight: bold; color: #e67e22;">
-                        Звання «народний (зразковий)»: ${collectives.length}
-                    </div>
-                    <div style="max-height: 250px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                        <ul style="list-style-type: none; padding: 0; margin: 0;">`;
-                
-                collectives.forEach(item => {
-                    popupContent += `<li style="margin-bottom: 8px; font-size: 13px; line-height: 1.4; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                        ${item}
-                    </li>`;
-                });
-                popupContent += `</ul></div>`;
-            } else {
-                popupContent += `<p style="color: #7f8c8d; font-style: italic;">Дані оновлюються...</p>`;
-            }
-            popupContent += `</div>`;
-            layer.bindPopup(popupContent).openPopup();
+        if (currentMode === 'collectives') {
+            const list = collectivesList[name] || [];
+            content += `<b>Колективів: ${list.length}</b><hr>`;
+            content += `<div style="max-height:200px; overflow-y:auto;">${list.join('<br>')}</div>`;
+        } else {
+            // Режим битви (приклад даних, можна підключити ratings.json)
+            content += `<div style="text-align:center;">
+                <p>🏆 Позиція в рейтингу: <b>№1</b></p>
+                <p>❤️ Вподобайок: <b>1240</b></p>
+                <button style="padding:5px 10px; background:#e74c3c; color:white; border:none; border-radius:5px;">Голосувати</button>
+            </div>`;
         }
+        
+        layer.bindPopup(content).openPopup();
     });
+
+    // Підсвічування при наведенні
+    layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.8, weight: 3 }));
+    layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.6, weight: 2 }));
 }
 
 const geojson = L.geoJson(hromadasData, {
-    style: style,
+    style: { fillColor: '#3498db', weight: 2, color: 'white', fillOpacity: 0.6 },
     onEachFeature: onEachFeature
 }).addTo(map);
