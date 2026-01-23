@@ -2,12 +2,22 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Карта громад Черкащини</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта колективів Черкащини</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
-        body { margin: 0; padding: 0; }
-        #map { height: 100vh; width: 100%; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
         
+        /* Фон з вашим зображенням */
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+            background-color: #f4f4f4;
+        }
+
+        /* Кнопки перемикання */
         .map-controls {
             position: absolute;
             top: 20px;
@@ -15,38 +25,145 @@
             transform: translateX(-50%);
             z-index: 1000;
             display: flex;
-            gap: 10px;
-            background: rgba(255,255,255,0.9);
-            padding: 10px;
-            border-radius: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        
+
         .map-btn {
-            padding: 8px 20px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .active-btn { background: #e67e22; color: white; }
+        .inactive-btn { background: #ecf0f1; color: #2c3e50; }
+
+        /* Стиль маркера з цифрою */
+        .count-icon {
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Стиль попапа (таблички) */
+        .custom-popup .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            padding: 5px;
         }
         
-        .active-btn { background: #3498db; color: white; }
-        .inactive-btn { background: #eee; color: #555; }
+        .collectives-scroll-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .collectives-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .collectives-scroll-container::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
 
     <div class="map-controls">
-        <button id="btn-collectives" class="map-btn active-btn" onclick="setMode('collectives')">Колективи</button>
-        <button id="btn-battle" class="map-btn inactive-btn" onclick="setMode('battle')">Битва вподобайків</button>
+        <button id="btn-col" class="map-btn active-btn" onclick="switchMode('collectives')">Колективи</button>
+        <button id="btn-bat" class="map-btn inactive-btn" onclick="switchMode('battle')">Битва вподобайків</button>
     </div>
 
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script src="hromadas-data.js"></script>
     <script src="collectives-list.js"></script>
-    <script src="map.js"></script>
+
+    <script>
+        // Ініціалізація мапи
+        const map = L.map('map', {
+            zoomSnap: 0.1
+        }).setView([49.2, 31.5], 8.5);
+
+        // Додаємо ваше зображення map.jpg як основний шар
+        const imageBounds = [[48.2, 29.5], [50.3, 33.5]]; // Межі області (підкоригуйте за потреби)
+        L.imageOverlay('map.jpg', imageBounds, { opacity: 1 }).addTo(map);
+
+        let currentMode = 'collectives';
+        let markersLayer = L.layerGroup().addTo(map);
+
+        // Функція для створення точок з цифрами
+        function renderMarkers() {
+            markersLayer.clearLayers();
+
+            hromadasData.features.forEach(feature => {
+                const name = feature.properties.name.trim().toLowerCase();
+                const coords = feature.geometry.coordinates;
+                // Отримуємо список з нашого нового файлу
+                const list = collectivesList[name] || [];
+                const count = list.length;
+
+                // Створюємо іконку з цифрою
+                const icon = L.divIcon({
+                    className: 'count-icon',
+                    html: count,
+                    iconSize: [30, 30]
+                });
+
+                // Створюємо маркер (точку)
+                const marker = L.marker([coords[1], coords[0]], { icon: icon });
+
+                // Формуємо вміст таблички (попапа)
+                let popupContent = `<div style="min-width:280px;">
+                    <h3 style="margin:0 0 10px 0; color:#2c3e50; border-bottom:2px solid #3498db;">${feature.properties.name}</h3>`;
+
+                if (currentMode === 'collectives') {
+                    popupContent += `<p><b>Всього колективів: ${count}</b></p>
+                        <div class="collectives-scroll-container">
+                            <ul style="padding:0; list-style:none; font-size:13px;">
+                                ${list.map(item => `<li style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${item}</li>`).join('')}
+                            </ul>
+                        </div>`;
+                } else {
+                    popupContent += `<div style="text-align:center; padding:10px;">
+                        <p style="font-size:18px;">🔥 Рейтинг: <b>#1</b></p>
+                        <p>Вподобайок: <b>1,245</b></p>
+                        <button style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Голосувати ❤️</button>
+                    </div>`;
+                }
+
+                popupContent += `</div>`;
+                marker.bindPopup(popupContent, { className: 'custom-popup' });
+                markersLayer.addLayer(marker);
+            });
+        }
+
+        // Перемикач режимів
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-col').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+            document.getElementById('btn-bat').className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+            renderMarkers();
+        }
+
+        // Запуск при завантаженні
+        window.onload = renderMarkers;
+
+    </script>
 </body>
 </html>
