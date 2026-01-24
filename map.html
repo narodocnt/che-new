@@ -8,14 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        
-        /* Фон з вашим зображенням */
-        #map { 
-            height: 100vh; 
-            width: 100%; 
-            background-color: #f4f4f4;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f0f0f0; }
+        #map { height: 100vh; width: 100%; }
 
         /* Кнопки перемикання */
         .map-controls {
@@ -25,58 +19,53 @@
             transform: translateX(-50%);
             z-index: 1000;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             background: rgba(255, 255, 255, 0.9);
-            padding: 12px 20px;
-            border-radius: 50px;
+            padding: 8px 15px;
+            border-radius: 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .map-btn {
-            padding: 10px 20px;
+            padding: 8px 18px;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: bold;
-            text-transform: uppercase;
-            font-size: 12px;
-            transition: all 0.3s;
+            font-size: 13px;
+            transition: 0.3s;
         }
 
         .active-btn { background: #e67e22; color: white; }
-        .inactive-btn { background: #ecf0f1; color: #2c3e50; }
+        .inactive-btn { background: #eee; color: #555; }
 
-        /* Стиль маркера з цифрою */
+        /* Стиль кружечка з цифрою */
         .count-icon {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
             background: #3498db;
             color: white;
             border-radius: 50%;
-            text-align: center;
-            line-height: 30px;
             font-weight: bold;
             font-size: 14px;
             border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
 
-        /* Стиль попапа (таблички) */
-        .custom-popup .leaflet-popup-content-wrapper {
-            border-radius: 10px;
-            padding: 5px;
-        }
-        
-        .collectives-scroll-container {
-            max-height: 300px;
+        /* Налаштування прокрутки в попапі */
+        .collectives-list {
+            max-height: 250px;
             overflow-y: auto;
+            margin-top: 10px;
             padding-right: 5px;
         }
-
-        .collectives-scroll-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .collectives-scroll-container::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 10px;
+        .collectives-list p {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            line-height: 1.4;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 4px;
         }
     </style>
 </head>
@@ -90,70 +79,70 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <script src="hromadas-data.js"></script>
     <script src="collectives-list.js"></script>
 
     <script>
-        // Ініціалізація мапи
-        const map = L.map('map', {
-            zoomSnap: 0.1
-        }).setView([49.2, 31.5], 8.5);
+        // Точні розміри картинки
+        const imgWidth = 900;
+        const imgHeight = 736;
 
-        // Додаємо ваше зображення map.jpg як основний шар
-        const imageBounds = [[48.2, 29.5], [50.3, 33.5]]; // Межі області (підкоригуйте за потреби)
-        L.imageOverlay('map.jpg', imageBounds, { opacity: 1 }).addTo(map);
+        // Ініціалізація в системі CRS.Simple (піксельна сітка)
+        const map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -1,
+            maxZoom: 2,
+            zoomSnap: 0.1
+        });
+
+        // Встановлюємо межі картинки в пікселях
+        const bounds = [[0, 0], [imgHeight, imgWidth]];
+        L.imageOverlay('map.jpg', bounds).addTo(map);
+        map.fitBounds(bounds);
 
         let currentMode = 'collectives';
         let markersLayer = L.layerGroup().addTo(map);
 
-        // Функція для створення точок з цифрами
         function renderMarkers() {
             markersLayer.clearLayers();
 
             hromadasData.features.forEach(feature => {
-                const name = feature.properties.name.trim().toLowerCase();
-                const coords = feature.geometry.coordinates;
-                // Отримуємо список з нашого нового файлу
-                const list = collectivesList[name] || [];
+                const hName = feature.properties.name.trim().toLowerCase();
+                const coords = feature.geometry.coordinates; // [x, y] з вашого файлу
+                
+                const list = collectivesList[hName] || [];
                 const count = list.length;
 
-                // Створюємо іконку з цифрою
-                const icon = L.divIcon({
-                    className: 'count-icon',
-                    html: count,
-                    iconSize: [30, 30]
-                });
+                if (count > 0) {
+                    const icon = L.divIcon({
+                        className: 'count-icon',
+                        html: count,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
 
-                // Створюємо маркер (точку)
-                const marker = L.marker([coords[1], coords[0]], { icon: icon });
+                    // ВАЖЛИВО: Перерахунок Y, якщо ваші координати відміряні від ВЕРХУ картинки
+                    // Якщо цифри з'являться перевернуто по вертикалі, змініть на: const y = coords[1];
+                    const x = coords[0];
+                    const y = imgHeight - coords[1]; 
 
-                // Формуємо вміст таблички (попапа)
-                let popupContent = `<div style="min-width:280px;">
-                    <h3 style="margin:0 0 10px 0; color:#2c3e50; border-bottom:2px solid #3498db;">${feature.properties.name}</h3>`;
+                    const marker = L.marker([y, x], { icon: icon });
 
-                if (currentMode === 'collectives') {
-                    popupContent += `<p><b>Всього колективів: ${count}</b></p>
-                        <div class="collectives-scroll-container">
-                            <ul style="padding:0; list-style:none; font-size:13px;">
-                                ${list.map(item => `<li style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${item}</li>`).join('')}
-                            </ul>
+                    let popupContent = `
+                        <div style="min-width:260px;">
+                            <h3 style="margin:0 0 5px 0; color:#2c3e50;">${feature.properties.name}</h3>
+                            <strong style="color:#e67e22;">Кількість колективів: ${count}</strong>
+                            <div class="collectives-list">
+                                ${list.map(item => `<p>${item}</p>`).join('')}
+                            </div>
                         </div>`;
-                } else {
-                    popupContent += `<div style="text-align:center; padding:10px;">
-                        <p style="font-size:18px;">🔥 Рейтинг: <b>#1</b></p>
-                        <p>Вподобайок: <b>1,245</b></p>
-                        <button style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Голосувати ❤️</button>
-                    </div>`;
-                }
 
-                popupContent += `</div>`;
-                marker.bindPopup(popupContent, { className: 'custom-popup' });
-                markersLayer.addLayer(marker);
+                    marker.bindPopup(popupContent);
+                    markersLayer.addLayer(marker);
+                }
             });
         }
 
-        // Перемикач режимів
         function switchMode(mode) {
             currentMode = mode;
             document.getElementById('btn-col').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
@@ -161,9 +150,8 @@
             renderMarkers();
         }
 
-        // Запуск при завантаженні
-        window.onload = renderMarkers;
-
+        // Запуск
+        renderMarkers();
     </script>
 </body>
 </html>
