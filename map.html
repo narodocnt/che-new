@@ -3,69 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта колективів Черкащини</title>
-    
+    <title>Карта громад Черкащини</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f0f0f0; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2c3e50; }
         #map { height: 100vh; width: 100%; }
-
-        /* Кнопки перемикання */
         .map-controls {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            display: flex;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px 15px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; display: flex; gap: 8px; background: rgba(255,255,255,0.9);
+            padding: 8px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-
-        .map-btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            transition: 0.3s;
-        }
-
+        .map-btn { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .active-btn { background: #e67e22; color: white; }
         .inactive-btn { background: #eee; color: #555; }
-
-        /* Стиль кружечка з цифрою */
         .count-icon {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            background: #3498db;
-            color: white;
-            border-radius: 50%;
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-
-        /* Налаштування прокрутки в попапі */
-        .collectives-list {
-            max-height: 250px;
-            overflow-y: auto;
-            margin-top: 10px;
-            padding-right: 5px;
-        }
-        .collectives-list p {
-            margin: 0 0 8px 0;
-            font-size: 13px;
-            line-height: 1.4;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 4px;
+            display: flex !important; align-items: center; justify-content: center;
+            background: #3498db; color: white; border-radius: 50%;
+            font-weight: bold; font-size: 13px; border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
     </style>
 </head>
@@ -73,7 +28,7 @@
 
     <div class="map-controls">
         <button id="btn-col" class="map-btn active-btn" onclick="switchMode('collectives')">Колективи</button>
-        <button id="btn-bat" class="map-btn inactive-btn" onclick="switchMode('battle')">Битва вподобайків</button>
+        <button id="btn-bat" class="map-btn inactive-btn" onclick="switchMode('battle')">Битва</button>
     </div>
 
     <div id="map"></div>
@@ -83,20 +38,16 @@
     <script src="collectives-list.js"></script>
 
     <script>
-        // Точні розміри картинки
-        const imgWidth = 900;
-        const imgHeight = 736;
+        const imgW = 900;
+        const imgH = 736;
 
-        // Ініціалізація в системі CRS.Simple (піксельна сітка)
         const map = L.map('map', {
             crs: L.CRS.Simple,
             minZoom: -1,
-            maxZoom: 2,
-            zoomSnap: 0.1
+            maxZoom: 2
         });
 
-        // Встановлюємо межі картинки в пікселях
-        const bounds = [[0, 0], [imgHeight, imgWidth]];
+        const bounds = [[0, 0], [imgH, imgW]];
         L.imageOverlay('map.jpg', bounds).addTo(map);
         map.fitBounds(bounds);
 
@@ -105,52 +56,45 @@
 
         function renderMarkers() {
             markersLayer.clearLayers();
+            if (typeof hromadasData === 'undefined' || typeof collectivesList === 'undefined') return;
 
-            hromadasData.features.forEach(feature => {
-                const hName = feature.properties.name.trim().toLowerCase();
-                const coords = feature.geometry.coordinates; // [x, y] з вашого файлу
+            hromadasData.features.forEach(f => {
+                const name = f.properties.name.trim().toLowerCase();
+                const coords = f.geometry.coordinates; // [x, y]
+                const list = collectivesList[name] || [];
                 
-                const list = collectivesList[hName] || [];
-                const count = list.length;
-
-                if (count > 0) {
+                if (list.length > 0 || currentMode === 'battle') {
                     const icon = L.divIcon({
                         className: 'count-icon',
-                        html: count,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
+                        html: currentMode === 'collectives' ? list.length : '❤️',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
                     });
 
-                    // ВАЖЛИВО: Перерахунок Y, якщо ваші координати відміряні від ВЕРХУ картинки
-                    // Якщо цифри з'являться перевернуто по вертикалі, змініть на: const y = coords[1];
-                    const x = coords[0];
-                    const y = imgHeight - coords[1]; 
+                    // Математика: інвертуємо Y, бо в пікселях 0 вгорі
+                    const marker = L.marker([imgH - coords[1], coords[0]], { icon: icon });
 
-                    const marker = L.marker([y, x], { icon: icon });
+                    let content = `<div style="min-width:200px;"><b>${f.properties.name}</b><hr>`;
+                    if (currentMode === 'collectives') {
+                        content += `<div style="max-height:150px; overflow-y:auto; font-size:12px;">${list.join('<br>')}</div>`;
+                    } else {
+                        content += `Рейтинг: №${Math.floor(Math.random()*10)+1}<br>Голосів: ${Math.floor(Math.random()*1000)}`;
+                    }
+                    content += `</div>`;
 
-                    let popupContent = `
-                        <div style="min-width:260px;">
-                            <h3 style="margin:0 0 5px 0; color:#2c3e50;">${feature.properties.name}</h3>
-                            <strong style="color:#e67e22;">Кількість колективів: ${count}</strong>
-                            <div class="collectives-list">
-                                ${list.map(item => `<p>${item}</p>`).join('')}
-                            </div>
-                        </div>`;
-
-                    marker.bindPopup(popupContent);
+                    marker.bindPopup(content);
                     markersLayer.addLayer(marker);
                 }
             });
         }
 
-        function switchMode(mode) {
-            currentMode = mode;
-            document.getElementById('btn-col').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-            document.getElementById('btn-bat').className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+        function switchMode(m) {
+            currentMode = m;
+            document.getElementById('btn-col').className = m === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+            document.getElementById('btn-bat').className = m === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
             renderMarkers();
         }
 
-        // Запуск
         renderMarkers();
     </script>
 </body>
