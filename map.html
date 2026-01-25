@@ -2,117 +2,6 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Культурна мапа</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2c3e50; }
-        #map { height: 100vh; width: 100%; }
-        .map-controls {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; display: flex; gap: 8px; background: rgba(255,255,255,0.9);
-            padding: 8px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .map-btn { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        .active-btn { background: #e67e22; color: white; }
-        .inactive-btn { background: #eee; color: #555; }
-        .count-icon {
-            display: flex !important; align-items: center; justify-content: center;
-            background: #3498db; color: white; border-radius: 50%;
-            font-weight: bold; font-size: 13px; border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="map-controls">
-        <button id="btn-col" class="map-btn active-btn" onclick="switchMode('collectives')">Колективи</button>
-        <button id="btn-bat" class="map-btn inactive-btn" onclick="switchMode('battle')">Битва</button>
-    </div>
-
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="hromadas-data.js"></script>
-    <script src="collectives-list.js"></script>
-
-    <script>
-        const imgW = 900;
-        const imgH = 736;
-
-        // Ініціалізація карти в піксельному режимі
-        const map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -1,
-            maxZoom: 2
-        });
-
-        const bounds = [[0, 0], [imgH, imgW]];
-        L.imageOverlay('map.jpg', bounds).addTo(map);
-        map.fitBounds(bounds);
-
-        let currentMode = 'collectives';
-        let markersLayer = L.layerGroup().addTo(map);
-
-        function renderMarkers() {
-            markersLayer.clearLayers();
-            
-            // ПЕРЕВІРКА: Використовуємо саме hromadasGeoJSON, як у вашому файлі
-            if (typeof hromadasGeoJSON === 'undefined' || typeof collectivesList === 'undefined') {
-                console.error("Дані не завантажено!");
-                return;
-            }
-
-            hromadasGeoJSON.features.forEach(hromada => {
-                const nameKey = hromada.name.trim().toLowerCase();
-                const list = collectivesList[nameKey] || [];
-                
-                // Відображаємо, якщо є колективи або якщо режим "Битва"
-                if (list.length > 0 || currentMode === 'battle') {
-                    const icon = L.divIcon({
-                        className: 'count-icon',
-                        html: currentMode === 'collectives' ? list.length : '❤️',
-                        iconSize: [28, 28],
-                        iconAnchor: [14, 14]
-                    });
-
-                    // Координати прямо з об'єкта: hromada.x та hromada.y
-                    // Робимо інверсію Y (imgH - y), щоб відповідало Leaflet CRS.Simple
-                    const marker = L.marker([imgH - hromada.y, hromada.x], { icon: icon });
-
-                    let content = `<div style="min-width:200px;"><b>${hromada.name}</b><hr>`;
-                    if (currentMode === 'collectives') {
-                        content += `<div style="max-height:150px; overflow-y:auto; font-size:12px;">
-                                        ${list.length > 0 ? list.join('<br>') : 'Немає даних'}
-                                    </div>`;
-                    } else {
-                        content += `Рейтинг громади за вподобайками...`;
-                    }
-                    content += `</div>`;
-
-                    marker.bindPopup(content);
-                    markersLayer.addLayer(marker);
-                }
-            });
-        }
-
-        function switchMode(m) {
-            currentMode = m;
-            document.getElementById('btn-col').className = m === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-            document.getElementById('btn-bat').className = m === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-            renderMarkers();
-        }
-
-        // Запуск після завантаження
-        renderMarkers();
-    </script>
-</body>
-</html>
     <title>Карта громад Черкащини</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -137,8 +26,8 @@
 <body>
 
     <div class="map-controls">
-        <button id="btn-col" class="map-btn active-btn" onclick="switchMode('collectives')">Колективи</button>
-        <button id="btn-bat" class="map-btn inactive-btn" onclick="switchMode('battle')">Битва</button>
+        <button id="btn-col" class="map-btn active-btn" onclick="setMapMode('collectives')">Колективи</button>
+        <button id="btn-bat" class="map-btn inactive-btn" onclick="setMapMode('battle')">Битва</button>
     </div>
 
     <div id="map"></div>
@@ -146,66 +35,47 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="hromadas-data.js"></script>
     <script src="collectives-list.js"></script>
+    <script src="map.js"></script>
 
+    
     <script>
-        const imgW = 900;
-        const imgH = 736;
-
-        const map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -1,
-            maxZoom: 2
-        });
-
-        const bounds = [[0, 0], [imgH, imgW]];
+        // Глобальні змінні для доступу з map-battle.js
+        var mapW = 900, mapH = 736;
+        var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+        var bounds = [[0, 0], [mapH, mapW]];
         L.imageOverlay('map.jpg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        let currentMode = 'collectives';
-        let markersLayer = L.layerGroup().addTo(map);
+        var markersLayer = L.layerGroup().addTo(map);
 
-        function renderMarkers() {
+        function setMapMode(mode) {
+            document.getElementById('btn-col').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+            document.getElementById('btn-bat').className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+            
             markersLayer.clearLayers();
-            if (typeof hromadasData === 'undefined' || typeof collectivesList === 'undefined') return;
+            
+            if (mode === 'collectives') {
+                renderCollectives();
+            } else if (typeof renderBattleMarkers === 'function') {
+                renderBattleMarkers(); // Ця функція буде в map-battle.js
+            }
+        }
 
-            hromadasData.features.forEach(f => {
-                const name = f.properties.name.trim().toLowerCase();
-                const coords = f.geometry.coordinates; // [x, y]
-                const list = collectivesList[name] || [];
-                
-                if (list.length > 0 || currentMode === 'battle') {
-                    const icon = L.divIcon({
-                        className: 'count-icon',
-                        html: currentMode === 'collectives' ? list.length : '❤️',
-                        iconSize: [28, 28],
-                        iconAnchor: [14, 14]
-                    });
-
-                    // Математика: інвертуємо Y, бо в пікселях 0 вгорі
-                    const marker = L.marker([imgH - coords[1], coords[0]], { icon: icon });
-
-                    let content = `<div style="min-width:200px;"><b>${f.properties.name}</b><hr>`;
-                    if (currentMode === 'collectives') {
-                        content += `<div style="max-height:150px; overflow-y:auto; font-size:12px;">${list.join('<br>')}</div>`;
-                    } else {
-                        content += `Рейтинг: №${Math.floor(Math.random()*10)+1}<br>Голосів: ${Math.floor(Math.random()*1000)}`;
-                    }
-                    content += `</div>`;
-
-                    marker.bindPopup(content);
+        function renderCollectives() {
+            hromadasGeoJSON.features.forEach(h => {
+                const list = collectivesList[h.name.trim().toLowerCase()] || [];
+                if (list.length > 0) {
+                    const icon = L.divIcon({ className: 'count-icon', html: list.length, iconSize: [28, 28] });
+                    const marker = L.marker([mapH - h.y, h.x], { icon: icon });
+                    marker.bindPopup(`<b>${h.name}</b><hr><div style="max-height:150px; overflow-y:auto;">${list.join('<br>')}</div>`);
                     markersLayer.addLayer(marker);
                 }
             });
         }
 
-        function switchMode(m) {
-            currentMode = m;
-            document.getElementById('btn-col').className = m === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-            document.getElementById('btn-bat').className = m === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-            renderMarkers();
-        }
-
-        renderMarkers();
+        window.onload = () => renderCollectives();
     </script>
+
+    <script src="map-battle.js"></script>
 </body>
 </html>
