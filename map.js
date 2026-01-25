@@ -1,82 +1,89 @@
-// 1. Налаштування розмірів вашої картинки
-const imgW = 900;
-const imgH = 736;
+const map = L.map('map').setView([49.2, 31.5], 8);
+let currentMode = 'collectives'; // Початковий режим
 
-// 2. Ініціалізація карти в системі CRS.Simple (пікселі)
-const map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -1,
-    maxZoom: 2,
-    zoomSnap: 0.1
-});
 
-// 3. Встановлюємо межі та накладаємо map.jpg
-const bounds = [[0, 0], [imgH, imgW]];
-L.imageOverlay('map.jpg', bounds).addTo(map);
-map.fitBounds(bounds);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-let currentMode = 'collectives';
-let markersLayer = L.layerGroup().addTo(map);
 
-// 4. Функція виведення цифр
-function renderMarkers() {
-    markersLayer.clearLayers();
 
-    // Перевірка наявності даних
-    if (typeof hromadasGeoJSON === 'undefined' || typeof collectivesList === 'undefined') {
-        console.error("Помилка: Дані hromadas-data.js або collectives-list.js не завантажені.");
-        return;
-    }
+// Функція зміни режиму
 
-    hromadasGeoJSON.features.forEach(hromada => {
-        const nameKey = hromada.name.trim().toLowerCase();
-        
-        // Отримуємо список колективів для цієї громади
-        const list = collectivesList[nameKey] || [];
-        const count = list.length;
-
-        // Виводимо цифру, якщо в громаді є хоча б один колектив
-        if (count > 0) {
-            const icon = L.divIcon({
-                className: 'count-icon',
-                html: `<span>${count}</span>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-
-            // Використовуємо ваші точні координати x та y
-            // imgH - hromada.y робить перерахунок, щоб 0 був угорі (як у малюнку)
-            const marker = L.marker([imgH - hromada.y, hromada.x], { icon: icon });
-
-            // Формуємо табличку (попап)
-            let popupContent = `
-                <div style="min-width:200px;">
-                    <h3 style="margin:0; color:#2c3e50;">${hromada.name}</h3>
-                    <hr>
-                    <b>Колективів: ${count}</b>
-                    <div style="max-height:150px; overflow-y:auto; font-size:12px; margin-top:10px;">
-                        ${list.join('<br>')}
-                    </div>
-                </div>`;
-
-            marker.bindPopup(popupContent);
-            markersLayer.addLayer(marker);
-        }
-    });
-}
-
-// Функція перемикання режимів (для кнопок)
 function setMode(mode) {
+
     currentMode = mode;
-    // Оновлення вигляду кнопок
-    const btnCol = document.getElementById('btn-collectives');
-    const btnBat = document.getElementById('btn-battle');
-    if(btnCol) btnCol.className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-    if(btnBat) btnBat.className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+
+    document.getElementById('btn-collectives').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+
+    document.getElementById('btn-battle').className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+
     
-    // Тут можна додати виклик функції для Битви, коли вона буде готова
-    renderMarkers();
+
+    // Закриваємо всі попапи при зміні режиму
+
+    map.closePopup();
+
 }
 
-// Запуск при завантаженні
-renderMarkers();
+
+
+function onEachFeature(feature, layer) {
+
+    // Якщо у вас були точки (Center of hromada), Leaflet може автоматично ставити маркер
+
+    layer.on('click', function (e) {
+
+        const name = feature.properties.name.trim().toLowerCase();
+
+        let content = `<h3>${feature.properties.name}</h3>`;
+
+
+
+        if (currentMode === 'collectives') {
+
+            const list = collectivesList[name] || [];
+
+            content += `<b>Колективів: ${list.length}</b><hr>`;
+
+            content += `<div style="max-height:200px; overflow-y:auto;">${list.join('<br>')}</div>`;
+
+        } else {
+
+            // Режим битви (приклад даних, можна підключити ratings.json)
+
+            content += `<div style="text-align:center;">
+
+                <p>🏆 Позиція в рейтингу: <b>№1</b></p>
+
+                <p>❤️ Вподобайок: <b>1240</b></p>
+
+                <button style="padding:5px 10px; background:#e74c3c; color:white; border:none; border-radius:5px;">Голосувати</button>
+
+            </div>`;
+
+        }
+
+        
+
+        layer.bindPopup(content).openPopup();
+
+    });
+
+
+
+    // Підсвічування при наведенні
+
+    layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.8, weight: 3 }));
+
+    layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.6, weight: 2 }));
+
+}
+
+
+
+const geojson = L.geoJson(hromadasData, {
+
+    style: { fillColor: '#3498db', weight: 2, color: 'white', fillOpacity: 0.6 },
+
+    onEachFeature: onEachFeature
+
+}).addTo(map);
