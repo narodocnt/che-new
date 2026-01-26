@@ -5,8 +5,11 @@
 let currentData = [];
 
 async function loadRanking() {
+    // 1. Оголошуємо змінні спочатку
+    const list = document.getElementById('rankingList');
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    // 1. ПОКАЗУЄМО ЛОАДЕР перед запитом
+    
+    // 2. ПОКАЗУЄМО ЛОАДЕР (тепер змінна list вже відома)
     if (list) {
         list.innerHTML = `
             <div id="loader-container" style="text-align: center; padding: 40px; color: #2c3e50;">
@@ -19,31 +22,37 @@ async function loadRanking() {
                     margin: 0 auto 15px;
                     animation: spin 1s linear infinite;">
                 </div>
-                <p style="font-family: 'Lobster', cursive; font-size: 18px; animate: pulse 1.5s infinite;">
+                <p style="font-family: 'Lobster', cursive; font-size: 18px;">
                     Завантажуємо свіжий рейтинг...
                 </p>
                 <style>
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
                 </style>
             </div>
         `;
     }
+
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        const textData = await response.text();
 
-<div id="map"></div>
+        // Захист від помилок сервера (якщо прийшов HTML замість JSON)
+        if (textData.startsWith("<!DOCTYPE")) {
+            console.error("Отримано HTML замість JSON");
+            return;
+        }
 
-<div id="rankingList"></div>
+        const rawData = JSON.parse(textData);
+        const groups = {};
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="hromadas-data.js"></script>
-<script src="collectives-list.js"></script>
+        rawData.forEach(item => {
+            let fullText = (item.pageName || "").trim();
+            if (!fullText || fullText.includes("undefined")) return;
 
-<script src="map-bitva.js"></script>
+            // Витягуємо назву
+            let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
+            let groupKey = name.toLowerCase().replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
 
-<script src="contest.js"></script>
             // Об'єднання за ключами
             if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (Сміла)"; groupKey = "smila"; }
             else if (groupKey.includes("тальн") || groupKey.includes("сурми")) { name = "Оркестр «Сурми Тальнівщини»"; groupKey = "talne"; }
@@ -56,35 +65,45 @@ async function loadRanking() {
             let c = parseInt(item.comments) || 0;
             let total = l + s + c;
 
-            // ФІКС ТУТ: Замість += використовуємо перевірку на найбільше значення
+            // ФІКС: Беремо тільки максимальний результат для колективу
             if (groups[groupKey]) {
-                // Якщо ми знайшли пост цього ж колективу з більшим рейтингом - оновлюємо
                 if (total > groups[groupKey].score) {
                     groups[groupKey].score = total;
                     groups[groupKey].breakdown = { l: l, s: s, c: c };
+                    groups[groupKey].url = item.url;
                 }
             } else {
                 groups[groupKey] = {
                     pageName: name,
-                    score: total, // Перше присвоєння
+                    score: total,
                     breakdown: { l: l, s: s, c: c },
                     url: item.url,
-                    media: item.media || 'narodocnt.jpg'
+                    media: item.media || 'https://img.icons8.com/color/144/musical-notes.png'
                 };
             }
         });
 
-        // Відображення заголовка
-        const titleElement = document.getElementById('festival-title');
-        if (titleElement) {
-            titleElement.innerHTML = `${detectedFestivalTitle || "Битва вподобайків"} <span id="info-trigger" style="cursor: pointer; color: #3498db; font-size: 32px; vertical-align: middle;">❄️</span>`;
+        // Відображення заголовка (Обласна Музична Варта)
+        const headerContainer = document.getElementById('festival-header-container');
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <div style="text-align: center; margin: 20px 0; line-height: 1.2;">
+                    <h2 style="font-family: 'Lobster', cursive; color: #b33939; font-size: 28px; margin-bottom: 5px;">
+                        Обласний фестиваль «Музична варта»
+                    </h2>
+                    <h3 style="font-family: 'Lobster', cursive; color: #2c3e50; font-size: 22px; margin-top: 0;">
+                        до Дня Збройних Сил України 
+                        <span id="info-trigger" style="cursor: pointer; color: #2980b9; font-size: 30px; font-weight: bold; vertical-align: middle;">*</span>
+                    </h3>
+                </div>
+            `;
             document.getElementById('info-trigger').onclick = showRules;
         }
 
-        // ПЕРШІ 6
+        // Сортуємо та беремо ТОП-6 (або ТОП-10, якщо хочете більше)
         currentData = Object.values(groups)
             .sort((a, b) => b.score - a.score)
-            .slice(0, 6);
+            .slice(0, 10);
 
         renderList(); 
     } catch (error) {
@@ -92,9 +111,8 @@ async function loadRanking() {
     }
 }
 
-// Решта функцій (showRules, renderList) залишаються без змін...
 function showRules() {
-    alert("❄️ ПРАВИЛА РЕЙТИНГУ:\n--------------------------\n👍 1 вподобайка = 1 бал\n🔄 1 поширення = 1 бал\n💬 1 коментар = 1 бал");
+    alert("❄️ ПРАВИЛА РЕЙТИНГУ:\n--------------------------\n👍 1 вподобайка = 1 бал\n🔄 1 поширення = 1 бал\n💬 1 коментар = 1 бал\n\nДані оновлюються автоматично.");
 }
 
 function renderList() {
@@ -103,31 +121,31 @@ function renderList() {
     list.innerHTML = '';
     
     const maxVal = Math.max(...currentData.map(item => item.score)) || 1;
-    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
+    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60', '#e67e22', '#1abc9c', '#34495e', '#e74c3c'];
 
     currentData.forEach((item, index) => {
         const percentage = (item.score / maxVal) * 100;
         const color = colors[index] || '#2c3e50';
 
         list.innerHTML += `
-            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 12px auto; max-width: 550px; width: 95%;">
-                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); height: 95px; border: 2.5px solid ${color};">
-                    <div style="width: 50px; min-width: 50px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 26px; display: flex; align-items: center; justify-content: center;">
+            <a href="${item.url}" target="_blank" style="text-decoration: none; display: block; margin: 12px auto; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <div style="display: flex; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); height: 100px; border: 2.5px solid ${color}; position: relative;">
+                    <div style="width: 45px; background: ${color}; color: white; font-family: 'Lobster', cursive; font-size: 24px; display: flex; align-items: center; justify-content: center;">
                         ${index + 1}
                     </div>
-                    <div style="width: 110px; min-width: 110px;">
-                        <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='фото_для_боту.png'">
+                    <div style="width: 100px; min-width: 100px; height: 100%;">
+                        <img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://img.icons8.com/color/144/musical-notes.png'">
                     </div>
-                    <div style="flex-grow: 1; padding: 10px 15px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <span style="font-family: 'Lobster', cursive; font-size: 15px; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.pageName}</span>
-                            <span style="font-weight: 900; color: ${color}; font-size: 22px; margin-left: 10px;">${item.score}</span>
+                    <div style="flex-grow: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span style="font-weight: 800; font-size: 14px; color: #000; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.pageName}</span>
+                            <span style="font-weight: 900; color: ${color}; font-size: 20px; margin-left: 10px;">${item.score}</span>
                         </div>
-                        <div style="font-size: 11px; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;">
-                             👍 ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}
+                        <div style="font-size: 12px; color: #555; font-weight: bold;">
+                             ❤️ ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}
                         </div>
-                        <div style="background: #eee; height: 10px; border-radius: 4px; overflow: hidden;">
-                            <div style="width: ${percentage}%; background: ${color}; height: 100%;"></div>
+                        <div style="background: #eee; height: 8px; border-radius: 4px; overflow: hidden; width: 100%;">
+                            <div style="width: ${percentage}%; background: ${color}; height: 100%; transition: width 0.5s;"></div>
                         </div>
                     </div>
                 </div>
