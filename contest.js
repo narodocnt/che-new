@@ -6,7 +6,29 @@ let currentData = [];
 
 async function loadRanking() {
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    
+    // 1. ПОКАЗУЄМО ЛОАДЕР перед запитом
+    if (list) {
+        list.innerHTML = `
+            <div id="loader-container" style="text-align: center; padding: 40px; color: #2c3e50;">
+                <div class="spinner" style="
+                    width: 40px; 
+                    height: 40px; 
+                    border: 4px solid #f3f3f3; 
+                    border-top: 4px solid #d35400; 
+                    border-radius: 50%; 
+                    margin: 0 auto 15px;
+                    animation: spin 1s linear infinite;">
+                </div>
+                <p style="font-family: 'Lobster', cursive; font-size: 18px; animate: pulse 1.5s infinite;">
+                    Завантажуємо свіжий рейтинг...
+                </p>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+                </style>
+            </div>
+        `;
+    }
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
