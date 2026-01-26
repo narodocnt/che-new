@@ -9,26 +9,19 @@ async function loadRanking() {
     
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
-        const rawData = await response.json();
-        
-        // 1. УНІКАЛЬНІСТЬ: Фільтруємо за URL
-        const uniquePosts = Array.from(new Map(rawData.map(item => [item.url, item])).values());
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-        const groups = {};
-        let detectedFestivalTitle = "";
+<div id="map"></div>
 
-        uniquePosts.forEach(item => {
-            let fullText = (item.pageName || "").trim();
-            if (fullText.includes("undefined") || fullText.includes("$json")) return;
+<div id="rankingList"></div>
 
-            if (!detectedFestivalTitle && fullText.includes("Назва Колективу:")) {
-                detectedFestivalTitle = fullText.split("Назва Колективу:")[0]
-                    .replace(/Назва Фестивалю:/i, "").replace(/[#*]/g, "").trim();
-            }
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="hromadas-data.js"></script>
+<script src="collectives-list.js"></script>
 
-            let name = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].trim() : fullText;
-            let groupKey = name.toLowerCase().replace(/[^a-zа-яіїєґ0-9]/gi, '').trim();
+<script src="map-bitva.js"></script>
 
+<script src="contest.js"></script>
             // Об'єднання за ключами
             if (groupKey.includes("сміл") || groupKey.includes("божидар")) { name = "Оркестр «Божидар» (Сміла)"; groupKey = "smila"; }
             else if (groupKey.includes("тальн") || groupKey.includes("сурми")) { name = "Оркестр «Сурми Тальнівщини»"; groupKey = "talne"; }
