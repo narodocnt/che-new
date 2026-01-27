@@ -1,12 +1,11 @@
+let currentData = [];
+
 async function loadRanking() {
     const list = document.getElementById('rankingList');
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
     if (list) {
-        list.innerHTML = `<div class="spinner-container" style="text-align:center; padding:50px;">
-            <div class="spinner" style="width:40px; height:40px; border:4px solid #eee; border-top:4px solid #d35400; border-radius:50%; margin:0 auto; animation:spin 1s linear infinite;"></div>
-            <p style="font-family:'Lobster', cursive; margin-top:15px;">Завантаження офіційних результатів...</p>
-        </div>`;
+        list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="spinner" style="width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #d35400; border-radius:50%; margin:0 auto; animation:spin 1s linear infinite;"></div><p style="font-family:'Lobster', cursive; margin-top:15px;">Завантаження офіційних результатів...</p><style>@keyframes spin {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></div>`;
     }
 
     try {
@@ -14,11 +13,17 @@ async function loadRanking() {
         const rawData = await response.json();
         const groups = {};
 
+        // Перевірка чи завантажилась база даних з файлу collectives-bitva.js
+        if (typeof collectivesDatabase === 'undefined') {
+            console.error("Помилка: База даних collectivesDatabase не знайдена! Перевірте файл collectives-bitva.js");
+            if (list) list.innerHTML = "Помилка конфігурації бази даних.";
+            return;
+        }
+
         rawData.forEach(item => {
             const url = (item.url || "").toLowerCase();
             let key = "";
 
-            // Визначаємо ключ на основі URL або тексту з Facebook
             if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
             else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
             else if (url.includes("kamyan")) key = "kamyanka";
@@ -33,21 +38,32 @@ async function loadRanking() {
             const c = parseInt(item.comments) || 0;
             const total = l + s + c;
 
-            // Зберігаємо лише найкращий результат для цього ключа
             if (!groups[key] || total > groups[key].score) {
                 groups[key] = {
                     ...collectivesDatabase[key],
                     score: total,
                     breakdown: { l, s, c },
                     url: item.url,
-                    media: item.media || 'narodocnt.jpg'
+                    media: item.media || 'https://img.icons8.com/color/144/musical-notes.png'
                 };
             }
         });
 
         currentData = Object.values(groups).sort((a, b) => b.score - a.score);
+        
+        // Малюємо список
         renderList();
-    } catch (e) { console.error("Error:", e); }
+        
+        // ПЕРЕДАЄМО ДАНІ НА МАПУ
+        // Припускаємо, що на мапі функція оновлення називається updateMap або подібне
+        if (typeof window.updateMapIcons === 'function') {
+            window.updateMapIcons(currentData);
+        }
+
+    } catch (e) { 
+        console.error("Помилка завантаження:", e); 
+        if (list) list.innerHTML = "Помилка зв'язку з сервером.";
+    }
 }
 
 function renderList() {
@@ -70,7 +86,6 @@ function renderList() {
                     <div style="flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
                         <div style="font-weight: 900; font-size: 14px; color: #b33939; line-height: 1.2;">${item.name}</div>
                         <div style="font-size: 11px; color: #555; margin: 3px 0;">Керівник: <b>${item.leader}</b></div>
-                        <div style="font-size: 10px; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.institution}</div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
                             <div style="font-size: 12px; font-weight: bold;">❤️ ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}</div>
@@ -82,3 +97,6 @@ function renderList() {
             </div>`;
     });
 }
+
+// Запуск при завантаженні
+document.addEventListener('DOMContentLoaded', loadRanking);
