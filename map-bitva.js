@@ -95,6 +95,41 @@ function renderMarkers(mode) {
     });
 }
 
+/**
+ * Функція для створення контенту спливаючого вікна на карті
+ */
+function getPopupContent(key, currentScore = 0) {
+    const data = collectivesDatabase[key];
+    
+    // Якщо громада не бере участі в битві, показуємо стандартний текст
+    if (!data) return `<b>Громада бере участь у фестивалі</b>`;
+
+    // Формуємо красивий HTML для вікна
+    return `
+        <div class="custom-popup" style="padding: 5px; min-width: 200px;">
+            <h4 style="font-family: 'Lobster', cursive; color: #b33939; margin: 0 0 8px 0; font-size: 18px; line-height: 1.2;">
+                ${data.name}
+            </h4>
+            <div style="font-size: 13px; margin-bottom: 5px;">
+                <b>Керівник:</b> ${data.leader}
+            </div>
+            <div style="font-size: 11px; color: #666; font-style: italic; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+                ${data.institution}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; font-weight: bold; color: #2c3e50;">Поточний рейтинг:</span>
+                <span style="font-size: 20px; font-weight: 900; color: #d35400;">${currentScore}</span>
+            </div>
+        </div>
+    `;
+}
+
+// При створенні маркерів або шарів на карті використовуйте:
+// layer.bindPopup(getPopupContent('smila', 30), {
+//    maxWidth: window.innerWidth < 600 ? 250 : 400, // Авто-масштабування ширини
+//    className: 'responsive-popup'
+// });
+
 // Функція перемикання (setMapMode)
 async function setMapMode(mode) {
     document.getElementById('btn-col').className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
