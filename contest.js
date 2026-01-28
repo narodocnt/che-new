@@ -1,5 +1,5 @@
 /**
- * contest.js - Фінальна версія
+ * contest.js - ФІНАЛЬНА ВЕРСІЯ
  */
 let currentData = [];
 
@@ -7,16 +7,16 @@ async function loadRanking() {
     const list = document.getElementById('rankingList');
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
-    // Відображаємо спінер
     if (list) {
-        list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Завантаження рейтингу...</p></div>`;
+        list.innerHTML = `<div style="text-align:center; padding:40px;"><p style="font-family:'Lobster', cursive;">Оновлення рейтингу...</p></div>`;
     }
 
-    // Беремо базу, яку ми вставили в HTML
+    // БЕРЕМО БАЗУ, ЯКУ МИ ВСТАВИЛИ В HTML
     const db = window.collectivesDatabase;
 
     if (!db) {
-        console.error("Помилка: window.collectivesDatabase не знайдено в HTML!");
+        console.error("КРИТИЧНА ПОМИЛКА: window.collectivesDatabase не знайдено!");
+        if (list) list.innerHTML = "Помилка конфігурації бази.";
         return;
     }
 
@@ -29,7 +29,7 @@ async function loadRanking() {
             const url = (item.url || "").toLowerCase();
             let key = "";
 
-            // Визначаємо ключ за посиланням
+            // Визначаємо ключ за URL (як і в map-bitva.js)
             if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
             else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
             else if (url.includes("kamyan")) key = "kamyanka";
@@ -38,27 +38,25 @@ async function loadRanking() {
             else if (url.includes("vodo") || url.includes("lesch")) key = "vodogray";
 
             if (key && db[key]) {
-                const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+                const l = parseInt(item.likes) || 0;
+                const s = parseInt(item.shares) || 0;
+                const c = parseInt(item.comments) || 0;
+                const total = l + s + c;
 
-                // Оновлюємо, якщо це перший запис для громади або якщо балів більше
+                // Використовуємо дані з БАЗИ, а не з тексту Facebook
                 if (!groups[key] || total > groups[key].score) {
                     groups[key] = {
-                        name: db[key].name,      // Беремо назву з бази в HTML
-                        leader: db[key].leader,  // Беремо керівника з бази в HTML
+                        name: db[key].name,      // ЧИСТА НАЗВА
+                        leader: db[key].leader,  // ПРІЗВИЩЕ КЕРІВНИКА
                         score: total,
+                        breakdown: { l, s, c },
                         url: item.url,
-                        breakdown: { 
-                            l: parseInt(item.likes) || 0, 
-                            s: parseInt(item.shares) || 0, 
-                            c: parseInt(item.comments) || 0 
-                        },
                         media: item.media || 'narodocnt.jpg'
                     };
                 }
             }
         });
 
-        // Сортуємо та обмежуємо (Топ-6)
         currentData = Object.values(groups)
             .sort((a, b) => b.score - a.score)
             .slice(0, 6);
@@ -67,7 +65,7 @@ async function loadRanking() {
 
     } catch (e) { 
         console.error("Помилка завантаження:", e);
-        if (list) list.innerHTML = "Помилка зв'язку з сервером.";
+        if (list) list.innerHTML = "Сервер рейтингу тимчасово недоступний.";
     }
 }
 
