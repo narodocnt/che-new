@@ -1,3 +1,6 @@
+/**
+ * contest.js - Оновлена версія з очікуванням бази даних
+ */
 let currentData = [];
 
 async function loadRanking() {
@@ -5,18 +8,23 @@ async function loadRanking() {
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
     if (list) {
-        list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="spinner" style="width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #d35400; border-radius:50%; margin:0 auto; animation:spin 1s linear infinite;"></div><p style="font-family:'Lobster', cursive; margin-top:15px;">Завантаження офіційних результатів...</p><style>@keyframes spin {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></div>`;
+        list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="spinner" style="width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #d35400; border-radius:50%; margin:0 auto; animation:spin 1s linear infinite;"></div><p style="font-family:'Lobster', cursive; margin-top:15px;">Синхронізація бази учасників...</p></div>`;
     }
+
+    // Чекаємо 500мс, щоб файл collectives-bitva.js точно встиг завантажитись
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         const groups = {};
 
-        // Перевірка чи завантажилась база даних з файлу collectives-bitva.js
-        if (typeof collectivesDatabase === 'undefined') {
-            console.error("Помилка: База даних collectivesDatabase не знайдена! Перевірте файл collectives-bitva.js");
-            if (list) list.innerHTML = "Помилка конфігурації бази даних.";
+        // Перевірка бази (використовуємо window.collectivesDatabase для надійності)
+        const db = window.collectivesDatabase || (typeof collectivesDatabase !== 'undefined' ? collectivesDatabase : null);
+
+        if (!db) {
+            console.error("База даних все ще не знайдена");
+            if (list) list.innerHTML = "Помилка завантаження бази учасників.";
             return;
         }
 
@@ -31,7 +39,7 @@ async function loadRanking() {
             else if (url.includes("hrist") || url.includes("sverb")) key = "hrist";
             else if (url.includes("vodo") || url.includes("lesch")) key = "vodogray";
 
-            if (!key || !collectivesDatabase[key]) return;
+            if (!key || !db[key]) return;
 
             const l = parseInt(item.likes) || 0;
             const s = parseInt(item.shares) || 0;
@@ -40,7 +48,7 @@ async function loadRanking() {
 
             if (!groups[key] || total > groups[key].score) {
                 groups[key] = {
-                    ...collectivesDatabase[key],
+                    ...db[key],
                     score: total,
                     breakdown: { l, s, c },
                     url: item.url,
@@ -50,21 +58,15 @@ async function loadRanking() {
         });
 
         currentData = Object.values(groups).sort((a, b) => b.score - a.score);
-        
-        // Малюємо список
         renderList();
-        
-        // ПЕРЕДАЄМО ДАНІ НА МАПУ
-        // Припускаємо, що на мапі функція оновлення називається updateMap або подібне
-        if (typeof window.updateMapIcons === 'function') {
-            window.updateMapIcons(currentData);
-        }
 
     } catch (e) { 
-        console.error("Помилка завантаження:", e); 
-        if (list) list.innerHTML = "Помилка зв'язку з сервером.";
+        console.error("Помилка:", e);
+        if (list) list.innerHTML = "Сервер тимчасово недоступний.";
     }
 }
+
+// Залиште функцію renderList() та showRules() без змін
 
 function renderList() {
     const list = document.getElementById('rankingList');
