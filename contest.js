@@ -1,26 +1,35 @@
 /**
- * contest.js - Універсальний завантажувач для списку та мапи
+ * contest.js - Фінальна версія
  */
 let currentData = [];
 
 async function loadRanking() {
-    const list = document.getElementById('rankingList'); // Це для index.html
-    const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    const list = document.getElementById('rankingList');
+    const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    
+    // Відображаємо спінер
+    if (list) {
+        list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Завантаження рейтингу...</p></div>`;
+    }
+
+    // Беремо базу, яку ми вставили в HTML
+    const db = window.collectivesDatabase;
+
+    if (!db) {
+        console.error("Помилка: window.collectivesDatabase не знайдено в HTML!");
+        return;
+    }
 
     try {
-        // 1. Чекаємо базу даних (вона має бути підключена в обох HTML)
-        if (typeof collectivesDatabase === 'undefined') {
-            console.warn("Чекаємо базу даних...");
-            await new Promise(r => setTimeout(r, 500));
-        }
-
-        const response = await fetch(N8N_URL);
+        const response = await fetch(N8N_GET_RANKING_URL);
         const rawData = await response.json();
         const groups = {};
 
         rawData.forEach(item => {
             const url = (item.url || "").toLowerCase();
             let key = "";
+
+            // Визначаємо ключ за посиланням
             if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
             else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
             else if (url.includes("kamyan")) key = "kamyanka";
@@ -28,52 +37,67 @@ async function loadRanking() {
             else if (url.includes("hrist") || url.includes("sverb")) key = "hrist";
             else if (url.includes("vodo") || url.includes("lesch")) key = "vodogray";
 
-            if (key && collectivesDatabase[key]) {
-                let total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+            if (key && db[key]) {
+                const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+
+                // Оновлюємо, якщо це перший запис для громади або якщо балів більше
                 if (!groups[key] || total > groups[key].score) {
                     groups[key] = {
-                        ...collectivesDatabase[key],
+                        name: db[key].name,      // Беремо назву з бази в HTML
+                        leader: db[key].leader,  // Беремо керівника з бази в HTML
                         score: total,
-                        breakdown: { l: parseInt(item.likes)||0, s: parseInt(item.shares)||0, c: parseInt(item.comments)||0 },
                         url: item.url,
+                        breakdown: { 
+                            l: parseInt(item.likes) || 0, 
+                            s: parseInt(item.shares) || 0, 
+                            c: parseInt(item.comments) || 0 
+                        },
                         media: item.media || 'narodocnt.jpg'
                     };
                 }
             }
         });
 
-        currentData = Object.values(groups).sort((a, b) => b.score - a.score);
+        // Сортуємо та обмежуємо (Топ-6)
+        currentData = Object.values(groups)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6);
 
-        // 2. Якщо ми на сторінці зі списком (index.html) - малюємо список
-        if (list) renderRanking();
+        renderList();
 
-        // 3. Якщо ми на сторінці з мапою (map.html) - передаємо дані мапі
-        // Функція updateMapData має бути у вашому map-bitva.js
-        if (typeof updateMapData === 'function') {
-            updateMapData(currentData);
-        }
-
-    } catch (e) {
-        console.error("Помилка завантаження балів:", e);
+    } catch (e) { 
+        console.error("Помилка завантаження:", e);
+        if (list) list.innerHTML = "Помилка зв'язку з сервером.";
     }
 }
 
-// Функція малювання карток (як ми робили раніше)
-function renderRanking() {
+function renderList() {
     const list = document.getElementById('rankingList');
     if (!list) return;
     list.innerHTML = '';
+    
+    const maxVal = Math.max(...currentData.map(item => item.score)) || 1;
+    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
+
     currentData.forEach((item, index) => {
-        const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
         const color = colors[index] || '#2c3e50';
+        const percentage = (item.score / maxVal) * 100;
+
         list.innerHTML += `
-            <div style="margin: 10px auto; max-width: 500px; display: flex; border: 2px solid ${color}; border-radius: 10px; overflow: hidden; background: white;">
-                <div style="width: 40px; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">${index+1}</div>
-                <div style="padding: 10px; flex: 1;">
-                    <div style="font-weight: bold;">${item.name}</div>
-                    <div style="font-size: 11px;">Керівник: ${item.leader}</div>
-                    <div style="text-align: right; font-weight: 900; color: ${color}; font-size: 20px;">${item.score}</div>
+            <div style="margin: 15px auto; max-width: 600px; width: 95%; border: 2px solid ${color}; border-radius: 15px; overflow: hidden; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                <div style="display: flex; height: 110px;">
+                    <div style="width: 50px; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold;">${index + 1}</div>
+                    <div style="width: 120px;"><img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='narodocnt.jpg'"></div>
+                    <div style="flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                        <div style="font-weight: 900; font-size: 14px; color: #2c3e50; line-height: 1.2;">${item.name}</div>
+                        <div style="font-size: 11px; color: #555; margin: 3px 0;">Керівник: <b>${item.leader}</b></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                            <div style="font-size: 12px; font-weight: bold; color: #7f8c8d;">👍 ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}</div>
+                            <div style="font-size: 20px; font-weight: 900; color: ${color};">${item.score}</div>
+                        </div>
+                    </div>
                 </div>
+                <div style="height: 6px; background: #eee; width: 100%;"><div style="width: ${percentage}%; background: ${color}; height: 100%; transition: width 1s;"></div></div>
             </div>`;
     });
 }
