@@ -4,15 +4,20 @@ async function loadRanking() {
     const list = document.getElementById('rankingList');
     const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
 
-    try {
-        // Перевірка бази через window
-        const db = window.collectivesDatabase;
+    // Чекаємо базу до 1 секунди (якщо вона ще не завантажилась)
+    let attempts = 0;
+    while (!window.collectivesDatabase && attempts < 10) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+    }
 
-        if (!db) {
-            console.error("База даних не знайдена у window!");
-            return;
-        }
+    const db = window.collectivesDatabase;
 
+    if (!db) {
+        console.error("КРИТИЧНА ПОМИЛКА: База даних collectivesDatabase не знайдена!");
+        if (list) list.innerHTML = "<p style='color:white; text-align:center;'>Помилка завантаження бази учасників.</p>";
+        return;
+    }
         const response = await fetch(N8N_URL);
         const rawData = await response.json();
         const groups = {};
