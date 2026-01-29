@@ -5,20 +5,17 @@ async function loadRanking() {
     const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
     if (list) {
-        list.innerHTML = `<div style="text-align:center; padding:40px;"><p>Оновлення рейтингу...</p></div>`;
+        list.innerHTML = `<div style="text-align:center; padding:20px;"><p>Оновлення даних...</p></div>`;
     }
 
-    // Очікуємо базу, якщо вона ще не підвантажилась
+    // Чекаємо базу в HTML
     let db = window.collectivesDatabase;
     if (!db) {
         await new Promise(r => setTimeout(r, 500));
         db = window.collectivesDatabase;
     }
 
-    if (!db) {
-        console.error("База даних не знайдена!");
-        return;
-    }
+    if (!db) return;
 
     try {
         const response = await fetch(N8N_GET_RANKING_URL);
@@ -28,7 +25,6 @@ async function loadRanking() {
         rawData.forEach(item => {
             const url = (item.url || "").toLowerCase();
             let key = "";
-
             if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
             else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
             else if (url.includes("kamyan")) key = "kamyanka";
@@ -44,11 +40,7 @@ async function loadRanking() {
                         leader: db[key].leader,
                         score: total,
                         url: item.url,
-                        breakdown: { 
-                            l: parseInt(item.likes) || 0, 
-                            s: parseInt(item.shares) || 0, 
-                            c: parseInt(item.comments) || 0 
-                        },
+                        breakdown: { l: parseInt(item.likes)||0, s: parseInt(item.shares)||0, c: parseInt(item.comments)||0 },
                         media: item.media || 'narodocnt.jpg'
                     };
                 }
@@ -57,39 +49,30 @@ async function loadRanking() {
 
         currentData = Object.values(groups).sort((a, b) => b.score - a.score).slice(0, 6);
         renderList();
-
-    } catch (e) { 
-        console.error("Помилка завантаження:", e);
+    } catch (e) {
+        console.error("Помилка завантаження рейтингу:", e);
     }
 }
 
 function renderList() {
     const list = document.getElementById('rankingList');
-    if (!list) return;
+    if (!list || currentData.length === 0) return;
     list.innerHTML = '';
     
     const maxVal = Math.max(...currentData.map(item => item.score)) || 1;
-    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
-
     currentData.forEach((item, index) => {
-        const color = colors[index] || '#2c3e50';
         const percentage = (item.score / maxVal) * 100;
-
         list.innerHTML += `
-            <div style="margin: 15px auto; max-width: 600px; width: 95%; border: 2px solid ${color}; border-radius: 15px; overflow: hidden; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                <div style="display: flex; height: 110px;">
-                    <div style="width: 50px; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold;">${index + 1}</div>
-                    <div style="width: 120px;"><img src="${item.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='narodocnt.jpg'"></div>
-                    <div style="flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                        <div style="font-weight: 900; font-size: 14px; color: #2c3e50; line-height: 1.2;">${item.name}</div>
-                        <div style="font-size: 11px; color: #555; margin: 3px 0;">Керівник: <b>${item.leader}</b></div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                            <div style="font-size: 12px; font-weight: bold; color: #7f8c8d;">👍 ${item.breakdown.l} &nbsp; 🔄 ${item.breakdown.s} &nbsp; 💬 ${item.breakdown.c}</div>
-                            <div style="font-size: 20px; font-weight: 900; color: ${color};">${item.score}</div>
-                        </div>
+            <div style="margin: 10px auto; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; background: white;">
+                <div style="display: flex; align-items: center; padding: 10px;">
+                    <div style="width: 30px; font-weight: bold;">${index + 1}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; font-size: 14px;">${item.name}</div>
+                        <div style="font-size: 12px; color: #666;">${item.leader}</div>
                     </div>
+                    <div style="font-weight: bold; color: #e67e22;">${item.score}</div>
                 </div>
-                <div style="height: 6px; background: #eee; width: 100%;"><div style="width: ${percentage}%; background: ${color}; height: 100%; transition: width 1s;"></div></div>
+                <div style="height: 4px; background: #eee;"><div style="width: ${percentage}%; background: #e67e22; height: 100%;"></div></div>
             </div>`;
     });
 }
