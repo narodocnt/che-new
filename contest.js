@@ -2,23 +2,15 @@ let currentData = [];
 
 async function loadRanking() {
     const list = document.getElementById('rankingList');
-    const N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     
-    if (list) {
-        list.innerHTML = `<div style="text-align:center; padding:20px;"><p>Оновлення даних...</p></div>`;
-    }
+    if (list) list.innerHTML = `<div style="text-align:center; padding:20px;">Оновлення рейтингу...</div>`;
 
-    // Чекаємо базу в HTML
-    let db = window.collectivesDatabase;
-    if (!db) {
-        await new Promise(r => setTimeout(r, 500));
-        db = window.collectivesDatabase;
-    }
-
+    const db = window.collectivesDatabase;
     if (!db) return;
 
     try {
-        const response = await fetch(N8N_GET_RANKING_URL);
+        const response = await fetch(N8N_URL);
         const rawData = await response.json();
         const groups = {};
 
@@ -36,11 +28,9 @@ async function loadRanking() {
                 const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
                 if (!groups[key] || total > groups[key].score) {
                     groups[key] = {
-                        name: db[key].name,
-                        leader: db[key].leader,
+                        ...db[key],
                         score: total,
                         url: item.url,
-                        breakdown: { l: parseInt(item.likes)||0, s: parseInt(item.shares)||0, c: parseInt(item.comments)||0 },
                         media: item.media || 'narodocnt.jpg'
                     };
                 }
@@ -50,31 +40,20 @@ async function loadRanking() {
         currentData = Object.values(groups).sort((a, b) => b.score - a.score).slice(0, 6);
         renderList();
     } catch (e) {
-        console.error("Помилка завантаження рейтингу:", e);
+        console.error("Помилка:", e);
     }
 }
 
 function renderList() {
     const list = document.getElementById('rankingList');
-    if (!list || currentData.length === 0) return;
-    list.innerHTML = '';
-    
-    const maxVal = Math.max(...currentData.map(item => item.score)) || 1;
-    currentData.forEach((item, index) => {
-        const percentage = (item.score / maxVal) * 100;
-        list.innerHTML += `
-            <div style="margin: 10px auto; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; background: white;">
-                <div style="display: flex; align-items: center; padding: 10px;">
-                    <div style="width: 30px; font-weight: bold;">${index + 1}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: bold; font-size: 14px;">${item.name}</div>
-                        <div style="font-size: 12px; color: #666;">${item.leader}</div>
-                    </div>
-                    <div style="font-weight: bold; color: #e67e22;">${item.score}</div>
-                </div>
-                <div style="height: 4px; background: #eee;"><div style="width: ${percentage}%; background: #e67e22; height: 100%;"></div></div>
-            </div>`;
-    });
+    if (!list) return;
+    list.innerHTML = currentData.map((item, i) => `
+        <div style="margin:10px; padding:10px; border-left:5px solid #e67e22; background:#f9f9f9; border-radius:8px;">
+            <div style="font-weight:bold;">${i+1}. ${item.name}</div>
+            <div style="font-size:12px;">Громада: ${item.location} | Керівник: ${item.leader}</div>
+            <div style="color:#e67e22; font-weight:bold; font-size:18px;">${item.score}</div>
+        </div>
+    `).join('');
 }
 
 document.addEventListener('DOMContentLoaded', loadRanking);
