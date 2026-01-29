@@ -12,7 +12,13 @@ async function loadBattleRanking() {
     try {
         const response = await fetch(N8N_URL);
         const rawData = await response.json();
-        const db = window.collectivesDatabase; // База тепер точно є в window
+        
+        // Перевірка наявності бази даних
+        const db = window.collectivesDatabase || collectivesDatabase;
+        if (!db) {
+            console.error("База collectivesDatabase не знайдена!");
+            return false;
+        }
 
         const groups = {};
         rawData.forEach(item => {
@@ -28,15 +34,22 @@ async function loadBattleRanking() {
             if (key && db[key]) {
                 const total = (parseInt(item.likes)||0) + (parseInt(item.shares)||0) + (parseInt(item.comments)||0);
                 if (!groups[key] || total > groups[key].score) {
-                    groups[key] = { ...db[key], score: total, url: item.url };
+                    groups[key] = { 
+                        ...db[key], 
+                        score: total, 
+                        likes: parseInt(item.likes)||0,
+                        shares: parseInt(item.shares)||0,
+                        comments: parseInt(item.comments)||0
+                    };
                 }
             }
         });
 
+        // Сортування для визначення місць
         const sorted = Object.values(groups).sort((a, b) => b.score - a.score);
         sorted.forEach((item, index) => { item.rank = index + 1; });
 
-        // ПРИВ'ЯЗКА ДО НАЗВ ГРОМАД (важливо для hromadas-data.js)
+        // Прив'язка до імен з hromadas-data.js
         currentBattleData = {};
         Object.keys(groups).forEach(key => {
             let hName = "";
@@ -45,14 +58,16 @@ async function loadBattleRanking() {
             if (key === "kamyanka") hName = "кам’янська";
             if (key === "talne") hName = "тальнівська";
             if (key === "hrist") hName = "христинівська";
-            if (key === "vodogray") hName = "золотоніська";
+            if (key === "vodogray") hName = "золотоніська"; // Для Чорнобаївської ТГ, якщо на мапі вона як Золотоніська
             
             if (hName) currentBattleData[hName] = groups[key];
         });
 
-        console.log("Дані для карти завантажено:", currentBattleData);
         return true;
-    } catch (e) { console.error("Помилка:", e); return false; }
+    } catch (e) { 
+        console.error("Помилка завантаження битви:", e); 
+        return false; 
+    }
 }
 
 function renderMarkers(mode) {
@@ -61,26 +76,42 @@ function renderMarkers(mode) {
 
     hromadasGeoJSON.features.forEach(h => {
         const nameKey = h.name.trim().toLowerCase();
-        let label = "", content = `<h3>${h.name}</h3><hr>`, show = false;
+        let label = "", content = `<div style="text-align:center;"><b>${h.name.toUpperCase()} ГРОМАДА</b></div><hr style="margin:5px 0;">`, show = false;
 
         if (mode === 'collectives') {
             const list = collectivesList[nameKey] || [];
             if (list.length > 0) {
                 label = list.length;
-                content += list.join('<br>');
+                content += `<div style="max-height:150px; overflow-y:auto; font-size:12px;">${list.join('<br>• ')}</div>`;
                 show = true;
             }
         } else {
             const b = currentBattleData[nameKey];
             if (b) {
-                label = b.rank; // Цифра місця на синьому кружечку
-                content += `<b>🏆 Місце: №${b.rank}</b><br>🎵 ${b.name}<br>👤 ${b.leader}<br>❤️ Балів: ${b.score}`;
+                label = b.rank; // Показуємо місце в рейтингу на іконці
+                content += `
+                    <div style="min-width:180px;">
+                        <div style="color:#d35400; font-weight:bold; font-size:14px; margin-bottom:5px;">🏆 Місце: №${b.rank}</div>
+                        <div style="font-weight:bold; font-size:13px; line-height:1.2;">${b.name}</div>
+                        <div style="font-size:11px; color:#555; margin:3px 0;">${b.institution}</div>
+                        <div style="font-size:12px;">Керівник: <b>${b.leader}</b></div>
+                        <hr style="margin:5px 0;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                            <span>❤️ Балів:</span>
+                            <span style="color:#d35400; font-size:16px;">${b.score}</span>
+                        </div>
+                        <div style="font-size:10px; color:#7f8c8d; margin-top:3px;">👍 ${b.likes} | 🔄 ${b.shares} | 💬 ${b.comments}</div>
+                    </div>`;
                 show = true;
             }
         }
 
         if (show) {
-            const icon = L.divIcon({ className: 'count-icon', html: label, iconSize: [28, 28] });
+            const icon = L.divIcon({ 
+                className: 'count-icon', 
+                html: `<span>${label}</span>`, 
+                iconSize: [30, 30] 
+            });
             L.marker([mapH - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
         }
     });
@@ -93,10 +124,18 @@ function setMapMode(mode) {
     if(btnBat) btnBat.className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
 
     if (mode === 'battle') {
-        loadBattleRanking().then(() => renderMarkers('battle'));
+        loadBattleRanking().then(success => {
+            if (success) renderMarkers('battle');
+        });
     } else {
         renderMarkers('collectives');
     }
 }
 
-window.onload = () => setMapMode('collectives');
+// Ініціалізація при завантаженні
+window.onload = () => {
+    // Даємо мікропаузу, щоб всі JS-файли встигли ініціалізуватися
+    setTimeout(() => {
+        setMapMode('collectives');
+    }, 100);
+};
