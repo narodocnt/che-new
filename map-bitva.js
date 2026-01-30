@@ -5,7 +5,7 @@
 var mapW = 900, mapH = 736;
 
 // Ініціалізація карти
-const map = L.map('map', {
+var map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -1,
     maxZoom: 2
