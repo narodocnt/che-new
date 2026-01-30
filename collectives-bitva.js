@@ -2,7 +2,7 @@
  * collectives-bitva.js - Офіційний реєстр учасників (Версія з ID)
  */
 window.collectivesDatabase = {
-    "14": {
+    "10": {
         "key": "smila",
         "name": "Духовий оркестр «Божидар»",
         "institution": "Смілянська ДМШ №2",
@@ -10,7 +10,7 @@ window.collectivesDatabase = {
         "location": "Смілянська",
         "media": "https://scontent-mia3-3.xx.fbcdn.net/v/t15.5256-10/604290490_2030897574364185_8349501958074934146_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=5fad0e"
     },
-    "17": {
+    "14": {
         "key": "zveny",
         "name": "Оркестр духових інструментів",
         "institution": "Звенигородський Центр культури і дозвілля ім. Т. Шевченка",
@@ -34,7 +34,7 @@ window.collectivesDatabase = {
         "location": "Тальнівська",
         "media": "https://scontent-dfw5-1.xx.fbcdn.net/v/t15.5256-10/603762538_1317445256737431_3626944906055376537_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=107&ccb=1-7&_nc_sid=5fad0e"
     },
-    "10": {
+    "17": {
         "key": "hrist",
         "name": "Духовий оркестр",
         "institution": "Великосевастянівський БК (Христинівська громада)",
