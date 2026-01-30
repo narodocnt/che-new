@@ -1,5 +1,5 @@
 /**
- * contest.js - Фінальна версія з розширеною логікою зіставлення
+ * contest.js - Фінальна версія зі ставленням за числовими ID
  */
 var currentData = [];
 
@@ -10,17 +10,12 @@ async function loadRanking() {
     if (!listElement) return;
 
     try {
-        console.log("Запит до n8n...");
         const response = await fetch(N8N_URL);
         const data = await response.json();
-        
-        // ПЕРЕВІРКА БАЗИ
         const db = window.collectivesDatabase;
-        console.log("Стан бази collectivesDatabase:", db);
 
         if (!db) {
-            console.error("Помилка: База collectivesDatabase відсутня в пам'яті!");
-            listElement.innerHTML = "Помилка конфігурації бази.";
+            console.error("База collectivesDatabase не знайдена!");
             return;
         }
 
@@ -28,22 +23,23 @@ async function loadRanking() {
 
         data.forEach(item => {
             const fbUrl = (item.url || "").toLowerCase();
-            let key = "";
+            let id = null;
 
-            // Більш гнучкий пошук ключів (додав більше варіантів)
-            if (fbUrl.includes("smila") || fbUrl.includes("bozhidar") || fbUrl.includes("2030897574364185")) key = "smila";
-            else if (fbUrl.includes("zveny") || fbUrl.includes("dzet") || fbUrl.includes("1472787384850228")) key = "zveny";
-            else if (fbUrl.includes("kamyan") || fbUrl.includes("kravets") || fbUrl.includes("846728421312742")) key = "kamyanka";
-            else if (fbUrl.includes("talne") || fbUrl.includes("surmy") || fbUrl.includes("1317445256737431")) key = "talne";
-            else if (fbUrl.includes("hrist") || fbUrl.includes("sverb") || fbUrl.includes("1260839919431949")) key = "hrist";
-            else if (fbUrl.includes("vodo") || fbUrl.includes("lesch") || fbUrl.includes("4422636818000921")) key = "vodogray";
+            // Зіставлення URL з ID колективів у вашій базі (10, 11, 12...)
+            if (fbUrl.includes("2030897574364185")) id = 10; // Сміла
+            else if (fbUrl.includes("1472787384850228")) id = 11; // Звенигородка
+            else if (fbUrl.includes("846728421312742")) id = 12; // Кам'янка
+            else if (fbUrl.includes("1317445256737431")) id = 14; // Тальне
+            else if (fbUrl.includes("1260839919431949")) id = 17; // Христинівка
+            else if (fbUrl.includes("4422636818000921")) id = 20; // Водограй (Городище)
 
-            if (key && db[key]) {
+            // Перевіряємо, чи є такий ID у вашій базі на скріншоті
+            if (id && db[id]) {
                 const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
                 
-                if (!groups[key] || total > groups[key].score) {
-                    groups[key] = {
-                        ...db[key],
+                if (!groups[id] || total > groups[id].score) {
+                    groups[id] = {
+                        ...db[id],
                         score: total
                     };
                 }
@@ -51,16 +47,16 @@ async function loadRanking() {
         });
 
         const sorted = Object.values(groups).sort((a, b) => b.score - a.score);
-        console.log("Оброблений рейтинг для виводу:", sorted);
+        console.log("РЕЗУЛЬТАТ:", sorted);
 
         if (sorted.length > 0) {
             renderRanking(sorted);
         } else {
-            listElement.innerHTML = "Рейтинг формується (немає збігів з базою)...";
+            listElement.innerHTML = "Дані отримано, але збігів з ID бази не знайдено.";
         }
 
     } catch (e) {
-        console.error("Помилка завантаження рейтингу:", e);
+        console.error("Помилка:", e);
     }
 }
 
@@ -69,20 +65,20 @@ function renderRanking(data) {
     if (!listElement) return;
 
     listElement.innerHTML = data.map((item, index) => `
-        <div style="background: white; margin: 10px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid ${index === 0 ? '#FFD700' : '#e67e22'};">
-            <div style="text-align: left;">
-                <span style="font-weight: bold; font-size: 1.2rem; color: #d35400;">#${index + 1}</span>
-                <span style="margin-left: 10px; font-weight: bold;">${item.name}</span>
-                <div style="font-size: 0.8rem; color: #666; margin-left: 38px;">${item.location} громада</div>
+        <div style="background: white; margin: 10px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 6px solid ${index === 0 ? '#f1c40f' : '#e67e22'};">
+            <div style="text-align: left; display: flex; align-items: center;">
+                <span style="font-weight: 800; font-size: 1.3rem; color: #95a5a6; min-width: 40px;">#${index + 1}</span>
+                <div style="margin-left: 10px;">
+                    <div style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">${item.name}</div>
+                    <div style="font-size: 0.85rem; color: #7f8c8d;">${item.location || 'Громада'}</div>
+                </div>
             </div>
-            <div style="background: #fdf2e9; padding: 8px 15px; border-radius: 20px; font-weight: bold; color: #e67e22; font-size: 1.1rem;">
-                ${item.score} 🔥
+            <div style="background: #fdf2e9; padding: 8px 18px; border-radius: 25px; font-weight: bold; color: #e67e22; font-size: 1.2rem; display: flex; align-items: center;">
+                ${item.score} <span style="margin-left: 5px; font-size: 1rem;">🔥</span>
             </div>
         </div>
     `).join('');
 }
 
-// Запуск
-window.addEventListener('load', () => {
-    setTimeout(loadRanking, 1000);
-});
+// Запуск через секунду
+window.addEventListener('load', () => setTimeout(loadRanking, 1000));
