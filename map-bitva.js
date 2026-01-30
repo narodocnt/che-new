@@ -2,24 +2,32 @@
  * map-bitva.js - Логіка інтерактивної карти
  */
 
-var mapW = 900, mapH = 736;
-
-// Ініціалізація карти
-var map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -1,
-    maxZoom: 2
-});
-
+// 1. Використовуємо існуючі налаштування або задаємо нові через var (щоб не було SyntaxError)
+var mapW = typeof mapW !== 'undefined' ? mapW : 900;
+var mapH = typeof mapH !== 'undefined' ? mapH : 736;
 var bounds = [[0, 0], [mapH, mapW]];
-L.imageOverlay('map.jpg', bounds).addTo(map);
-map.fitBounds(bounds);
 
-var markersLayer = L.layerGroup().addTo(map);
+// 2. БЕЗПЕЧНА ІНІЦІАЛІЗАЦІЯ КАРТИ
+// Перевіряємо, чи карта вже створена файлом map.js
+if (typeof map === 'undefined' || map === null) {
+    var map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2
+    });
+    L.imageOverlay('map.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
+}
+
+// 3. Створюємо шар для маркерів, якщо його немає
+if (typeof markersLayer === 'undefined') {
+    var markersLayer = L.layerGroup().addTo(map);
+}
+
 var currentBattleData = {};
 
 /**
- * Завантаження даних битви та зіставлення з базою
+ * Завантаження даних битви
  */
 async function loadBattleRanking() {
     var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
@@ -27,7 +35,6 @@ async function loadBattleRanking() {
         var response = await fetch(N8N_URL);
         var rawData = await response.json();
         
-        // Використовуємо базу з window (яку ми вставили в HTML)
         var db = window.collectivesDatabase;
         if (!db) {
             console.error("Помилка: collectivesDatabase не знайдено!");
@@ -39,7 +46,6 @@ async function loadBattleRanking() {
             var url = (item.url || "").toLowerCase();
             let key = "";
 
-            // Пошук ключа за посиланням
             if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
             else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
             else if (url.includes("kamyan") || url.includes("kravets")) key = "kamyanka";
@@ -63,35 +69,31 @@ async function loadBattleRanking() {
             }
         });
 
-        // Сортування для визначення місць
         var sorted = Object.values(groups).sort((a, b) => b.score - a.score);
-        sorted.forEach((item, index) => {
-            item.rank = index + 1;
-        });
+        sorted.forEach((item, index) => { item.rank = index + 1; });
 
-        // Прив'язка до карти за назвою громади (location)
         currentBattleData = {};
         Object.values(groups).forEach(item => {
-            // Використовуємо поле location як ключ для зіставлення з hromadasGeoJSON
             const locKey = item.location.trim().toLowerCase();
             currentBattleData[locKey] = item;
         });
 
         return true;
     } catch (e) {
-        console.error("Карта: Помилка завантаження даних", e);
+        console.error("Карта: Помилка завантаження", e);
         return false;
     }
 }
 
 /**
- * Відображення маркерів на карті
+ * Відображення маркерів
  */
 function renderMarkers(mode) {
+    if (!markersLayer) return;
     markersLayer.clearLayers();
     
     if (typeof hromadasGeoJSON === 'undefined') {
-        console.error("Дані громад hromadasGeoJSON не знайдені!");
+        console.error("hromadasGeoJSON не знайдено!");
         return;
     }
 
@@ -102,7 +104,6 @@ function renderMarkers(mode) {
         var content = `<div style="text-align:center;"><strong>${h.name} громада</strong></div><hr style="margin:5px 0;">`;
 
         if (mode === 'collectives') {
-            // Режим звичайних колективів (з collectives-list.js)
             var list = (typeof collectivesList !== 'undefined') ? collectivesList[hName] : null;
             if (list && list.length > 0) {
                 label = list.length;
@@ -110,7 +111,6 @@ function renderMarkers(mode) {
                 show = true;
             }
         } else if (mode === 'battle') {
-            // Режим "Битва Громад"
             var b = currentBattleData[hName];
             if (b) {
                 label = b.rank;
@@ -119,10 +119,8 @@ function renderMarkers(mode) {
                         <div style="color:#e67e22; font-weight:bold; font-size:14px; margin-bottom:4px;">🏆 Місце: №${b.rank}</div>
                         <div style="font-size:13px; font-weight:bold; line-height:1.2;">${b.name}</div>
                         <div style="font-size:11px; color:#555; margin:4px 0;">👤 ${b.leader}</div>
-                        <div style="background:#f1f1f1; padding:4px; border-radius:4px; font-weight:bold; font-size:13px; margin-top:5px; text-align:center;">
-                            Балів: ${b.score}
-                        </div>
-                        <a href="${b.url}" target="_blank" style="display:block; text-align:center; background:#e67e22; color:white; padding:6px; border-radius:5px; text-decoration:none; margin-top:8px; font-size:11px; font-weight:bold;">ПЕРЕЙТИ ДО ГОЛОСУВАННЯ</a>
+                        <div style="background:#f1f1f1; padding:4px; border-radius:4px; font-weight:bold; font-size:13px; margin-top:5px; text-align:center;">Балів: ${b.score}</div>
+                        <a href="${b.url}" target="_blank" style="display:block; text-align:center; background:#e67e22; color:white; padding:6px; border-radius:5px; text-decoration:none; margin-top:8px; font-size:11px; font-weight:bold;">ГОЛОСУВАТИ</a>
                     </div>`;
                 show = true;
             }
@@ -134,10 +132,7 @@ function renderMarkers(mode) {
                 html: `<span>${label}</span>`,
                 iconSize: [30, 30]
             });
-
-            L.marker([mapH - h.y, h.x], { icon: icon })
-                .bindPopup(content)
-                .addTo(markersLayer);
+            L.marker([mapH - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
         }
     });
 }
@@ -146,12 +141,6 @@ function renderMarkers(mode) {
  * Перемикання режимів
  */
 async function setMapMode(mode) {
-    var btnCol = document.getElementById('btn-col');
-    var btnBat = document.getElementById('btn-bat');
-    
-    if (btnCol) btnCol.className = (mode === 'collectives') ? 'map-btn active-btn' : 'map-btn inactive-btn';
-    if (btnBat) btnBat.className = (mode === 'battle') ? 'map-btn active-btn' : 'map-btn inactive-btn';
-
     if (mode === 'battle') {
         const success = await loadBattleRanking();
         if (success) renderMarkers('battle');
@@ -160,7 +149,8 @@ async function setMapMode(mode) {
     }
 }
 
-// Запуск за замовчуванням
-window.onload = () => {
-    setMapMode('collectives');
-};
+// Запуск при завантаженні (з невеликою затримкою, щоб мапа встигла створитися)
+setTimeout(() => {
+    setMapMode('battle'); 
+    if (typeof loadRanking === 'function') loadRanking(); // Штовхаємо список у contest.js
+}, 1000);
