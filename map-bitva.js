@@ -10,17 +10,29 @@ var currentBattleData = {};
 
 async function loadBattleRanking() {
     var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    console.log("--- СТАРТ ЗАВАНТАЖЕННЯ БИТВИ ---");
+    
     try {
         var response = await fetch(N8N_URL);
         var rawData = await response.json();
+        
+        console.log("Дані з сервера отримано. Кількість записів:", rawData.length);
+        
         var groups = {};
 
-        rawData.forEach(function(item) {
+        rawData.forEach(function(item, index) {
             var fullText = (item.pageName || "").trim();
-            if (!fullText || fullText.includes("undefined")) return;
+            
+            // Перевірка 1: Чи не порожній текст
+            if (!fullText) {
+                console.warn("Запис #" + index + " порожній, пропускаю.");
+                return;
+            }
 
+            // Перевірка 2: Визначення громади
             var key = "";
             var t = fullText.toLowerCase();
+            
             if (t.includes("сміл")) key = "смілянська";
             else if (t.includes("тальн")) key = "тальнівська";
             else if (t.includes("кам")) key = "кам’янська";
@@ -28,32 +40,59 @@ async function loadBattleRanking() {
             else if (t.includes("золотоніс")) key = "золотоніська";
             else if (t.includes("звенигород")) key = "звенигородська";
 
-            if (key) {
-                var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
-                if (!groups[key] || total > groups[key].score) {
-                    var collective = fullText.includes("Назва Колективу:") ? fullText.split("Назва Колективу:")[1].split("\n")[0].trim() : fullText.split("\n")[0].trim();
-                    var leader = fullText.includes("Керівник:") ? fullText.split("Керівник:")[1].split("\n")[0].trim() : "Не вказано";
+            if (!key) {
+                console.log("❌ Не знайдено громаду в тексті: " + fullText.substring(0, 30) + "...");
+                return;
+            }
 
-                    groups[key] = {
-                        name: collective.replace(/[#*]/g, ""),
-                        leader: leader.replace(/[#*]/g, ""),
-                        score: total,
-                        url: item.url
-                    };
-                }
+            console.log("✅ Знайдено громаду: " + key);
+
+            var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+
+            if (!groups[key] || total > groups[key].score) {
+                var collective = fullText.includes("Назва Колективу:") ? 
+                    fullText.split("Назва Колективу:")[1].split("\n")[0].trim() : 
+                    fullText.split("\n")[0].trim();
+                
+                var leader = fullText.includes("Керівник:") ? 
+                    fullText.split("Керівник:")[1].split("\n")[0].trim() : 
+                    "Не вказано";
+
+                groups[key] = {
+                    name: collective.replace(/[#*]/g, ""),
+                    leader: leader.replace(/[#*]/g, ""),
+                    score: total,
+                    url: item.url
+                };
             }
         });
 
+        // Сортування для рейтингу
         var sorted = Object.keys(groups).map(k => ({ key: k, score: groups[k].score })).sort((a, b) => b.score - a.score);
-        sorted.forEach((item, index) => { groups[item.key].rank = index + 1; });
+        sorted.forEach((item, index) => { 
+            groups[item.key].rank = index + 1; 
+        });
+
         currentBattleData = groups;
+        console.log("Підсумкові дані для карти:", currentBattleData);
         
-        renderMarkers('battle'); // Малюємо маркери після завантаження
-    } catch (e) { console.error("Карта помилка:", e); }
+        renderMarkers('battle');
+
+    } catch (e) {
+        console.error("⛔️ КРИТИЧНА ПОМИЛКА КАРТИ:", e);
+    }
 }
 
 function renderMarkers(mode) {
+    console.log("Малюю маркери для режиму: " + mode);
     markersLayer.clearLayers();
+    
+    if (!hromadasGeoJSON || !hromadasGeoJSON.features) {
+        console.error("Помилка: hromadasGeoJSON не знайдено!");
+        return;
+    }
+
+    var count = 0;
     hromadasGeoJSON.features.forEach(function(h) {
         var gName = h.name.trim().toLowerCase();
         var show = false, label = "", content = `<h3>${h.name}</h3><hr>`;
@@ -75,23 +114,19 @@ function renderMarkers(mode) {
                 label = b.rank;
                 content += `<p>🏆 Місце: №${b.rank}</p><p><b>${b.name}</b></p><p>Керівник: ${b.leader}</p><p>Балів: ${b.score}</p>`;
                 show = true;
+                count++;
             }
         }
+        
         if (show) {
             var icon = L.divIcon({ className: 'count-icon', html: `<span>${label}</span>`, iconSize: [30, 30] });
             L.marker([mapH - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
         }
     });
+    console.log("Виведено маркерів на карту: " + count);
 }
 
-// Функція перемикання режимів
-window.setMapMode = function(mode) {
-    if (mode === 'battle') {
-        loadBattleRanking();
-    } else {
-        renderMarkers('collectives');
-    }
-};
+// Запуск при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
-    setMapMode('battle'); // Або 'collectives', якщо хочете спочатку бачити просто список
+    loadBattleRanking();
 });
