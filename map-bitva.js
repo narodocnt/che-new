@@ -2,39 +2,46 @@ var map;
 var markersLayer;
 var currentBattleData = {};
 
-// 1. Ініціалізація карти (з захистом від повтору)
+// 1. Функція ініціалізації карти з перевіркою
 function initMap() {
-    if (map) return; 
+    if (map) return; // Якщо карта вже створена, нічого не робимо
+    
     map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
     var bounds = [[0, 0], [736, 900]];
     L.imageOverlay('map.jpg', bounds).addTo(map);
     map.fitBounds(bounds);
     markersLayer = L.layerGroup().addTo(map);
+    console.log("✅ Карта ініціалізована");
 }
 
-// 2. Завантаження даних
+// 2. Функція завантаження Битви
 async function loadBattleRanking() {
     var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    console.log("--- СТАРТ ЗАВАНТАЖЕННЯ БИТВИ ---");
+    
     try {
         var response = await fetch(N8N_URL);
         var rawData = await response.json();
+        console.log("Отримано записів:", rawData.length);
+        
         var groups = {};
 
         rawData.forEach(function(item) {
-            // Беремо будь-яке поле, де може бути текст
+            // ПЕРЕВІРКА ВСІХ МОЖЛИВИХ ПОЛІВ ТЕКСТУ (pageName, text, caption)
             var fullText = (item.pageName || item.text || item.caption || "").trim();
+            
+            // Якщо текст все одно порожній, спробуємо подивитися на структуру об'єкта
             if (!fullText) return;
 
             var key = "";
             var t = fullText.toLowerCase();
             
-            // Спрощений пошук громади
-            if (t.includes("сміл")) key = "смілянська";
-            else if (t.includes("тальн")) key = "тальнівська";
+            if (t.includes("сміл") || t.includes("божидар")) key = "смілянська";
+            else if (t.includes("тальн") || t.includes("сурми")) key = "тальнівська";
             else if (t.includes("кам")) key = "кам’янська";
             else if (t.includes("христин")) key = "христинівська";
-            else if (t.includes("золотоніс")) key = "золотоніська";
-            else if (t.includes("звенигород")) key = "звенигородська";
+            else if (t.includes("золотоніс") || t.includes("водограй")) key = "золотоніська";
+            else if (t.includes("звенигород") || t.includes("дзет")) key = "звенигородська";
 
             if (key) {
                 var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
@@ -48,28 +55,30 @@ async function loadBattleRanking() {
             }
         });
 
-        // Визначаємо місця
-        var sorted = Object.keys(groups).sort((a, b) => groups[b].score - groups[a].score);
-        sorted.forEach((k, index) => { groups[k].rank = index + 1; });
+        var sorted = Object.keys(groups).sort(function(a, b) { return groups[b].score - groups[a].score; });
+        sorted.forEach(function(k, index) { groups[k].rank = index + 1; });
         
         currentBattleData = groups;
+        console.log("Підсумкові дані для Битви:", currentBattleData);
         renderMarkers('battle');
-    } catch (e) { console.error("Помилка даних:", e); }
+    } catch (e) {
+        console.error("⛔️ Помилка Битви:", e);
+    }
 }
 
-// 3. Малювання маркерів
+// 3. Функція малювання маркерів
 function renderMarkers(mode) {
     if (!markersLayer) return;
     markersLayer.clearLayers();
     
-    // Перевірка наявності hromadasGeoJSON
-    if (typeof hromadasGeoJSON === 'undefined') return;
+    if (typeof hromadasGeoJSON === 'undefined') {
+        console.error("Помилка: hromadasGeoJSON не знайдено!");
+        return;
+    }
 
     hromadasGeoJSON.features.forEach(function(h) {
         var gName = h.name.trim().toLowerCase();
-        var label = "";
-        var content = `<h3>${h.name}</h3>`;
-        var show = false;
+        var show = false, label = "", content = `<h3>${h.name}</h3>`;
 
         if (mode === 'collectives') {
             var list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
@@ -102,12 +111,20 @@ function renderMarkers(mode) {
     });
 }
 
-// Глобальна функція для кнопок
+// 4. Глобальна функція для HTML кнопок
 window.setMapMode = function(mode) {
-    if (mode === 'battle') loadBattleRanking();
-    else renderMarkers('collectives');
+    console.log("Зміна режиму на:", mode);
+    if (mode === 'battle') {
+        loadBattleRanking();
+    } else {
+        renderMarkers('collectives');
+    }
 };
 
-// Автозапуск при завантаженні
-initMap();
-renderMarkers('collectives');
+// 5. Запуск при завантаженні (один раз)
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    renderMarkers('collectives');
+    // Якщо хочеш автоматично завантажувати битву:
+    // loadBattleRanking(); 
+});
