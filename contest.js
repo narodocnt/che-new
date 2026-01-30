@@ -28,8 +28,8 @@ async function loadRanking() {
             if (pId === "1395890575915215") id = 14; 
             else if (pId === "1393924596111813") id = 12; 
             else if (pId === "1395880485916224") id = 10; 
-            else if (pId === "1382677543903185") id = 11; 
-            else if (pId === "1384574163713523") id = 17; 
+            else if (pId === "1382677543903185") id = 17; 
+            else if (pId === "1384574163713523") id = 11; 
             else if (pId === "1390245389813067") id = 20; 
 
             if (id && db[id]) {
