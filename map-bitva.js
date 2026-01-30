@@ -2,8 +2,7 @@
  * map-bitva.js - Логіка інтерактивної карти
  */
 
-const mapW = 900;
-const mapH = 736;
+var mapW = 900, mapH = 736;
 
 // Ініціалізація карти
 const map = L.map('map', {
