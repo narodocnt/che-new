@@ -92,3 +92,6 @@ window.setMapMode = function(mode) {
         renderMarkers('collectives');
     }
 };
+document.addEventListener('DOMContentLoaded', function() {
+    setMapMode('battle'); // Або 'collectives', якщо хочете спочатку бачити просто список
+});
