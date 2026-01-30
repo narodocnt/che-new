@@ -16,16 +16,16 @@ L.imageOverlay('map.jpg', bounds).addTo(map);
 map.fitBounds(bounds);
 
 var markersLayer = L.layerGroup().addTo(map);
-let currentBattleData = {};
+var currentBattleData = {};
 
 /**
  * Завантаження даних битви та зіставлення з базою
  */
 async function loadBattleRanking() {
-    const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     try {
-        const response = await fetch(N8N_URL);
-        const rawData = await response.json();
+        var response = await fetch(N8N_URL);
+        var rawData = await response.json();
         
         // Використовуємо базу з window (яку ми вставили в HTML)
         var db = window.collectivesDatabase;
@@ -97,9 +97,9 @@ function renderMarkers(mode) {
 
     hromadasGeoJSON.features.forEach(h => {
         var hName = h.name.trim().toLowerCase();
-        let show = false;
-        let label = "";
-        let content = `<div style="text-align:center;"><strong>${h.name} громада</strong></div><hr style="margin:5px 0;">`;
+        var show = false;
+        var label = "";
+        var content = `<div style="text-align:center;"><strong>${h.name} громада</strong></div><hr style="margin:5px 0;">`;
 
         if (mode === 'collectives') {
             // Режим звичайних колективів (з collectives-list.js)
