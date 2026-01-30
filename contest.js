@@ -1,7 +1,7 @@
 /**
  * contest.js - Фінальна версія (Робота по ID)
  */
-let currentData = [];
+window.currentData = window.currentData || [];
 
 async function loadRanking() {
     const list = document.getElementById('rankingList');
