@@ -1,138 +1,96 @@
-const mapW = 900;
-const mapH = 736;
+/**
+ * contest.js - Тільки для виводу рейтингу під картою
+ */
+var currentData = [];
 
-const map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
-const bounds = [[0, 0], [mapH, mapW]];
-L.imageOverlay('map.jpg', bounds).addTo(map);
-map.fitBounds(bounds);
+async function loadRanking() {
+    var list = document.getElementById('rankingList');
+    var N8N_GET_RANKING_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    
+    if (list) {
+        list.innerHTML = `<div style="text-align:center; padding:20px;">Оновлення рейтингу...</div>`;
+    }
 
-const markersLayer = L.layerGroup().addTo(map);
-let currentBattleData = {};
-
-async function loadBattleRanking() {
-    const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     try {
-        const response = await fetch(N8N_URL);
-        const rawData = await response.json();
-        const groups = {};
+        var response = await fetch(N8N_GET_RANKING_URL);
+        var rawData = await response.json();
+        var groups = {};
 
-        rawData.forEach(item => {
-            // Беремо текст прямо з поля pageName (або text, якщо воно так називається в таблиці)
-            let fullText = (item.pageName || "").trim();
+        rawData.forEach(function(item) {
+            var fullText = (item.pageName || "").trim();
             if (!fullText || fullText.includes("undefined")) return;
 
-            // 1. ВИЗНАЧАЄМО ГРОМАДУ (КЛЮЧ) АВТОМАТИЧНО З ТЕКСТУ
-            let groupKey = "";
-            let t = fullText.toLowerCase();
-            
-            if (t.includes("сміл") || t.includes("божидар")) groupKey = "смілянська";
-            else if (t.includes("тальн") || t.includes("сурми")) groupKey = "тальнівська";
-            else if (t.includes("кам")) groupKey = "кам’янська";
-            else if (t.includes("христин") || t.includes("севаст")) groupKey = "христинівська";
-            else if (t.includes("золотоніс") || t.includes("водограй")) groupKey = "золотоніська";
-            else if (t.includes("звенигород") || t.includes("дзет")) groupKey = "звенигородська";
+            // Визначаємо громаду для групування
+            var key = "";
+            var t = fullText.toLowerCase();
+            if (t.includes("сміл")) key = "smila";
+            else if (t.includes("тальн")) key = "talne";
+            else if (t.includes("кам")) key = "kamyanka";
+            else if (t.includes("христин")) key = "hrist";
+            else if (t.includes("золотоніс")) key = "vodogray";
+            else if (t.includes("звенигород")) key = "zveny";
 
-            if (groupKey) {
-                // Рахуємо бали
-                let total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+            if (key) {
+                var l = parseInt(item.likes) || 0;
+                var s = parseInt(item.shares) || 0;
+                var c = parseInt(item.comments) || 0;
+                var total = l + s + c;
 
-                // Якщо постів кілька (наприклад, два різних оркестри), беремо той, де більше вподобайок
-                if (!groups[groupKey] || total > groups[groupKey].score) {
+                if (!groups[key] || total > groups[key].score) {
+                    // Витягуємо назву та керівника прямо з тексту таблиці
+                    var collective = fullText.includes("Назва Колективу:") ? 
+                        fullText.split("Назва Колективу:")[1].split("\n")[0].trim() : 
+                        fullText.split("\n")[0].trim();
                     
-                    // ВИТЯГУЄМО ЧИСТУ НАЗВУ ТА КЕРІВНИКА
-                    // Припускаємо формат: "Назва Колективу: Оркестр. Керівник: Іванов"
-                    let collective = "Колектив";
-                    if (fullText.includes("Назва Колективу:")) {
-                        collective = fullText.split("Назва Колективу:")[1].split(".")[0].split("\n")[0].trim();
-                    } else {
-                        // Якщо мітки немає, беремо перший рядок
-                        collective = fullText.split("\n")[0].split(".")[0].trim();
-                    }
+                    var leader = fullText.includes("Керівник:") ? 
+                        fullText.split("Керівник:")[1].split("\n")[0].trim() : 
+                        "Не вказано";
 
-                    let leader = "Не вказано";
-                    if (fullText.includes("Керівник:")) {
-                        leader = fullText.split("Керівник:")[1].split("\n")[0].replace(/[#*]/g, "").trim();
-                    }
-
-                    groups[groupKey] = {
-                        name: collective,
-                        leader: leader,
+                    groups[key] = {
+                        name: collective.replace(/[#*]/g, ""),
+                        leader: leader.replace(/[#*]/g, ""),
                         score: total,
-                        url: item.url
+                        breakdown: { l: l, s: s, c: c },
+                        url: item.url,
+                        media: item.media || 'narodocnt.jpg'
                     };
                 }
             }
         });
 
-        // 2. АВТОМАТИЧНЕ ВИЗНАЧЕННЯ МІСЦЯ (Сортування)
-        const sorted = Object.keys(groups)
-            .map(k => ({ key: k, ...groups[k] }))
-            .sort((a, b) => b.score - a.score);
-        
-        sorted.forEach((item, index) => {
-            groups[item.key].rank = index + 1;
-        });
+        currentData = Object.values(groups).sort(function(a, b) { return b.score - a.score; });
+        renderList();
 
-        currentBattleData = groups;
-    } catch (e) { console.error("Помилка обробки таблиці:", e); }
+    } catch (e) {
+        console.error("Помилка рейтингу:", e);
+    }
 }
 
-function renderMarkers(mode) {
-    markersLayer.clearLayers();
+function renderList() {
+    var list = document.getElementById('rankingList');
+    if (!list) return;
+    list.innerHTML = '';
     
-    // Проходимо по геометрії громад
-    hromadasGeoJSON.features.forEach(h => {
-        const gName = h.name.trim().toLowerCase();
-        let show = false, label = "", content = `<h3>${h.name}</h3><hr>`;
+    var maxVal = Math.max(...currentData.map(function(i) { return i.score; })) || 1;
+    var colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
 
-        if (mode === 'collectives') {
-            const list = collectivesList[gName] || [];
-            if (list.length > 0) { 
-                label = list.length; 
-                content += list.join('<br>'); 
-                show = true; 
-            }
-        } else {
-            // Шукаємо дані битви за ключовим словом назви громади в hromadas-data.js
-            let key = "";
-            if (gName.includes("сміл")) key = "смілянська";
-            else if (gName.includes("звенигород")) key = "звенигородська";
-            else if (gName.includes("кам")) key = "кам’янська";
-            else if (gName.includes("тальн")) key = "тальнівська";
-            else if (gName.includes("христин")) key = "христинівська";
-            else if (gName.includes("золотоніс")) key = "золотоніська";
+    currentData.forEach(function(item, index) {
+        var color = colors[index] || '#2c3e50';
+        var percentage = (item.score / maxVal) * 100;
 
-            const b = currentBattleData[key];
-            if (b) {
-                label = b.rank; // Номер місця на іконці
-                content += `
-                    <div style="font-family: sans-serif;">
-                        <p style="color:#e67e22; font-weight:bold; font-size:16px; margin:0;">🏆 Місце: №${b.rank}</p>
-                        <p style="margin:8px 0 4px 0;">🎵 <b>${b.name}</b></p>
-                        <p style="margin:0 0 8px 0; color:#555;">👤 Керівник: <b>${b.leader}</b></p>
-                        <p style="margin:4px 0; font-weight:bold;">❤️ Балів: ${b.score}</p>
-                        <a href="${b.url}" target="_blank" style="display:block; text-align:center; background:#e74c3c; color:white; padding:6px; border-radius:5px; text-decoration:none; margin-top:10px; font-weight:bold;">ГОЛОСУВАТИ</a>
-                    </div>`;
-                show = true;
-            }
-        }
-
-        if (show) {
-            const icon = L.divIcon({ className: 'count-icon', html: `<span>${label}</span>`, iconSize: [30, 30] });
-            L.marker([mapH - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
-        }
+        list.innerHTML += `
+            <div style="margin: 10px auto; max-width: 600px; border: 2px solid ${color}; border-radius: 10px; overflow: hidden; background: white;">
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 40px; background: ${color}; color: white; text-align: center; font-weight: bold; font-size: 20px; padding: 10px;">${index + 1}</div>
+                    <div style="flex: 1; padding: 10px;">
+                        <div style="font-weight: bold; color: #2c3e50;">${item.name}</div>
+                        <div style="font-size: 12px; color: #666;">Керівник: ${item.leader}</div>
+                        <div style="font-size: 14px; font-weight: bold; color: ${color}; margin-top: 5px;">Балів: ${item.score}</div>
+                    </div>
+                    <a href="${item.url}" target="_blank" style="padding: 10px; background: #e74c3c; color: white; text-decoration: none; margin-right: 10px; border-radius: 5px; font-size: 12px;">Голосувати</a>
+                </div>
+            </div>`;
     });
 }
 
-async function setMapMode(mode) {
-    // Стилізація кнопок
-    const btnCol = document.getElementById('btn-col');
-    const btnBat = document.getElementById('btn-bat');
-    if (btnCol) btnCol.className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-    if (btnBat) btnBat.className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
-
-    if (mode === 'battle') await loadBattleRanking();
-    renderMarkers(mode);
-}
-
-window.onload = () => setMapMode('collectives');
+document.addEventListener('DOMContentLoaded', loadRanking);
