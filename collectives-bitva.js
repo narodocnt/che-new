@@ -10,7 +10,7 @@ window.collectivesDatabase = {
         "location": "Смілянська",
         "media": "https://scontent-mia3-3.xx.fbcdn.net/v/t15.5256-10/604290490_2030897574364185_8349501958074934146_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=5fad0e"
     },
-    "12": {
+    "11": {
         "key": "zveny",
         "name": "Оркестр духових інструментів",
         "institution": "Звенигородський Центр культури і дозвілля ім. Т. Шевченка",
@@ -18,7 +18,7 @@ window.collectivesDatabase = {
         "location": "Звенигородська",
         "media": "https://scontent-det1-1.xx.fbcdn.net/v/t15.5256-10/605489878_1472787384850228_7157112104133130625_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=102&ccb=1-7&_nc_sid=5fad0e"
     },
-    "11": {
+    "12": {
         "key": "kamyanka",
         "name": "Духовий ансамбль",
         "institution": "Будинок культури Кам’янської громади",
