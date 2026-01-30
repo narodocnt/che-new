@@ -1,8 +1,6 @@
 /**
- * contest.js - Логіка формування списку рейтингу "Битва вподобайків"
+ * contest.js - Фінальна версія з розширеною логікою зіставлення
  */
-
-// Глобальна змінна для зберігання даних
 var currentData = [];
 
 async function loadRanking() {
@@ -12,129 +10,79 @@ async function loadRanking() {
     if (!listElement) return;
 
     try {
-        console.log("Запит до n8n за рейтингом...");
+        console.log("Запит до n8n...");
         const response = await fetch(N8N_URL);
-        
-        // Перевірка, чи відповідь успішна
-        if (!response.ok) throw new Error('Помилка мережі');
-
         const data = await response.json();
         
-        // Перевірка, чи прийшов масив даних
-        if (!Array.isArray(data) || data.length === 0) {
-            console.warn("Сервер повернув порожній масив або невірний формат");
-            listElement.innerHTML = "<p style='color:gray;'>Дані для рейтингу поки що відсутні</p>";
-            return;
-        }
-
-        // Беремо базу колективів з window (з файлу collectives-bitva.js)
+        // ПЕРЕВІРКА БАЗИ
         const db = window.collectivesDatabase;
+        console.log("Стан бази collectivesDatabase:", db);
+
         if (!db) {
-            console.error("База collectivesDatabase не знайдена!");
+            console.error("Помилка: База collectivesDatabase відсутня в пам'яті!");
+            listElement.innerHTML = "Помилка конфігурації бази.";
             return;
         }
 
         let groups = {};
 
-        // Обробка даних від n8n
         data.forEach(item => {
-            let url = (item.url || "").toLowerCase();
+            const fbUrl = (item.url || "").toLowerCase();
             let key = "";
 
-            // Логіка зіставлення посилань з ключами в базі
-            if (url.includes("smila") || url.includes("bozhidar")) key = "smila";
-            else if (url.includes("zveny") || url.includes("dzet")) key = "zveny";
-            else if (url.includes("kamyan") || url.includes("kravets")) key = "kamyanka";
-            else if (url.includes("talne") || url.includes("surmy")) key = "talne";
-            else if (url.includes("hrist") || url.includes("sverb")) key = "hrist";
-            else if (url.includes("vodo") || url.includes("lesch")) key = "vodogray";
+            // Більш гнучкий пошук ключів (додав більше варіантів)
+            if (fbUrl.includes("smila") || fbUrl.includes("bozhidar") || fbUrl.includes("2030897574364185")) key = "smila";
+            else if (fbUrl.includes("zveny") || fbUrl.includes("dzet") || fbUrl.includes("1472787384850228")) key = "zveny";
+            else if (fbUrl.includes("kamyan") || fbUrl.includes("kravets") || fbUrl.includes("846728421312742")) key = "kamyanka";
+            else if (fbUrl.includes("talne") || fbUrl.includes("surmy") || fbUrl.includes("1317445256737431")) key = "talne";
+            else if (fbUrl.includes("hrist") || fbUrl.includes("sverb") || fbUrl.includes("1260839919431949")) key = "hrist";
+            else if (fbUrl.includes("vodo") || fbUrl.includes("lesch") || fbUrl.includes("4422636818000921")) key = "vodogray";
 
             if (key && db[key]) {
-                // Рахуємо загальну суму балів
-                let likes = parseInt(item.likes) || 0;
-                let shares = parseInt(item.shares) || 0;
-                let comments = parseInt(item.comments) || 0;
-                let total = likes + shares + comments;
-
-                // Якщо цей колектив вже є, беремо запис з найбільшою кількістю балів
+                const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+                
                 if (!groups[key] || total > groups[key].score) {
                     groups[key] = {
                         ...db[key],
-                        score: total,
-                        fbUrl: item.url
+                        score: total
                     };
                 }
             }
         });
 
-        // Сортуємо: від найбільшого бала до найменшого
-        window.currentData = Object.values(groups).sort((a, b) => b.score - a.score);
-        
-        // Викликаємо функцію малювання
-        renderRanking(window.currentData);
+        const sorted = Object.values(groups).sort((a, b) => b.score - a.score);
+        console.log("Оброблений рейтинг для виводу:", sorted);
+
+        if (sorted.length > 0) {
+            renderRanking(sorted);
+        } else {
+            listElement.innerHTML = "Рейтинг формується (немає збігів з базою)...";
+        }
 
     } catch (e) {
-        console.error("Критична помилка contest.js:", e);
-        if (listElement) {
-            listElement.innerHTML = "<p style='color:red;'>Не вдалося завантажити рейтинг. Спробуйте оновити сторінку.</p>";
-        }
+        console.error("Помилка завантаження рейтингу:", e);
     }
 }
 
-/**
- * Функція для малювання карток у HTML
- */
 function renderRanking(data) {
     const listElement = document.getElementById('rankingList');
     if (!listElement) return;
 
-    if (data.length === 0) {
-        listElement.innerHTML = "<p>Наразі немає даних для відображення рейтингу.</p>";
-        return;
-    }
-
     listElement.innerHTML = data.map((item, index) => `
-        <div class="ranking-item" style="
-            background: white; 
-            margin: 12px 0; 
-            padding: 15px; 
-            border-radius: 12px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            border-left: 6px solid ${index === 0 ? '#f1c40f' : '#e67e22'};
-        ">
-            <div style="text-align: left; display: flex; align-items: center; gap: 15px;">
-                <div style="
-                    font-size: 1.4rem; 
-                    font-weight: 800; 
-                    color: ${index === 0 ? '#d4af37' : '#7f8c8d'};
-                    min-width: 35px;
-                ">#${index + 1}</div>
-                <div>
-                    <div style="font-weight: bold; font-size: 1.05rem; color: #2c3e50;">${item.name}</div>
-                    <div style="font-size: 0.85rem; color: #7f8c8d;">${item.location} громада</div>
-                </div>
+        <div style="background: white; margin: 10px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid ${index === 0 ? '#FFD700' : '#e67e22'};">
+            <div style="text-align: left;">
+                <span style="font-weight: bold; font-size: 1.2rem; color: #d35400;">#${index + 1}</span>
+                <span style="margin-left: 10px; font-weight: bold;">${item.name}</span>
+                <div style="font-size: 0.8rem; color: #666; margin-left: 38px;">${item.location} громада</div>
             </div>
-            <div style="text-align: right;">
-                <div style="
-                    background: #fdf2e9; 
-                    padding: 6px 15px; 
-                    border-radius: 20px; 
-                    font-weight: bold; 
-                    color: #d35400;
-                    font-size: 1.1rem;
-                ">
-                    ${item.score} <i class="fa-solid fa-fire" style="margin-left:5px;"></i>
-                </div>
+            <div style="background: #fdf2e9; padding: 8px 15px; border-radius: 20px; font-weight: bold; color: #e67e22; font-size: 1.1rem;">
+                ${item.score} 🔥
             </div>
         </div>
     `).join('');
 }
 
-// Запуск при повному завантаженні сторінки
+// Запуск
 window.addEventListener('load', () => {
-    // Невелика затримка, щоб collectives-bitva.js встиг прогрузити базу в пам'ять
-    setTimeout(loadRanking, 800);
+    setTimeout(loadRanking, 1000);
 });
