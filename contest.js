@@ -1,117 +1,138 @@
-/**
- * contest.js - Фінальна версія з виправленими підписами
- */
-var currentData = [];
+const mapW = 900;
+const mapH = 736;
 
-async function loadRanking() {
+const map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+const bounds = [[0, 0], [mapH, mapW]];
+L.imageOverlay('map.jpg', bounds).addTo(map);
+map.fitBounds(bounds);
+
+const markersLayer = L.layerGroup().addTo(map);
+let currentBattleData = {};
+
+async function loadBattleRanking() {
     const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    const listElement = document.getElementById('rankingList');
-    
-    if (!listElement) return;
-
     try {
         const response = await fetch(N8N_URL);
-        const data = await response.json();
-        const db = window.collectivesDatabase;
+        const rawData = await response.json();
+        const groups = {};
 
-        if (!db) return;
+        rawData.forEach(item => {
+            // Беремо текст прямо з поля pageName (або text, якщо воно так називається в таблиці)
+            let fullText = (item.pageName || "").trim();
+            if (!fullText || fullText.includes("undefined")) return;
 
-        let groups = {};
+            // 1. ВИЗНАЧАЄМО ГРОМАДУ (КЛЮЧ) АВТОМАТИЧНО З ТЕКСТУ
+            let groupKey = "";
+            let t = fullText.toLowerCase();
+            
+            if (t.includes("сміл") || t.includes("божидар")) groupKey = "смілянська";
+            else if (t.includes("тальн") || t.includes("сурми")) groupKey = "тальнівська";
+            else if (t.includes("кам")) groupKey = "кам’янська";
+            else if (t.includes("христин") || t.includes("севаст")) groupKey = "христинівська";
+            else if (t.includes("золотоніс") || t.includes("водограй")) groupKey = "золотоніська";
+            else if (t.includes("звенигород") || t.includes("дзет")) groupKey = "звенигородська";
 
-        data.forEach(item => {
-            const pId = String(item.postId || "");
-            const fbUrl = String(item.url || "").toLowerCase();
-            let id = null;
+            if (groupKey) {
+                // Рахуємо бали
+                let total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
 
-            // --- ВАЖЛИВО: ТОЧНЕ ПРИВ'ЯЗУВАННЯ ID ДО ПОСТІВ ---
-            // Ми беремо ID з вашого collectives-bitva.js і чіпляємо до postId з Facebook
-            if (pId === "1393924596111813") id = "10"; // Божидар (Сміла)
-            else if (pId === "1395880485916224") id = "14"; // Звенигородка
-            else if (pId === "1382677543903185") id = "11"; // Кам'янка
-            else if (pId === "1395890575915215") id = "20"; // Тальне
-            else if (pId === "1384574163713523") id = "17"; // Христинівка
-            else if (pId === "1390245389813067") id = "12"; // Водограй
+                // Якщо постів кілька (наприклад, два різних оркестри), беремо той, де більше вподобайок
+                if (!groups[groupKey] || total > groups[groupKey].score) {
+                    
+                    // ВИТЯГУЄМО ЧИСТУ НАЗВУ ТА КЕРІВНИКА
+                    // Припускаємо формат: "Назва Колективу: Оркестр. Керівник: Іванов"
+                    let collective = "Колектив";
+                    if (fullText.includes("Назва Колективу:")) {
+                        collective = fullText.split("Назва Колективу:")[1].split(".")[0].split("\n")[0].trim();
+                    } else {
+                        // Якщо мітки немає, беремо перший рядок
+                        collective = fullText.split("\n")[0].split(".")[0].trim();
+                    }
 
-            if (id && db[id]) {
-                const l = parseInt(item.likes) || 0;
-                const c = parseInt(item.comments) || 0;
-                const s = parseInt(item.shares) || 0;
-                const total = l + c + s;
-                
-                if (!groups[id] || total > groups[id].score) {
-                    groups[id] = { 
-                        ...db[id], 
+                    let leader = "Не вказано";
+                    if (fullText.includes("Керівник:")) {
+                        leader = fullText.split("Керівник:")[1].split("\n")[0].replace(/[#*]/g, "").trim();
+                    }
+
+                    groups[groupKey] = {
+                        name: collective,
+                        leader: leader,
                         score: total,
-                        likes: l, comments: c, shares: s,
-                        fbUrl: item.url,
-                        thumb: item.media || db[id].media 
+                        url: item.url
                     };
                 }
             }
         });
 
-        // Сортуємо: хто має більше балів — той вище
-        const sorted = Object.values(groups).sort((a, b) => b.score - a.score);
-        renderRanking(sorted);
+        // 2. АВТОМАТИЧНЕ ВИЗНАЧЕННЯ МІСЦЯ (Сортування)
+        const sorted = Object.keys(groups)
+            .map(k => ({ key: k, ...groups[k] }))
+            .sort((a, b) => b.score - a.score);
+        
+        sorted.forEach((item, index) => {
+            groups[item.key].rank = index + 1;
+        });
 
-    } catch (e) {
-        console.error("Помилка:", e);
-    }
+        currentBattleData = groups;
+    } catch (e) { console.error("Помилка обробки таблиці:", e); }
 }
 
-function renderRanking(data) {
-    const listElement = document.getElementById('rankingList');
-    if (!listElement) return;
+function renderMarkers(mode) {
+    markersLayer.clearLayers();
+    
+    // Проходимо по геометрії громад
+    hromadasGeoJSON.features.forEach(h => {
+        const gName = h.name.trim().toLowerCase();
+        let show = false, label = "", content = `<h3>${h.name}</h3><hr>`;
 
-    listElement.innerHTML = data.map((item, index) => `
-        <div style="background: white; margin: 15px 0; padding: 15px; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 6px solid ${index === 0 ? '#f1c40f' : '#e67e22'};">
-            
-            <a href="${item.fbUrl}" target="_blank" style="display: block; width: 85px; height: 85px; flex-shrink: 0; overflow: hidden; border-radius: 8px; margin-right: 15px; border: 1px solid #eee;">
-                <img src="${item.thumb}" style="width: 100%; height: 100%; object-fit: cover;">
-            </a>
+        if (mode === 'collectives') {
+            const list = collectivesList[gName] || [];
+            if (list.length > 0) { 
+                label = list.length; 
+                content += list.join('<br>'); 
+                show = true; 
+            }
+        } else {
+            // Шукаємо дані битви за ключовим словом назви громади в hromadas-data.js
+            let key = "";
+            if (gName.includes("сміл")) key = "смілянська";
+            else if (gName.includes("звенигород")) key = "звенигородська";
+            else if (gName.includes("кам")) key = "кам’янська";
+            else if (gName.includes("тальн")) key = "тальнівська";
+            else if (gName.includes("христин")) key = "христинівська";
+            else if (gName.includes("золотоніс")) key = "золотоніська";
 
-            <div style="flex-grow: 1; text-align: left;">
-                <div style="font-weight: 800; color: #d35400; font-size: 0.8rem;">#${index + 1} МІСЦЕ</div>
-                <div style="font-weight: bold; font-size: 1.1rem; color: #2c3e50; line-height: 1.2;">${item.name}</div>
-                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 8px;">${item.location} громада</div>
-                
-                <div style="font-size: 0.9rem; color: #444; background: #fdf2e9; padding: 5px 10px; border-radius: 8px; width: fit-content; display: flex; gap: 6px; align-items: center; border: 1px solid #fad7b5;">
-                    <i class="fa-regular fa-thumbs-up"></i> ${item.likes} + 
-                    <i class="fa-regular fa-comment"></i> ${item.comments} + 
-                    <i class="fa-solid fa-share"></i> ${item.shares} = 
-                    <strong style="color: #e67e22; font-size: 1.1rem;">${item.score}</strong>
-                </div>
-            </div>
-
-            <a href="${item.fbUrl}" target="_blank" style="background: #e67e22; color: white; padding: 12px 18px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-left: 10px;">
-                ГОЛОСУВАТИ
-            </a>
-        </div>
-    `).join('');
-}
-
-// Зірочка з правилами
-document.addEventListener('mouseover', function(e) {
-    if (e.target && e.target.id === 'rulesStar') {
-        let tooltip = document.getElementById('battle-tooltip');
-        if (!tooltip) {
-            tooltip = document.createElement('div');
-            tooltip.id = 'battle-tooltip';
-            tooltip.innerHTML = "<strong>Формула балів:</strong><br>Лайк + Коментар + Поширення";
-            tooltip.style = "position:absolute; background:white; border:2px solid #e67e22; padding:10px; border-radius:10px; z-index:10000; font-size:12px; box-shadow:0 10px 20px rgba(0,0,0,0.2); width:180px;";
-            document.body.appendChild(tooltip);
+            const b = currentBattleData[key];
+            if (b) {
+                label = b.rank; // Номер місця на іконці
+                content += `
+                    <div style="font-family: sans-serif;">
+                        <p style="color:#e67e22; font-weight:bold; font-size:16px; margin:0;">🏆 Місце: №${b.rank}</p>
+                        <p style="margin:8px 0 4px 0;">🎵 <b>${b.name}</b></p>
+                        <p style="margin:0 0 8px 0; color:#555;">👤 Керівник: <b>${b.leader}</b></p>
+                        <p style="margin:4px 0; font-weight:bold;">❤️ Балів: ${b.score}</p>
+                        <a href="${b.url}" target="_blank" style="display:block; text-align:center; background:#e74c3c; color:white; padding:6px; border-radius:5px; text-decoration:none; margin-top:10px; font-weight:bold;">ГОЛОСУВАТИ</a>
+                    </div>`;
+                show = true;
+            }
         }
-        e.target.onmousemove = (m) => {
-            tooltip.style.left = (m.pageX + 15) + 'px';
-            tooltip.style.top = (m.pageY + 15) + 'px';
-        };
-    }
-});
-document.addEventListener('mouseout', function(e) {
-    if (e.target && e.target.id === 'rulesStar') {
-        const tip = document.getElementById('battle-tooltip');
-        if (tip) tip.remove();
-    }
-});
 
-window.addEventListener('load', () => setTimeout(loadRanking, 1000));
+        if (show) {
+            const icon = L.divIcon({ className: 'count-icon', html: `<span>${label}</span>`, iconSize: [30, 30] });
+            L.marker([mapH - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
+        }
+    });
+}
+
+async function setMapMode(mode) {
+    // Стилізація кнопок
+    const btnCol = document.getElementById('btn-col');
+    const btnBat = document.getElementById('btn-bat');
+    if (btnCol) btnCol.className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+    if (btnBat) btnBat.className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+
+    if (mode === 'battle') await loadBattleRanking();
+    renderMarkers(mode);
+}
+
+window.onload = () => setMapMode('collectives');
