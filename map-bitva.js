@@ -11,11 +11,11 @@ var map = L.map('map', {
     maxZoom: 2
 });
 
-const bounds = [[0, 0], [mapH, mapW]];
+var bounds = [[0, 0], [mapH, mapW]];
 L.imageOverlay('map.jpg', bounds).addTo(map);
 map.fitBounds(bounds);
 
-const markersLayer = L.layerGroup().addTo(map);
+var markersLayer = L.layerGroup().addTo(map);
 let currentBattleData = {};
 
 /**
@@ -28,15 +28,15 @@ async function loadBattleRanking() {
         const rawData = await response.json();
         
         // Використовуємо базу з window (яку ми вставили в HTML)
-        const db = window.collectivesDatabase;
+        var db = window.collectivesDatabase;
         if (!db) {
             console.error("Помилка: collectivesDatabase не знайдено!");
             return false;
         }
 
-        const groups = {};
+        var groups = {};
         rawData.forEach(item => {
-            const url = (item.url || "").toLowerCase();
+            var url = (item.url || "").toLowerCase();
             let key = "";
 
             // Пошук ключа за посиланням
@@ -48,10 +48,10 @@ async function loadBattleRanking() {
             else if (url.includes("vodo") || url.includes("lesch")) key = "vodogray";
 
             if (key && db[key]) {
-                const l = parseInt(item.likes) || 0;
-                const s = parseInt(item.shares) || 0;
-                const c = parseInt(item.comments) || 0;
-                const total = l + s + c;
+                var l = parseInt(item.likes) || 0;
+                var s = parseInt(item.shares) || 0;
+                var c = parseInt(item.comments) || 0;
+                var total = l + s + c;
 
                 if (!groups[key] || total > groups[key].score) {
                     groups[key] = {
@@ -64,7 +64,7 @@ async function loadBattleRanking() {
         });
 
         // Сортування для визначення місць
-        const sorted = Object.values(groups).sort((a, b) => b.score - a.score);
+        var sorted = Object.values(groups).sort((a, b) => b.score - a.score);
         sorted.forEach((item, index) => {
             item.rank = index + 1;
         });
@@ -96,14 +96,14 @@ function renderMarkers(mode) {
     }
 
     hromadasGeoJSON.features.forEach(h => {
-        const hName = h.name.trim().toLowerCase();
+        var hName = h.name.trim().toLowerCase();
         let show = false;
         let label = "";
         let content = `<div style="text-align:center;"><strong>${h.name} громада</strong></div><hr style="margin:5px 0;">`;
 
         if (mode === 'collectives') {
             // Режим звичайних колективів (з collectives-list.js)
-            const list = (typeof collectivesList !== 'undefined') ? collectivesList[hName] : null;
+            var list = (typeof collectivesList !== 'undefined') ? collectivesList[hName] : null;
             if (list && list.length > 0) {
                 label = list.length;
                 content += `<div style="max-height:100px; overflow-y:auto; font-size:12px;">${list.join('<br>')}</div>`;
@@ -111,7 +111,7 @@ function renderMarkers(mode) {
             }
         } else if (mode === 'battle') {
             // Режим "Битва Громад"
-            const b = currentBattleData[hName];
+            var b = currentBattleData[hName];
             if (b) {
                 label = b.rank;
                 content += `
@@ -129,7 +129,7 @@ function renderMarkers(mode) {
         }
 
         if (show) {
-            const icon = L.divIcon({
+            var icon = L.divIcon({
                 className: 'count-icon',
                 html: `<span>${label}</span>`,
                 iconSize: [30, 30]
@@ -146,8 +146,8 @@ function renderMarkers(mode) {
  * Перемикання режимів
  */
 async function setMapMode(mode) {
-    const btnCol = document.getElementById('btn-col');
-    const btnBat = document.getElementById('btn-bat');
+    var btnCol = document.getElementById('btn-col');
+    var btnBat = document.getElementById('btn-bat');
     
     if (btnCol) btnCol.className = (mode === 'collectives') ? 'map-btn active-btn' : 'map-btn inactive-btn';
     if (btnBat) btnBat.className = (mode === 'battle') ? 'map-btn active-btn' : 'map-btn inactive-btn';
