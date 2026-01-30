@@ -2,117 +2,200 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Битва оркестрів - Черкащина</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Відділ народної творчості Черкаського ОЦНТ</title>
+
+    <link rel="icon" type="image/jpg" href="narodocnt.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="contest.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-        }
+        :root { --primary: #1e272e; --accent: #e67e22; --bg: #f5f6fa; --nav: #2f3640; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--primary); overflow-x: hidden; }
 
-        /* Стилі для панелей соцмереж */
-        .social-header, .social-footer {
-            text-align: center;
-            padding: 15px;
-            background: #ffffff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        /* Хедер */
+        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo-box { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 60px; border-radius: 8px; }
+        .logo-text h1 { font-size: 1.1rem; margin: 0; line-height: 1.2; }
+        .logo-text p { font-size: 0.85rem; margin: 0; color: #7f8c8d; }
 
-        .social-footer {
-            background: #2c3e50;
-            color: white;
-            padding: 40px 20px;
-            margin-top: 50px;
-        }
-
-        .social-icons a {
-            margin: 0 15px;
-            font-size: 28px;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.3s ease;
-        }
-
-        .social-icons a:hover {
-            transform: scale(1.2);
-        }
-
-        /* Традиційні кольори соцмереж */
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .header-socials { display: flex; gap: 12px; }
+        .header-socials a { font-size: 1.6rem; transition: 0.3s; }
+        
+        /* Кольори соцмереж */
         .fa-facebook { color: #1877F2; }
         .fa-youtube { color: #FF0000; }
-        .fa-instagram { color: #E4405F; }
-        .fa-globe { color: #34495e; }
-        .social-footer .fa-globe { color: #ffffff; }
+        .fa-telegram { color: #24A1DE; }
 
-        /* Контейнер для основного контенту */
-        #main-wrapper {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 600px;
+        .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+
+        /* Навігація */
+        nav { background: var(--nav); display: flex; justify-content: center; position: relative; flex-wrap: wrap; }
+        
+        .main-nav { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 20px; }
+        .nav-btn { 
+            display: inline-flex; align-items: center; justify-content: center; height: 45px; padding: 0 25px; 
+            background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 8px; 
+            font-size: 14px; font-weight: 600; text-transform: uppercase; border: none; cursor: pointer; transition: all 0.2s ease; 
         }
+        .nav-btn:hover { background-color: #5a6268; }
 
-        #rankingList {
-            margin-top: 30px;
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { 
+            display: none; position: absolute; top: 100%; left: 0; background-color: white; min-width: 240px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15); z-index: 1000; border-radius: 8px; padding-top: 5px; 
         }
+        .dropdown-content::before { content: ""; position: absolute; top: -10px; left: 0; width: 100%; height: 10px; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { color: #333; padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; transition: background 0.2s; border-bottom: 1px solid #eee; }
+        .dropdown-content a:hover { background-color: #f8f9fa; color: #cc0000; }
 
-        h2.section-title {
-            text-align: center;
-            color: #2c3e50;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* Контейнери */
+        .ruta-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
+        .social-icons a { font-size: 2.2rem; margin: 0 12px; transition: 0.3s; }
+        .social-icons a:hover { transform: scale(1.1); }
+
+        @media (max-width: 600px) { 
+            .header-socials { display: none; }
+            header { padding: 10px 2%; }
+            .logo-text h1 { font-size: 0.9rem; }
+            .nav-btn { padding: 0 15px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <header class="social-header">
-        <div class="social-icons">
-            <a href="https://www.facebook.com/narodocntcherkasy" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
-            <a href="https://www.youtube.com/@narodocnt" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="https://www.instagram.com/narodocnt" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://narodocnt.com.ua" target="_blank" title="Наш сайт"><i class="fas fa-globe"></i></a>
-        </div>
-    </header>
-
-    <div id="main-wrapper">
-        <h2 class="section-title">Рейтинг "Битва оркестрів"</h2>
-        
-        <div id="rankingList">
-            <p style="text-align:center;">Завантаження балів та формування рейтингу...</p>
+<header>
+    <div class="logo-box">
+        <img src="narodocnt.jpg" class="logo-img">
+        <div class="logo-text">
+            <h1>Відділ народної творчості</h1>
+            <p>Черкаського ОЦНТ</p>
         </div>
     </div>
-
-    <footer class="social-footer">
-        <p style="font-size: 18px; margin-bottom: 25px;">Приєднуйтесь до Черкаського обласного центру народної творчості:</p>
-        <div class="social-icons">
-            <a href="https://www.facebook.com/narodocntcherkasy" target="_blank"><i class="fab fa-facebook"></i></a>
-            <a href="https://www.youtube.com/@narodocnt" target="_blank"><i class="fab fa-youtube"></i></a>
-            <a href="https://www.instagram.com/narodocnt" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://narodocnt.com.ua" target="_blank"><i class="fas fa-globe"></i></a>
+    <div class="header-right">
+        <div class="header-socials">
+            <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
         </div>
-        <p style="margin-top: 30px; font-size: 14px; opacity: 0.7;">&copy; 2024 Всі права захищені</p>
-    </footer>
+        <div class="auth-btn" id="loginBtn" onclick="handleAuthClick()">Увійти</div>
+    </div>
+</header>
 
-    <script>
-        // Глобальна функція закриття модальних вікон (якщо вони використовуються в меню)
-        function closeModal() {
-            const modal = document.getElementById('listModal');
-            if (modal) modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+<nav class="main-nav">
+    <div class="dropdown">
+        <button class="nav-btn dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-content">
+            <a href="javascript:void(0)" onclick="openGenre('vocal')">Вокально-хоровий</a>
+            <a href="javascript:void(0)" onclick="openGenre('choreographic')">Хореографічний</a>
+            <a href="javascript:void(0)" onclick="openGenre('theatrical')">Театральний</a>
+            <a href="javascript:void(0)" onclick="openGenre('instrumental')">Музично-інструментальний</a>
+        </div>
+    </div>
+    <a href="map.html" class="nav-btn">КУЛЬТУРНА МАПА</a>
+    <a href="javascript:void(0)" class="nav-btn" onclick="goToGeneralForm('main')">ПОДАТИ ЗАЯВКУ</a>
+</nav>
+
+<div class="ruta-container">
+    <img src="cheruta.jpg" alt="Червона Рута" style="width: 100%; display: block;">
+</div>
+
+<div class="contest-container" style="background: linear-gradient(135deg, #8b0000, #b30000); color: white;">
+    <h2>📍 Інтерактивна мапа колективів</h2>
+    <p>Знайдіть народні колективи на мапі.</p>
+    <a href="map.html" style="display: inline-block; padding: 12px 30px; background: white; color: #8b0000; text-decoration: none; border-radius: 25px; font-weight: bold; margin-top: 10px;">ВІДКРИТИ</a>
+</div>
+
+<div class="contest-container" style="text-align: center; padding: 10px;">
+    <img src="bitva.jpg" style="width:100%; max-width:600px; border-radius:10px; margin-bottom: 10px;">
+    
+    <div id="festival-header-container">
+        <h2 id="festival-title" style="font-family: 'Lobster', cursive; color: #d35400; font-size: 28px; margin: 10px 0;">
+            🏆 Битва вподобайків <span id="info-star" style="cursor: pointer; color: #f1c40f;">*</span>
+        </h2>
+    </div>
+
+    <div id="rankingList">Завантаження рейтингу...</div>
+</div>
+
+<footer id="contacts">
+    <div class="social-icons">
+        <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+        <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+        <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
+    </div>
+    <p style="margin-top:20px;">Email: narodocnt@ukr.net</p>
+</footer>
+
+<div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
+    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px; font-weight: bold; color: #333;">&times;</span>
+        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px;"></div>
+    </div>
+</div>
+
+<script>
+    const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
+
+    function handleAuthClick() {
+        const user = localStorage.getItem('user');
+        if (user) {
+            if (confirm(`Вийти з аккаунту ${user}?`)) {
+                localStorage.removeItem('user');
+                location.reload();
+            }
+        } else {
+            window.location.href = AUTH_URL;
         }
-    </script>
+    }
 
-    <script src="cheruta.js"></script>
-    <script src="collectives.js"></script>
-    <script src="collectives-bitva.js"></script>
-    <script src="contest.js"></script>
+    function goToGeneralForm(type = 'main') {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert("🔒 Авторизуйтесь, будь ласка, через Google!");
+            handleAuthClick();
+            return;
+        }
+        const userName = encodeURIComponent(user);
+        let url = (type === 'cheruta') 
+            ? `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`
+            : `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
+        window.open(url, '_blank');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+        if (name) localStorage.setItem('user', decodeURIComponent(name));
+
+        const user = localStorage.getItem('user');
+        if (user) {
+            const btn = document.getElementById('loginBtn');
+            if (btn) {
+                btn.innerText = user;
+                btn.style.background = "#27ae60";
+                btn.style.color = "white";
+            }
+        }
+    });
+
+    function closeModal() { 
+        document.getElementById('listModal').style.display = 'none'; 
+        document.body.style.overflow = 'auto'; 
+    }
+</script>
+
+<script src="cheruta.js"></script>
+<script src="collectives.js"></script>
+<script src="collectives-bitva.js"></script>
+<script src="contest.js"></script>
 
 </body>
 </html>
