@@ -67,29 +67,45 @@ async function loadRanking() {
 }
 
 function renderList() {
-    var list = document.getElementById('rankingList');
-    if (!list) return;
+    const list = document.getElementById('rankingList');
+    if (!list || !currentData.length) return;
+    
     list.innerHTML = '';
     
-    var maxVal = Math.max(...currentData.map(function(i) { return i.score; })) || 1;
-    var colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#2980b9', '#8e44ad', '#27ae60'];
+    // Знаходимо максимальний бал для прогрес-бару
+    const maxScore = Math.max(...currentData.map(item => item.score)) || 1;
 
-    currentData.forEach(function(item, index) {
-        var color = colors[index] || '#2c3e50';
-        var percentage = (item.score / maxVal) * 100;
+    currentData.forEach((item, index) => {
+        // Визначаємо емодзі або медаль
+        let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+        
+        // Розрахунок відсотка для прогрес-бару
+        const progressWidth = (item.score / maxScore) * 100;
 
         list.innerHTML += `
-            <div style="margin: 10px auto; max-width: 600px; border: 2px solid ${color}; border-radius: 10px; overflow: hidden; background: white;">
-                <div style="display: flex; align-items: center;">
-                    <div style="width: 40px; background: ${color}; color: white; text-align: center; font-weight: bold; font-size: 20px; padding: 10px;">${index + 1}</div>
-                    <div style="flex: 1; padding: 10px;">
-                        <div style="font-weight: bold; color: #2c3e50;">${item.name}</div>
-                        <div style="font-size: 12px; color: #666;">Керівник: ${item.leader}</div>
-                        <div style="font-size: 14px; font-weight: bold; color: ${color}; margin-top: 5px;">Балів: ${item.score}</div>
+            <div class="rank-card top-${index}">
+                <div class="medal">${medal}</div>
+                
+                <img src="${item.media || 'narodocnt.jpg'}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
+                
+                <div class="rank-details">
+                    <div class="rank-header">
+                        <span class="rank-name">${item.name}</span>
+                        <span class="metric-info">${item.score} балів</span>
                     </div>
-                    <a href="${item.url}" target="_blank" style="padding: 10px; background: #e74c3c; color: white; text-decoration: none; margin-right: 10px; border-radius: 5px; font-size: 12px;">Голосувати</a>
+                    
+                    <div class="progress-wrapper">
+                        <div class="progress-fill" style="width: ${progressWidth}%"></div>
+                    </div>
+                    
+                    <div style="margin-top: 5px; font-size: 12px; color: #7f8c8d;">
+                        Керівник: ${item.leader || 'Не вказано'}
+                    </div>
                 </div>
-            </div>`;
+
+                <a href="${item.url}" class="btn-watch" target="_blank">Голосувати</a>
+            </div>
+        `;
     });
 }
 
