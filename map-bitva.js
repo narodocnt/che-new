@@ -31,7 +31,7 @@ async function loadBattleRanking() {
     else if (t.includes("кам")) key = "кам’янська";
     else if (t.includes("христин")) key = "христинівська";
     else if (t.includes("золот")) key = "золотоніська";
-    else if (t.includes("чорноб") || t.includes("водогр")) key = "чорнобаївська"; 
+    else if (gName.includes("чорноб")) key = "чорнобаївська";
     else if (t.includes("звениг")) key = "звенигородська";
 
     if (key) {
