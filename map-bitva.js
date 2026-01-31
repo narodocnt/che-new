@@ -33,37 +33,43 @@ async function loadBattleRanking() {
     else if (t.includes("золот") || t.includes("водогр") || t.includes("чорноб")) key = "золотоніська";
     else if (t.includes("звениг")) key = "звенигородська";
 
-    if (key) {
-        var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+  // ... всередині rawData.forEach ...
+if (key) {
+    var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+    
+    if (!groups[key] || total > groups[key].score) {
+        var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         
-        if (!groups[key] || total > groups[key].score) {
-            var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            
-            // 2. Розумний пошук назви колективу (шукаємо текст у лапках «»)
-            var nameMatch = fullText.match(/«([^»]+)»/g);
-            // Беремо друге входження (перше зазвичай назва фестивалю)
-            var collectiveName = (nameMatch && nameMatch.length > 1) 
-                ? nameMatch[1].replace(/[«»]/g, "") 
-                : (lines[1] || "Колектив");
-
-            // 3. Пошук керівника по всьому тексту
-            var leaderName = "Не вказано";
-            lines.forEach(line => {
-                if (line.toLowerCase().includes("керівник")) {
-                    leaderName = line.split(/[—:-]/).pop().trim();
-                }
-            });
-
-            groups[key] = {
-                name: collectiveName, 
-                leader: leaderName,
-                score: total,
-                url: item.facebookUrl || item.url,
-                media: item.media || 'narodocnt.jpg'
-            };
+        // 1. ШУКАЄМО НАЗВУ КОЛЕКТИВУ
+        // Шукаємо текст у лапках «». Якщо їх немає, беремо 2-й або 3-й рядок (де зазвичай назва)
+        var nameMatch = fullText.match(/«([^»]+)»/g);
+        var collectiveName = "Колектив";
+        
+        if (nameMatch && nameMatch.length > 1) {
+            // Беремо другі лапки (перші — це назва фестивалю)
+            collectiveName = nameMatch[1].replace(/[«»]/g, "");
+        } else {
+            // Якщо лапок немає, шукаємо рядок, який не містить слово "фестиваль"
+            collectiveName = lines.find(l => !l.toLowerCase().includes("фестиваль")) || lines[0];
         }
+
+        // 2. ШУКАЄМО КЕРІВНИКА
+        var leaderName = "Не вказано";
+        lines.forEach(line => {
+            if (line.toLowerCase().includes("керівник")) {
+                leaderName = line.split(/[—:-]/).pop().trim();
+            }
+        });
+
+        groups[key] = {
+            name: collectiveName, 
+            leader: leaderName,
+            score: total,
+            url: item.facebookUrl || item.url,
+            media: item.media || 'narodocnt.jpg'
+        };
     }
-});
+}
 
         var sorted = Object.keys(groups).sort(function(a, b) { return groups[b].score - groups[a].score; });
         sorted.forEach(function(k, index) { groups[k].rank = index + 1; });
