@@ -23,9 +23,9 @@ async function loadBattleRanking() {
             if (!fullText) return;
 
             var key = "";
-            var t = fullText.toLowerCase(); // Використовуємо t для пошуку
+            var t = fullText.toLowerCase(); // Аналізуємо текст поста
             
-            // ПРИВ'ЯЗКА ГРОМАД ДО ТЕКСТУ
+            // ПРИВ'ЯЗКА ТЕКСТУ ДО КЛЮЧІВ ГРОМАД
             if (t.includes("сміл")) key = "смілянська";
             else if (t.includes("тальн")) key = "тальнівська";
             else if (t.includes("кам")) key = "кам’янська";
@@ -40,11 +40,13 @@ async function loadBattleRanking() {
                 if (!groups[key] || total > groups[key].score) {
                     var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
                     
+                    // Пошук назви колективу в лапках
                     var nameMatch = fullText.match(/«([^»]+)»/g);
                     var collectiveName = (nameMatch && nameMatch.length > 1) 
                         ? nameMatch[1].replace(/[«»]/g, "") 
                         : (lines[1] || "Колектив");
 
+                    // Пошук керівника
                     var leaderName = "Не вказано";
                     lines.forEach(line => {
                         if (line.toLowerCase().includes("керівник")) {
@@ -69,7 +71,7 @@ async function loadBattleRanking() {
         currentBattleData = groups;
         renderMarkers('battle');
         
-        // Передаємо дані в contest.js
+        // Передаємо дані в contest.js для нижнього списку
         if (typeof renderList === 'function') {
             window.currentData = Object.values(groups).sort((a,b) => b.score - a.score);
             renderList();
@@ -85,9 +87,10 @@ function renderMarkers(mode) {
     if (typeof hromadasGeoJSON === 'undefined') return;
 
     hromadasGeoJSON.features.forEach(function(h) {
-        var gName = h.name.trim().toLowerCase(); // Тут gName працює, бо ми в циклі карти
+        var gName = h.name.trim().toLowerCase(); // Назва з карти
         var key = "";
         
+        // ЗІСТАВЛЕННЯ ГРОМАДИ НА КАРТІ З КЛЮЧЕМ ДАНИХ
         if (gName.includes("сміл")) key = "смілянська";
         else if (gName.includes("звениг")) key = "звенигородська";
         else if (gName.includes("кам")) key = "кам’янська";
