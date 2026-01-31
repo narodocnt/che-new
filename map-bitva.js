@@ -1,20 +1,46 @@
+// Глобальні змінні
 var map;
 var markersLayer;
-var currentBattleData = {};
 window.currentData = [];
+var currentBattleData = {};
 
-// 1. КАРТА
+// 1. Ініціалізація карти
 function initMap() {
     if (map) return;
-    map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
-    var bounds = [[0, 0], [736, 900]];
-    L.imageOverlay('map.jpg', bounds).addTo(map);
-    map.fitBounds(bounds);
-    markersLayer = L.layerGroup().addTo(map);
+    try {
+        map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+        var bounds = [[0, 0], [736, 900]];
+        L.imageOverlay('map.jpg', bounds).addTo(map);
+        map.fitBounds(bounds);
+        markersLayer = L.layerGroup().addTo(map);
+        console.log("Карта ініціалізована");
+    } catch (e) {
+        console.error("Помилка карти:", e);
+    }
 }
 
-// 2. ДАНІ ТА ПАРСИНГ
+// 2. Функція для зірочки (toggleRules)
+window.toggleRules = function(e) {
+    if (e) e.stopPropagation();
+    var box = document.getElementById('rating-rules-popup');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'rating-rules-popup';
+        box.style.cssText = "position:absolute; background:#fff; border:2px solid #f1c40f; padding:15px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; width:220px; font-size:14px; color:#333; display:none;";
+        box.innerHTML = "<b>📏 Правила рейтингу</b><br>👍 Лайк — 1 бал<br>💬 Коментар — 1 бал<br>🔄 Репост — 1 бал";
+        document.body.appendChild(box);
+    }
+    var isVisible = box.style.display === 'block';
+    box.style.display = isVisible ? 'none' : 'block';
+    if (e && !isVisible) {
+        box.style.left = (e.pageX + 10) + 'px';
+        box.style.top = (e.pageY + 10) + 'px';
+    }
+};
+
+// 3. Завантаження даних
 async function loadBattleRanking() {
+    console.log("Починаю завантаження даних...");
     var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
     try {
         var response = await fetch(N8N_URL);
@@ -27,7 +53,6 @@ async function loadBattleRanking() {
 
             var key = "";
             var t = fullText.toLowerCase();
-
             if (t.includes("сміл")) key = "смілянська";
             else if (t.includes("тальн")) key = "тальнівська";
             else if (t.includes("кам")) key = "кам’янська";
@@ -40,111 +65,53 @@ async function loadBattleRanking() {
                 var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
                 if (!groups[key] || total > groups[key].score) {
                     var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-                    
-                    // Пошук назви в лапках, ігноруючи назву фестивалю
                     var nameLine = lines.find(l => l.includes('«') && !l.toLowerCase().includes("фестиваль"));
-                    var collectiveName = "Учасник";
-                    
-                    if (nameLine) {
-                        var match = nameLine.match(/«([^»]+)»/);
-                        collectiveName = match ? match[1] : nameLine;
-                    } else {
-                        collectiveName = lines.find(l => !l.toLowerCase().includes("фестиваль")) || "Колектив";
-                    }
-
-                    var leaderName = "Не вказано";
-                    var leaderLine = lines.find(l => l.toLowerCase().includes("керівник"));
-                    if (leaderLine) {
-                        leaderName = leaderLine.split(/[—:-]/).pop().trim();
-                    }
+                    var collectiveName = nameLine ? (nameLine.match(/«([^»]+)»/) ? nameLine.match(/«([^»]+)»/)[1] : nameLine) : (lines[1] || "Колектив");
 
                     groups[key] = {
-                        name: collectiveName.substring(0, 70),
-                        leader: leaderName,
+                        name: collectiveName,
                         score: total,
                         url: item.facebookUrl || item.url,
+                        leader: "Вказано у пості",
                         media: item.media || 'narodocnt.jpg'
                     };
                 }
             }
         });
 
-        var sortedKeys = Object.keys(groups).sort((a, b) => groups[b].score - groups[a].score);
-        sortedKeys.forEach((k, index) => { groups[k].rank = index + 1; });
-
-        currentBattleData = groups;
         window.currentData = Object.values(groups).sort((a, b) => b.score - a.score);
+        window.currentData.forEach((item, index) => { item.rank = index + 1; });
+        
+        // Оновлюємо currentBattleData для карти
+        currentBattleData = groups;
 
-        renderMarkers('battle');
+        console.log("Дані успішно оброблені:", window.currentData);
         renderList();
+        renderMarkers('battle');
     } catch (e) {
-        console.error("Помилка даних:", e);
-        var list = document.getElementById('rankingList');
-        if (list) list.innerHTML = "Помилка завантаження даних.";
+        console.error("Помилка завантаження:", e);
     }
 }
 
-// 3. РЕЙТИНГ (СПИСОК)
+// 4. Рендер списку
 function renderList() {
     var list = document.getElementById('rankingList');
     if (!list) return;
-    if (!window.currentData || window.currentData.length === 0) {
-        list.innerHTML = "Немає активних учасників у битві.";
-        return;
-    }
-    
     list.innerHTML = '';
-    var maxScore = Math.max(...window.currentData.map(i => i.score)) || 1;
-
-    window.currentData.forEach((item, index) => {
+    window.currentData.forEach(function(item, index) {
         var medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
-        var progressWidth = (item.score / maxScore) * 100;
-        
-        list.innerHTML += `
-            <div class="rank-card">
-                <div class="medal">${medal}</div>
-                <img src="${item.media}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
-                <div class="rank-details">
-                    <div class="rank-header">
-                        <span class="rank-name">${item.name}</span>
-                        <span class="metric-info">${item.score} балів</span>
-                    </div>
-                    <div class="progress-wrapper"><div class="progress-fill" style="width:${progressWidth}%"></div></div>
-                    <div style="margin-top:5px; font-size:12px; color:#7f8c8d;">Керівник: ${item.leader}</div>
-                </div>
-                <a href="${item.url}" class="btn-watch" target="_blank">Голосувати</a>
-            </div>`;
+        list.innerHTML += `<div class="rank-card">
+            <div class="medal">${medal}</div>
+            <div class="rank-details">
+                <b>${item.name}</b><br>
+                <small>${item.score} балів</small>
+            </div>
+            <a href="${item.url}" target="_blank" class="btn-watch">Голосувати</a>
+        </div>`;
     });
 }
 
-// 4. ПРАВИЛА (ЗІРОЧКА)
-window.toggleRules = function(e) {
-    if (e) e.stopPropagation();
-    var box = document.getElementById('rating-rules-popup');
-    if (!box) {
-        box = document.createElement('div');
-        box.id = 'rating-rules-popup';
-        box.style.cssText = "position:absolute; background:#fff; border:2px solid #f1c40f; padding:15px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; width:220px; font-size:14px; color:#333;";
-        box.innerHTML = `
-            <div style="font-weight:bold; color:#e67e22; margin-bottom:8px; border-bottom:1px solid #eee;">📏 Правила рейтингу</div>
-            <div>👍 Лайк — 1 бал</div>
-            <div>💬 Коментар — 1 бал</div>
-            <div>🔄 Репост — 1 бал</div>
-        `;
-        document.body.appendChild(box);
-    }
-    
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-    if (e) {
-        box.style.left = (e.pageX + 10) + 'px';
-        box.style.top = (e.pageY + 10) + 'px';
-    }
-    
-    var close = function() { box.style.display = 'none'; document.removeEventListener('click', close); };
-    setTimeout(() => document.addEventListener('click', close), 10);
-};
-
-// 5. КАРТА (МАРКЕРИ)
+// 5. Маркери
 function renderMarkers(mode) {
     if (!markersLayer || typeof hromadasGeoJSON === 'undefined') return;
     markersLayer.clearLayers();
@@ -160,36 +127,16 @@ function renderMarkers(mode) {
         else if (gName.includes("золот")) key = "золотоніська";
         else if (gName.includes("чорноб")) key = "чорнобаївська";
 
-        var show = false, label = "", content = `<h3>${h.name}</h3>`;
-        
-        if (mode === 'collectives') {
-            var list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
-            if (list.length > 0) {
-                label = list.length;
-                content += list.join('<br>');
-                show = true;
-            }
-        } else if (currentBattleData[key]) {
+        if (currentBattleData[key]) {
             var d = currentBattleData[key];
-            label = d.rank;
-            content += `<p style="color:orange;font-weight:bold;">🏆 №${d.rank}</p><p><b>${d.name}</b></p><p>Балів: ${d.score}</p><a href="${d.url}" target="_blank" style="color:red;font-weight:bold;">Голосувати</a>`;
-            show = true;
-        }
-
-        if (show) {
-            var icon = L.divIcon({ className: 'count-icon', html: `<span>${label}</span>`, iconSize: [30, 30] });
-            L.marker([736 - h.y, h.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
+            var icon = L.divIcon({ className: 'count-icon', html: `<span>${d.rank}</span>`, iconSize: [30, 30] });
+            L.marker([736 - h.y, h.x], { icon: icon }).bindPopup(`<b>${d.name}</b><br>Місце: ${d.rank}`).addTo(markersLayer);
         }
     });
 }
 
-window.setMapMode = function(mode) {
-    if (mode === 'battle') loadBattleRanking();
-    else renderMarkers('collectives');
-};
-
+// Запуск
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
-    renderMarkers('collectives');
     loadBattleRanking();
 });
