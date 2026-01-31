@@ -19,32 +19,51 @@ async function loadBattleRanking() {
         var groups = {};
 
         rawData.forEach(function(item) {
-            // Перевіряємо всі поля тексту
-            var fullText = (item.pageName || item.text || item.caption || item.message || "").trim();
-            if (!fullText) return;
+    var fullText = (item.message || item.text || item.pageName || "").trim();
+    if (!fullText) return;
 
-            var key = "";
-            var t = fullText.toLowerCase();
+    var key = "";
+    var t = fullText.toLowerCase();
+    
+    // 1. Покращений пошук громади (додано Чорнобай для Водограю)
+    if (t.includes("сміл")) key = "смілянська";
+    else if (t.includes("тальн")) key = "тальнівська";
+    else if (t.includes("кам")) key = "кам’янська";
+    else if (t.includes("христин")) key = "христинівська";
+    else if (t.includes("золот") || t.includes("водогр") || t.includes("чорноб")) key = "золотоніська";
+    else if (t.includes("звениг")) key = "звенигородська";
+
+    if (key) {
+        var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+        
+        if (!groups[key] || total > groups[key].score) {
+            var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
-            // РОЗШИРЕНИЙ ПОШУК ГРОМАД (додав варіанти для Водограю)
-            if (t.includes("сміл") || t.includes("божидар")) key = "смілянська";
-            else if (t.includes("тальн") || t.includes("сурми")) key = "тальнівська";
-            else if (t.includes("кам")) key = "кам’янська";
-            else if (t.includes("христин")) key = "христинівська";
-            else if (t.includes("золот") || t.includes("водогр")) key = "золотоніська"; // Водограй тепер тут
-            else if (t.includes("звениг") || t.includes("дзет")) key = "звенигородська";
+            // 2. Розумний пошук назви колективу (шукаємо текст у лапках «»)
+            var nameMatch = fullText.match(/«([^»]+)»/g);
+            // Беремо друге входження (перше зазвичай назва фестивалю)
+            var collectiveName = (nameMatch && nameMatch.length > 1) 
+                ? nameMatch[1].replace(/[«»]/g, "") 
+                : (lines[1] || "Колектив");
 
-            if (key) {
-                var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
-                if (!groups[key] || total > groups[key].score) {
-                    groups[key] = {
-                        name: fullText.split("\n")[0].replace(/[#*]/g, "").trim(),
-                        score: total,
-                        url: item.url
-                    };
+            // 3. Пошук керівника по всьому тексту
+            var leaderName = "Не вказано";
+            lines.forEach(line => {
+                if (line.toLowerCase().includes("керівник")) {
+                    leaderName = line.split(/[—:-]/).pop().trim();
                 }
-            }
-        });
+            });
+
+            groups[key] = {
+                name: collectiveName, 
+                leader: leaderName,
+                score: total,
+                url: item.facebookUrl || item.url,
+                media: item.media || 'narodocnt.jpg'
+            };
+        }
+    }
+});
 
         var sorted = Object.keys(groups).sort(function(a, b) { return groups[b].score - groups[a].score; });
         sorted.forEach(function(k, index) { groups[k].rank = index + 1; });
