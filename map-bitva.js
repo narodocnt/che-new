@@ -25,51 +25,53 @@ async function loadBattleRanking() {
     var key = "";
     var t = fullText.toLowerCase();
     
-    // 1. Покращений пошук громади (додано Чорнобай для Водограю)
-    if (t.includes("сміл")) key = "Смілянська";
-    else if (t.includes("тальн")) key = "Тальнівська";
-    else if (t.includes("кам")) key = "Кам’янська";
-    else if (t.includes("христин")) key = "Христинівська";
-    else if (t.includes("золот") || key = "Чорнобаївська";
-    else if (t.includes("звениг")) key = "Звенигородська";
+    // ПРИВ'ЯЗКА ГРОМАД
+    if (t.includes("сміл")) key = "смілянська";
+    else if (t.includes("тальн")) key = "тальнівська";
+    else if (t.includes("кам")) key = "кам’янська";
+    else if (t.includes("христин")) key = "христинівська";
+    else if (t.includes("золот")) key = "золотоніська";
+    else if (t.includes("чорноб") || t.includes("водогр")) key = "чорнобаївська"; 
+    else if (t.includes("звениг")) key = "звенигородська";
 
-  // ... всередині rawData.forEach ...
-if (key) {
-    var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
-    
-    if (!groups[key] || total > groups[key].score) {
-        var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (key) {
+        var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
         
-        // 1. ШУКАЄМО НАЗВУ КОЛЕКТИВУ
-        // Шукаємо текст у лапках «». Якщо їх немає, беремо 2-й або 3-й рядок (де зазвичай назва)
-        var nameMatch = fullText.match(/«([^»]+)»/g);
-        var collectiveName = "Колектив";
-        
-        if (nameMatch && nameMatch.length > 1) {
-            // Беремо другі лапки (перші — це назва фестивалю)
-            collectiveName = nameMatch[1].replace(/[«»]/g, "");
-        } else {
-            // Якщо лапок немає, шукаємо рядок, який не містить слово "фестиваль"
-            collectiveName = lines.find(l => !l.toLowerCase().includes("фестиваль")) || lines[0];
-        }
-
-        // 2. ШУКАЄМО КЕРІВНИКА
-        var leaderName = "Не вказано";
-        lines.forEach(line => {
-            if (line.toLowerCase().includes("керівник")) {
-                leaderName = line.split(/[—:-]/).pop().trim();
+        if (!groups[key] || total > groups[key].score) {
+            // РОЗБИВАЄМО НА РЯДКИ ТА ЧИСТИМО ПОРОЖНІ
+            var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+            
+            // ЛОГІКА ПОШУКУ НАЗВИ:
+            // Шукаємо рядок, де є «лапки», але НЕМАЄ слова "фестиваль"
+            var collectiveName = "Колектив";
+            var nameLine = lines.find(l => l.includes('«') && !l.toLowerCase().includes("фестиваль"));
+            
+            if (nameLine) {
+                // Витягуємо текст між «»
+                var match = nameLine.match(/«([^»]+)»/);
+                collectiveName = match ? match[1] : nameLine;
+            } else {
+                // Якщо лапок немає, беремо перший рядок, який не про фестиваль і не вступ
+                collectiveName = lines.find(l => l.length > 10 && !l.toLowerCase().includes("фестиваль")) || "Учасник";
             }
-        });
 
-        groups[key] = {
-            name: collectiveName, 
-            leader: leaderName,
-            score: total,
-            url: item.facebookUrl || item.url,
-            media: item.media || 'narodocnt.jpg'
-        };
+            // ЛОГІКА ПОШУКУ КЕРІВНИКА:
+            var leaderName = "Не вказано";
+            var leaderLine = lines.find(l => l.toLowerCase().includes("керівник"));
+            if (leaderLine) {
+                leaderName = leaderLine.split(/[—:-]/).pop().trim();
+            }
+
+            groups[key] = {
+                name: collectiveName.substring(0, 70), // Обмежуємо довжину
+                leader: leaderName,
+                score: total,
+                url: item.facebookUrl || item.url,
+                media: item.media || 'narodocnt.jpg'
+            };
+        }
     }
-}
+});
 
         var sorted = Object.keys(groups).sort(function(a, b) { return groups[b].score - groups[a].score; });
         sorted.forEach(function(k, index) { groups[k].rank = index + 1; });
