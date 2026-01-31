@@ -26,12 +26,12 @@ async function loadBattleRanking() {
     var t = fullText.toLowerCase();
     
     // 1. Покращений пошук громади (додано Чорнобай для Водограю)
-    if (t.includes("сміл")) key = "смілянська";
-    else if (t.includes("тальн")) key = "тальнівська";
-    else if (t.includes("кам")) key = "кам’янська";
-    else if (t.includes("христин")) key = "христинівська";
-    else if (t.includes("золот") || t.includes("водогр") || t.includes("чорноб")) key = "золотоніська";
-    else if (t.includes("звениг")) key = "звенигородська";
+    if (t.includes("сміл")) key = "Смілянська";
+    else if (t.includes("тальн")) key = "Тальнівська";
+    else if (t.includes("кам")) key = "Кам’янська";
+    else if (t.includes("христин")) key = "Христинівська";
+    else if (t.includes("золот") || key = "Чорнобаївська";
+    else if (t.includes("звениг")) key = "Звенигородська";
 
   // ... всередині rawData.forEach ...
 if (key) {
