@@ -116,18 +116,23 @@
 <div class="contest-container" style="text-align: center; padding: 10px;">
     <img src="bitva.jpg" style="width:100%; max-width:600px; border-radius:10px; margin-bottom: 10px;">
     
-   <div style="text-align: center; margin: 20px 0; position: relative;">
-    <h1 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+  <div style="text-align: center; margin: 40px 0 20px 0; position: relative;">
+    <h1 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 2.2em; color: #fff;">
         🏆 Битва вподобайків 
-        <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 24px;">★</span>
+        <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 32px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);">★</span>
     </h1>
-    <p style="margin: 5px 0 0 0; color: #666; font-size: 1.1em;">
+    <p style="margin: 8px 0 20px 0; color: #bdc3c7; font-size: 1.2em; font-weight: 300;">
         Обласний фестиваль «Музична варта»
     </p>
+    
+    <div id="rankingList" style="max-width: 900px; margin: 0 auto; text-align: left;">
+        <p style="text-align:center; color: #888;">Завантаження рейтингу...</p>
+    </div>
 </div>
 
-    <div id="rankingList">Завантаження рейтингу...</div>
-</div>
+<script src="bitva-rule-star.js"></script>
+<script src="bitva-cards.js"></script>
+<script src="map-bitva.js"></script>
 
 <footer id="contacts">
     <div class="social-icons">
@@ -199,6 +204,9 @@
 <script src="cheruta.js"></script>
 <script src="collectives.js"></script>
 <script src="collectives-bitva.js"></script>
+<script src="bitva-rule-star.js"></script>
+<script src="bitva-cards.js"></script>
+<script src="map-bitva.js"></script>
 
 </body>
 </html>
