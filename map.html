@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Карта громад Черкащини</title>
-     <link rel="icon" type="image/jpg" href="narodocnt.jpg">
+    <link rel="icon" type="image/jpg" href="narodocnt.jpg">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2c3e50; font-family: sans-serif; }
-        #map { height: 100vh; width: 100%; }
+        /* Дозволяємо прокрутку, щоб бачити картки під картою */
+        body, html { margin: 0; padding: 0; min-height: 100%; background: #2c3e50; font-family: sans-serif; overflow-y: auto; }
+        
+        #map { height: 70vh; width: 100%; position: relative; } /* Карта на 70% екрану */
+        
         .map-controls {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
             z-index: 1000; display: flex; gap: 8px; background: rgba(255,255,255,0.9);
@@ -16,6 +19,30 @@
         .map-btn { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
         .active-btn { background: #e67e22; color: white; }
         .inactive-btn { background: #eee; color: #555; }
+
+        /* Контейнер для списку рейтингу */
+        #rankingList {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f4f4f4;
+            min-height: 200px;
+        }
+
+        /* Стиль картки (як у твоїх попередніх версіях) */
+        .rank-card {
+            display: flex; align-items: center; background: white; margin-bottom: 10px;
+            padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .rank-photo { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; margin: 0 15px; }
+        .medal { font-size: 24px; font-weight: bold; width: 40px; text-align: center; }
+        .rank-details { flex-grow: 1; }
+        .rank-name { font-weight: bold; display: block; margin-bottom: 5px; }
+        .progress-wrapper { background: #eee; height: 8px; border-radius: 4px; width: 100%; overflow: hidden; }
+        .progress-fill { background: #e67e22; height: 100%; border-radius: 4px; transition: width 0.5s; }
+        .btn-watch { background: #3498db; color: white; text-decoration: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+
         .count-icon {
             display: flex !important; align-items: center; justify-content: center;
             background: #3498db; color: white; border-radius: 50%;
@@ -23,55 +50,37 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
 
-        /* Масштабування вікон карти */
-.leaflet-popup-content-wrapper {
-    border-radius: 12px !important;
-    border: 2px solid #d35400;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
-}
-
-.leaflet-popup-content {
-    margin: 12px !important;
-    line-height: 1.4 !important;
-    width: auto !important; /* Дозволяє вікну підлаштовуватися під контент */
-}
-
-/* Адаптація для маленьких екранів */
-@media (max-width: 600px) {
-    .leaflet-popup-content {
-        max-width: 220px !important;
-        font-size: 12px;
-    }
-}
-</style>
+        .leaflet-popup-content-wrapper { border-radius: 12px !important; border: 2px solid #d35400; }
+    </style>
 </head>
 <body>
 
     <div class="map-controls">
-        <button id="btn-col" class="map-btn active-btn" onclick="setMapMode('collectives')">Колективи</button>
-        <button id="btn-bat" class="map-btn inactive-btn" onclick="setMapMode('battle')">Битва</button>
+        <button id="btn-col" class="map-btn active-btn" onclick="updateMode('collectives')">Колективи</button>
+        <button id="btn-bat" class="map-btn inactive-btn" onclick="updateMode('battle')">Битва</button>
     </div>
 
     <div id="map"></div>
-    
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-​<script src="hromadas-data.js"></script>
-​<script src="collectives-list.js"></script>
-​<script src="collectives-bitva.js"></script>
-<script src="map-bitva.js"></script>
-<script>
-    
-    window.collectivesDatabase = {
-        "smila": { name: "Оркестр «Божидар» (Сміла)", leader: "Анатолій Кирилюк" },
-        "zveny": { name: "Оркестр «Дзет» (Звенигородка)", leader: "Олександр Дзет" },
-        "kamyanka": { name: "Оркестр м. Кам’янка", leader: "Віктор Мовчан" },
-        "talne": { name: "Оркестр «Сурми Тальнівщини»", leader: "Василь Марченко" },
-        "hrist": { name: "Оркестр Великосевастянівського БК", leader: "Михайло Свердлик" },
-        "vodogray": { name: "Ансамбль «Водограй»", leader: "Людмила Лещенко" }
-    };
-</script>
-​<script src="map-bitva.js"></script>
-​<script src="contest.js"></script>
-    
+
+    <div id="rankingList">
+        <p style="text-align:center; color:#666;">Тут з'являться картки учасників битви...</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="hromadas-data.js"></script>
+    <script src="collectives-list.js"></script>
+    <script src="map-bitva.js"></script>
+
+    <script>
+        // Додаткова логіка перемикання кнопок
+        function updateMode(mode) {
+            document.getElementById('btn-col').className = 'map-btn ' + (mode === 'collectives' ? 'active-btn' : 'inactive-btn');
+            document.getElementById('btn-bat').className = 'map-btn ' + (mode === 'battle' ? 'active-btn' : 'inactive-btn');
+            
+            if (window.setMapMode) {
+                window.setMapMode(mode);
+            }
+        }
+    </script>
 </body>
 </html>
