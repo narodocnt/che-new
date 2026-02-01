@@ -1,10 +1,12 @@
-// Глобальні змінні
+/**
+ * map-bitva.js - Об'єднаний та відмовостійкий код (Карта + Рейтинг + Зірочка)
+ */
 var map;
 var markersLayer;
-window.currentData = [];
-var currentBattleData = {};
+window.currentData = []; // Глобальні дані для карток
+var currentBattleData = {}; // Дані для мапи
 
-// 1. Ініціалізація карти
+// 1. ІНІЦІАЛІЗАЦІЯ КАРТИ (запускається одразу)
 function initMap() {
     if (map) return;
     try {
@@ -13,46 +15,81 @@ function initMap() {
         L.imageOverlay('map.jpg', bounds).addTo(map);
         map.fitBounds(bounds);
         markersLayer = L.layerGroup().addTo(map);
-        console.log("Карта ініціалізована");
+        console.log("✅ Карта готова");
     } catch (e) {
-        console.error("Помилка карти:", e);
+        console.error("❌ Помилка ініціалізації карти:", e);
     }
 }
 
-// 2. Функція для зірочки (toggleRules)
+// 2. ЗІРОЧКА ПРАВИЛ (toggleRules)
 window.toggleRules = function(e) {
     if (e) e.stopPropagation();
-    var box = document.getElementById('rating-rules-popup');
+    let box = document.getElementById('rating-rules-popup');
+    
     if (!box) {
         box = document.createElement('div');
         box.id = 'rating-rules-popup';
-        box.style.cssText = "position:absolute; background:#fff; border:2px solid #f1c40f; padding:15px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; width:220px; font-size:14px; color:#333; display:none;";
-        box.innerHTML = "<b>📏 Правила рейтингу</b><br>👍 Лайк — 1 бал<br>💬 Коментар — 1 бал<br>🔄 Репост — 1 бал";
+        box.style.cssText = `
+            position: absolute;
+            background: #fff;
+            border: 2px solid #f1c40f;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 9999;
+            width: 220px;
+            font-size: 14px;
+            color: #333;
+            display: none;
+        `;
+        box.innerHTML = `
+            <div style="font-weight: bold; color: #e67e22; margin-bottom: 8px; border-bottom: 1px solid #eee;">📏 Правила рейтингу</div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div>👍 Лайк — <b>1 бал</b></div>
+                <div>💬 Коментар — <b>1 бал</b></div>
+                <div>🔄 Репост — <b>1 бал</b></div>
+            </div>
+        `;
         document.body.appendChild(box);
     }
-    var isVisible = box.style.display === 'block';
+
+    const isVisible = box.style.display === 'block';
     box.style.display = isVisible ? 'none' : 'block';
+
     if (e && !isVisible) {
         box.style.left = (e.pageX + 10) + 'px';
         box.style.top = (e.pageY + 10) + 'px';
     }
+
+    const closeRules = () => {
+        box.style.display = 'none';
+        document.removeEventListener('click', closeRules);
+    };
+    if (!isVisible) setTimeout(() => document.addEventListener('click', closeRules), 10);
 };
 
-// 3. Завантаження даних
+// 3. ЗАВАНТАЖЕННЯ ДАНИХ (Битва)
 async function loadBattleRanking() {
-    console.log("Починаю завантаження даних...");
-    var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    try {
-        var response = await fetch(N8N_URL);
-        var rawData = await response.json();
-        var groups = {};
+    const listContainer = document.getElementById('rankingList');
+    if (listContainer) {
+        listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Завантаження результатів битви...</div>';
+    }
 
-        rawData.forEach(function(item) {
-            var fullText = (item.message || item.text || item.pageName || "").trim();
+    const N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    
+    try {
+        const response = await fetch(N8N_URL);
+        if (!response.ok) throw new Error("Сервер не відповідає");
+        
+        const rawData = await response.json();
+        const groups = {};
+
+        rawData.forEach(item => {
+            const fullText = (item.message || item.text || item.pageName || "").trim();
             if (!fullText) return;
 
-            var key = "";
-            var t = fullText.toLowerCase();
+            let key = "";
+            const t = fullText.toLowerCase();
             if (t.includes("сміл")) key = "смілянська";
             else if (t.includes("тальн")) key = "тальнівська";
             else if (t.includes("кам")) key = "кам’янська";
@@ -62,18 +99,26 @@ async function loadBattleRanking() {
             else if (t.includes("звениг")) key = "звенигородська";
 
             if (key) {
-                var total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+                const total = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
                 if (!groups[key] || total > groups[key].score) {
-                    var lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-                    var nameLine = lines.find(l => l.includes('«') && !l.toLowerCase().includes("фестиваль"));
-                    var collectiveName = nameLine ? (nameLine.match(/«([^»]+)»/) ? nameLine.match(/«([^»]+)»/)[1] : nameLine) : (lines[1] || "Колектив");
+                    const lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+                    
+                    // Покращений пошук назви
+                    let collectiveName = "Учасник";
+                    const nameLine = lines.find(l => l.includes('«') && !l.toLowerCase().includes("фестиваль"));
+                    if (nameLine) {
+                        const match = nameLine.match(/«([^»]+)»/);
+                        collectiveName = match ? match[1] : nameLine;
+                    } else {
+                        collectiveName = lines[1] || "Колектив";
+                    }
 
                     groups[key] = {
-                        name: collectiveName,
+                        name: collectiveName.replace(/[#*«»]/g, ""),
                         score: total,
                         url: item.facebookUrl || item.url,
-                        leader: "Вказано у пості",
-                        media: item.media || 'narodocnt.jpg'
+                        media: item.media || 'narodocnt.jpg',
+                        leader: lines.find(l => l.toLowerCase().includes("керівник"))?.split(/[—:-]/).pop().trim() || "Вказано у пості"
                     };
                 }
             }
@@ -81,44 +126,60 @@ async function loadBattleRanking() {
 
         window.currentData = Object.values(groups).sort((a, b) => b.score - a.score);
         window.currentData.forEach((item, index) => { item.rank = index + 1; });
-        
-        // Оновлюємо currentBattleData для карти
         currentBattleData = groups;
 
-        console.log("Дані успішно оброблені:", window.currentData);
         renderList();
         renderMarkers('battle');
+
     } catch (e) {
-        console.error("Помилка завантаження:", e);
+        console.error("❌ Помилка завантаження даних:", e);
+        if (listContainer) {
+            listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">Рейтинг тимчасово недоступний, але ви можете голосувати на сторінці Facebook.</div>';
+        }
     }
 }
 
-// 4. Рендер списку
+// 4. ВИНЕСЕННЯ КАРТОК У СПИСОК
 function renderList() {
-    var list = document.getElementById('rankingList');
-    if (!list) return;
+    const list = document.getElementById('rankingList');
+    if (!list || !window.currentData.length) return;
+    
     list.innerHTML = '';
-    window.currentData.forEach(function(item, index) {
-        var medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
-        list.innerHTML += `<div class="rank-card">
-            <div class="medal">${medal}</div>
-            <div class="rank-details">
-                <b>${item.name}</b><br>
-                <small>${item.score} балів</small>
-            </div>
-            <a href="${item.url}" target="_blank" class="btn-watch">Голосувати</a>
-        </div>`;
+    const maxScore = Math.max(...window.currentData.map(i => i.score)) || 1;
+
+    window.currentData.forEach((item, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+        const progressWidth = (item.score / maxScore) * 100;
+
+        list.innerHTML += `
+            <div class="rank-card top-${index}">
+                <div class="medal">${medal}</div>
+                <img src="${item.media}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
+                <div class="rank-details">
+                    <div class="rank-header">
+                        <span class="rank-name">${item.name}</span>
+                        <span class="metric-info">${item.score} балів</span>
+                    </div>
+                    <div class="progress-wrapper">
+                        <div class="progress-fill" style="width: ${progressWidth}%"></div>
+                    </div>
+                    <div style="margin-top: 5px; font-size: 12px; color: #7f8c8d;">
+                        Керівник: ${item.leader}
+                    </div>
+                </div>
+                <a href="${item.url}" class="btn-watch" target="_blank">Голосувати</a>
+            </div>`;
     });
 }
 
-// 5. Маркери
+// 5. МАРКЕРИ НА КАРТІ
 function renderMarkers(mode) {
     if (!markersLayer || typeof hromadasGeoJSON === 'undefined') return;
     markersLayer.clearLayers();
-    
+
     hromadasGeoJSON.features.forEach(function(h) {
-        var gName = h.name.trim().toLowerCase();
-        var key = "";
+        const gName = h.name.trim().toLowerCase();
+        let key = "";
         if (gName.includes("сміл")) key = "смілянська";
         else if (gName.includes("звениг")) key = "звенигородська";
         else if (gName.includes("кам")) key = "кам’янська";
@@ -127,16 +188,31 @@ function renderMarkers(mode) {
         else if (gName.includes("золот")) key = "золотоніська";
         else if (gName.includes("чорноб")) key = "чорнобаївська";
 
-        if (currentBattleData[key]) {
-            var d = currentBattleData[key];
-            var icon = L.divIcon({ className: 'count-icon', html: `<span>${d.rank}</span>`, iconSize: [30, 30] });
-            L.marker([736 - h.y, h.x], { icon: icon }).bindPopup(`<b>${d.name}</b><br>Місце: ${d.rank}`).addTo(markersLayer);
+        if (mode === 'battle' && currentBattleData[key]) {
+            const d = currentBattleData[key];
+            const icon = L.divIcon({ className: 'count-icon', html: `<span>${d.rank}</span>`, iconSize: [30, 30] });
+            L.marker([736 - h.y, h.x], { icon: icon })
+             .bindPopup(`<b>${d.name}</b><br>Місце: ${d.rank}<br>Балів: ${d.score}`)
+             .addTo(markersLayer);
+        } else if (mode === 'collectives') {
+            const list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
+            if (list.length > 0) {
+                const icon = L.divIcon({ className: 'count-icon', html: `<span>${list.length}</span>`, iconSize: [30, 30] });
+                L.marker([736 - h.y, h.x], { icon: icon }).bindPopup(`<h3>${h.name}</h3>` + list.join('<br>')).addTo(markersLayer);
+            }
         }
     });
 }
 
-// Запуск
+// ПЕРЕМИКАЧ РЕЖИМІВ
+window.setMapMode = function(mode) {
+    if (mode === 'battle') loadBattleRanking();
+    else renderMarkers('collectives');
+};
+
+// СТАРТ
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
-    loadBattleRanking();
+    renderMarkers('collectives'); // Спочатку цифри громад
+    loadBattleRanking(); // Потім завантажуємо битву
 });
