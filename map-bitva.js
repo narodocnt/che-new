@@ -1,79 +1,112 @@
-async function loadBattleRanking() {
-    var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    try {
-        var response = await fetch(N8N_URL);
-        var rawData = await response.json();
-        var processedItems = [];
-        window.currentBattleData = {}; // Очищаємо перед оновленням
+// Константи карти
+const imgW = 900;
+const imgH = 736;
 
-        rawData.forEach(function(item) {
-            var fullText = (item.message || item.text || "").trim();
-            if (!fullText || fullText.length < 10) return;
+// Глобальні змінні
+window.currentMode = 'collectives';
+window.currentBattleData = {};
+let map, markersLayer;
 
-            var t = fullText.toLowerCase();
-            var foundId = null;
+// 1. ГОЛОВНА ФУНКЦІЯ (window. щоб кнопки її бачили)
+window.setMode = function(mode) {
+    window.currentMode = mode;
+    console.log("Режим змінено на:", mode);
+    
+    // Оновлюємо вигляд кнопок
+    const btnC = document.getElementById('btn-collectives');
+    const btnB = document.getElementById('btn-battle');
+    if (btnC) btnC.className = mode === 'collectives' ? 'map-btn active-btn' : 'map-btn inactive-btn';
+    if (btnB) btnB.className = mode === 'battle' ? 'map-btn active-btn' : 'map-btn inactive-btn';
 
-            // ЗРІВНЯННЯ ТА ПОРІВНЯННЯ з базою даних
-            // Шукаємо, до якого ID з реєстру належить цей пост
-            for (var id in window.collectivesDatabase) {
-                var dbItem = window.collectivesDatabase[id];
-                // Перевіряємо за назвою колективу або за локацією (громадою)
-                if (t.includes(dbItem.location.toLowerCase()) || 
-                    t.includes(dbItem.key.toLowerCase()) || 
-                    t.includes(dbItem.name.toLowerCase().substring(0, 10))) {
-                    foundId = id;
-                    break;
-                }
+    renderMarkers();
+
+    if (mode === 'battle') {
+        loadBattleRanking();
+    }
+};
+
+// 2. МАЛЮЄМО КАРТКИ (Завжди бере дані з локального файлу hromadas-data.js)
+function renderMarkers() {
+    if (!markersLayer) return;
+    markersLayer.clearLayers();
+
+    if (typeof hromadasGeoJSON === 'undefined') {
+        console.error("Помилка: hromadas-data.js не завантажено!");
+        return;
+    }
+
+    hromadasGeoJSON.features.forEach(hromada => {
+        const nameKey = hromada.name.trim().toLowerCase();
+        let label = "•"; 
+        let content = `<h3>${hromada.name}</h3><hr>`;
+
+        if (window.currentMode === 'collectives') {
+            const list = (typeof collectivesList !== 'undefined') ? (collectivesList[nameKey] || []) : [];
+            label = list.length || 0;
+            content += `<b>Колективів: ${label}</b>`;
+        } else {
+            const b = window.currentBattleData[nameKey];
+            if (b) {
+                label = b.rank;
+                content += `<p>🏆 Місце: №${b.rank}</p><p>❤️ Балів: ${b.score}</p>`;
+            } else {
+                label = "?";
+                content += `<p>Очікуємо дані з n8n...</p>`;
             }
+        }
 
-            // Якщо знайшли збіг у таблиці — беремо дані з неї, інакше пропускаємо або беремо "як є"
-            if (foundId) {
-                var official = window.collectivesDatabase[foundId];
-                var score = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
-
-                var entry = {
-                    id: foundId,
-                    name: official.name, // Беремо офіційну назву з реєстру
-                    score: score,
-                    url: item.facebookUrl || item.url || "#",
-                    media: official.media, // Беремо офіційне фото
-                    leader: official.leader, // Беремо офіційного керівника
-                    hromada: official.location.toLowerCase()
-                };
-
-                processedItems.push(entry);
-
-                // Оновлюємо дані для мапи (тільки найкращий результат для цієї локації)
-                var locKey = official.location.toLowerCase();
-                if (!window.currentBattleData[locKey] || score > window.currentBattleData[locKey].score) {
-                    window.currentBattleData[locKey] = entry;
-                }
-            }
+        const icon = L.divIcon({
+            className: 'count-icon',
+            html: `<span>${label}</span>`,
+            iconSize: [30, 30]
         });
 
-        // Сортуємо за балами
-        processedItems.sort(function(a, b) { return b.score - a.score; });
-        
-        // Призначаємо ранги (місця)
-        processedItems.forEach(function(item, index) { 
-            item.rank = index + 1; 
-            // Оновлюємо ранг у даних для мапи
-            if (window.currentBattleData[item.hromada] && window.currentBattleData[item.hromada].id === item.id) {
-                window.currentBattleData[item.hromada].rank = item.rank;
-            }
-        });
-
-        window.currentData = processedItems;
-
-        // Викликаємо малювання карток та маркерів
-        if (typeof renderList === 'function') renderList();
-        if (typeof renderMarkers === 'function') renderMarkers('battle');
-
-    } catch (e) { console.error("Помилка порівняння даних:", e); }
+        L.marker([imgH - hromada.y, hromada.x], { icon: icon }).bindPopup(content).addTo(markersLayer);
+    });
 }
 
-// Примусовий запуск режиму громад при старті
-setTimeout(() => {
-    setMode('collectives');
-}, 500);
+// 3. ЗАВАНТАЖЕННЯ З N8N (Оновлює вже існуючі картки)
+async function loadBattleRanking() {
+    try {
+        const res = await fetch("https://n8n.narodocnt.online/webhook/get-ranking");
+        const rawData = await res.json();
+        
+        // Тут логіка обробки (спрощено)
+        const groups = {};
+        rawData.forEach(item => {
+            let name = (item.pageName || "").toLowerCase();
+            let key = "";
+            if (name.includes("сміл")) key = "смілянська";
+            // ... інші перевірки ...
+            
+            if (key) {
+                let total = (parseInt(item.likes)||0) + (parseInt(item.shares)||0);
+                groups[key] = { rank: 0, score: total };
+            }
+        });
+        
+        window.currentBattleData = groups;
+        renderMarkers(); // Перемальовуємо з новими даними
+    } catch (e) {
+        console.warn("Битва поки недоступна, показуємо порожні картки.");
+    }
+}
 
+// 4. ІНІЦІАЛІЗАЦІЯ ПРИ ЗАВАНТАЖЕННІ
+function init() {
+    if (typeof L === 'undefined') {
+        setTimeout(init, 100);
+        return;
+    }
+
+    map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+    const bounds = [[0, 0], [imgH, imgW]];
+    L.imageOverlay('map.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
+    markersLayer = L.layerGroup().addTo(map);
+
+    // ВІДРАЗУ МАЛЮЄМО ГРОМАДИ
+    window.setMode('collectives');
+}
+
+document.addEventListener('DOMContentLoaded', init);
