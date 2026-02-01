@@ -71,3 +71,9 @@ async function loadBattleRanking() {
 
     } catch (e) { console.error("Помилка порівняння даних:", e); }
 }
+
+// Примусовий запуск режиму громад при старті
+setTimeout(() => {
+    setMode('collectives');
+}, 500);
+
