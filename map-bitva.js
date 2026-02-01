@@ -115,8 +115,21 @@ function renderMarkers(mode) {
 
         if (mode === 'battle') {
             // РЕЖИМ БИТВА: виводимо ранг (місце)
-            if (window.currentBattleData[key]) {
+            if (window.currentBattleData && window.currentBattleData[key]) {
                 var d = window.currentBattleData[key];
+                
+                // --- ЛОГІКА ДЛЯ КАРТОК (bitva-cards.js) ---
+                // Шукаємо картку в списку за ID і оновлюємо її
+                var card = document.getElementById('card-' + gName);
+                if (card) {
+                    var rankEl = card.querySelector('.card-rank');
+                    var scoreEl = card.querySelector('.score-val');
+                    if (rankEl) rankEl.innerText = d.rank;
+                    if (scoreEl) scoreEl.innerText = d.score;
+                    card.classList.add('active-battle-card'); // Можна додати стиль для підсвітки
+                }
+                // ------------------------------------------
+
                 var iconB = L.divIcon({ 
                     className: 'count-icon', 
                     html: '<span>' + d.rank + '</span>', 
