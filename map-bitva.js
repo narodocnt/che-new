@@ -1,7 +1,8 @@
 /**
- * map-bitva.js - ПОВНИЙ КОД
- * Логіка карти, інтелектуальне порівняння та малювання маркерів
+ * map-bitva.js - ЦЕНТРАЛЬНИЙ МОЗОК ПРОЄКТУ
  */
+
+// Глобальні змінні
 var map;
 var markersLayer;
 window.currentData = []; 
@@ -9,17 +10,17 @@ window.currentBattleData = {};
 var currentMapMode = 'collectives'; 
 
 // 1. ІНІЦІАЛІЗАЦІЯ КАРТИ
-// 1. ЗАХИСТ ВІД ПОМИЛКИ ІНІЦІАЛІЗАЦІЇ
 function initMap() {
-    // Якщо Leaflet ще не завантажився, чекаємо 100мс і пробуємо знову
+    // Перевірка чи завантажився Leaflet
     if (typeof L === 'undefined') {
-        console.warn("Leaflet ще не готовий, чекаю...");
-        setTimeout(initMap, 100);
+        console.error("Помилка: Бібліотека Leaflet не знайдена в системі!");
         return;
     }
 
-    // Якщо карта вже ініціалізована, нічого не робимо
+    // Захист від повторної ініціалізації
     if (window.map) return;
+
+    console.log("Leaflet готовий! Створюємо карту...");
 
     const imgW = 900;
     const imgH = 736;
@@ -36,90 +37,30 @@ function initMap() {
 
     window.markersLayer = L.layerGroup().addTo(window.map);
     
-    // Запускаємо початковий режим
-    setMode('collectives');
+    // Встановлюємо початковий режим (Громади)
+    window.setMode('collectives');
+    
+    // Відразу запускаємо фонове завантаження балів з n8n
+    loadBattleRanking();
 }
 
-// 2. ФУНКЦІЯ ПЕРЕМИКАННЯ (window щоб бачили кнопки)
+// 2. ФУНКЦІЯ ПЕРЕМИКАННЯ (Для кнопок в HTML)
 window.setMode = function(mode) {
-    if (typeof renderMarkers === 'function') {
-        renderMarkers(mode);
-    }
+    console.log("Зміна режиму на:", mode);
+    renderMarkers(mode);
 };
-// 2. ЗАВАНТАЖЕННЯ ДАНИХ ТА ПОРІВНЯННЯ З РЕЄСТРОМ
-async function loadBattleRanking() {
-    var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
-    try {
-        var response = await fetch(N8N_URL);
-        var rawData = await response.json();
-        var processedItems = [];
-        window.currentBattleData = {}; 
 
-        rawData.forEach(function(item) {
-            var fullText = (item.message || item.text || "").trim();
-            if (!fullText || fullText.length < 10) return;
-
-            var t = fullText.toLowerCase();
-            var foundId = null;
-
-            // ПОРІВНЯННЯ: Шукаємо збіг у collectivesDatabase (з файлу collectives-bitva.js)
-            for (var id in window.collectivesDatabase) {
-                var dbItem = window.collectivesDatabase[id];
-                // Шукаємо за локацією, ключем або частиною назви
-                if (t.includes(dbItem.location.toLowerCase()) || 
-                    t.includes(dbItem.key.toLowerCase()) || 
-                    (dbItem.name && t.includes(dbItem.name.toLowerCase().substring(0, 10)))) {
-                    foundId = id;
-                    break;
-                }
-            }
-
-            // Якщо збіг знайдено в нашому офіційному реєстрі
-            if (foundId) {
-                var official = window.collectivesDatabase[foundId];
-                var score = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
-
-                processedItems.push({
-                    id: foundId,
-                    name: official.name,
-                    score: score,
-                    url: item.facebookUrl || item.url || "#",
-                    media: official.media,
-                    leader: official.leader,
-                    hromada: official.location.toLowerCase()
-                });
-            }
-        });
-
-        // СОРТУВАННЯ: Спочатку за балами
-        processedItems.sort(function(a, b) { return b.score - a.score; });
-
-        // ПРИЗНАЧЕННЯ РАНГІВ (МІСЦЬ) ТА ФІЛЬТРАЦІЯ ДЛЯ МАПИ
-        processedItems.forEach(function(item, index) {
-            item.rank = index + 1;
-            
-            // Для мапи беремо тільки один (кращий) пост для кожної громади
-            var locKey = item.hromada;
-            if (!window.currentBattleData[locKey] || item.score > window.currentBattleData[locKey].score) {
-                window.currentBattleData[locKey] = item;
-            }
-        });
-
-        window.currentData = processedItems;
-
-        // Оновлюємо інтерфейс
-        if (typeof renderList === 'function') renderList();
-        if (currentMapMode === 'battle') renderMarkers('battle');
-
-    } catch (e) {
-        console.error("Помилка завантаження рейтингу:", e);
-    }
-}
+// Синонім для сумісності з твоїм updateMode в HTML
+window.setMapMode = window.setMode;
 
 // 3. МАЛЮВАННЯ МАРКЕРІВ (КОЛЕКТИВИ АБО БИТВА)
 function renderMarkers(mode) {
-    if (!markersLayer || typeof hromadasGeoJSON === 'undefined') return;
-    markersLayer.clearLayers();
+    if (!window.markersLayer || typeof hromadasGeoJSON === 'undefined') {
+        console.warn("Дані hromadas-data.js ще не завантажені або шар карти відсутній");
+        return;
+    }
+    
+    window.markersLayer.clearLayers();
     currentMapMode = mode;
 
     hromadasGeoJSON.features.forEach(function(h) {
@@ -136,88 +77,116 @@ function renderMarkers(mode) {
         else if (gName.includes("чорноб")) key = "чорнобаївська";
 
         if (mode === 'battle') {
-            // РЕЖИМ БИТВА: виводимо ранг (місце)
+            // --- РЕЖИМ БИТВА ---
             if (window.currentBattleData && window.currentBattleData[key]) {
                 var d = window.currentBattleData[key];
                 
-                // --- ЛОГІКА ДЛЯ КАРТОК (bitva-cards.js) ---
-                // Шукаємо картку в списку за ID і оновлюємо її
+                // Оновлюємо порожню картку в списку (bitva-cards.js)
                 var card = document.getElementById('card-' + gName);
                 if (card) {
                     var rankEl = card.querySelector('.card-rank');
                     var scoreEl = card.querySelector('.score-val');
                     if (rankEl) rankEl.innerText = d.rank;
                     if (scoreEl) scoreEl.innerText = d.score;
-                    card.classList.add('active-battle-card'); // Можна додати стиль для підсвітки
+                    card.classList.add('active-battle-card');
                 }
-                // ------------------------------------------
 
                 var iconB = L.divIcon({ 
                     className: 'count-icon', 
                     html: '<span>' + d.rank + '</span>', 
                     iconSize: [30, 30] 
                 });
+                
                 L.marker([736 - h.y, h.x], { icon: iconB })
                  .bindPopup('<b>' + d.name + '</b><br>Місце в битві: ' + d.rank + '<br>Балів: ' + d.score)
-                 .addTo(markersLayer);
+                 .addTo(window.markersLayer);
             }
         } else {
-            // РЕЖИМ КОЛЕКТИВИ: виводимо кількість колективів у громаді
+            // --- РЕЖИМ КОЛЕКТИВИ ---
             var list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
-            if (list.length > 0) {
-                var iconC = L.divIcon({ 
-                    className: 'count-icon', 
-                    html: '<span>' + list.length + '</span>', 
-                    iconSize: [30, 30] 
-                });
-                L.marker([736 - h.y, h.x], { icon: iconC })
-                 .bindPopup('<h3>' + h.name + '</h3>' + list.join('<br>'))
-                 .addTo(markersLayer);
-            }
+            var label = list.length > 0 ? list.length : "•";
+            
+            var iconC = L.divIcon({ 
+                className: 'count-icon', 
+                html: '<span>' + label + '</span>', 
+                iconSize: [30, 30] 
+            });
+            
+            var popupContent = '<h3>' + h.name + '</h3>' + (list.length > 0 ? list.join('<br>') : "Дані відсутні");
+            
+            L.marker([736 - h.y, h.x], { icon: iconC })
+             .bindPopup(popupContent)
+             .addTo(window.markersLayer);
         }
     });
 }
 
-// ... (тут твоя функція renderMarkers)
+// 4. ЗАВАНТАЖЕННЯ ДАНИХ З N8N ТА ПОРІВНЯННЯ
+async function loadBattleRanking() {
+    var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
+    try {
+        console.log("Запитуємо дані з n8n...");
+        var response = await fetch(N8N_URL);
+        var rawData = await response.json();
+        var processedItems = [];
+        window.currentBattleData = {}; 
 
-// 4. ПЕРЕМИКАЧ РЕЖИМІВ
-window.setMode = function(mode) {
-    renderMarkers(mode);
-};
+        rawData.forEach(function(item) {
+            var fullText = (item.message || item.text || item.pageName || "").trim();
+            if (!fullText) return;
 
-// 5. ПОРЯДОК ЗАПУСКУ
-function initMap() {
-    if (typeof L === 'undefined') {
-        console.warn("Leaflet ще не готовий, чекаю...");
-        setTimeout(initMap, 100);
-        return;
+            var t = fullText.toLowerCase();
+            var foundId = null;
+
+            // Шукаємо збіг у базі collectivesDatabase
+            if (window.collectivesDatabase) {
+                for (var id in window.collectivesDatabase) {
+                    var dbItem = window.collectivesDatabase[id];
+                    if (t.includes(dbItem.location.toLowerCase()) || 
+                        t.includes(dbItem.key.toLowerCase())) {
+                        foundId = id;
+                        break;
+                    }
+                }
+            }
+
+            if (foundId) {
+                var official = window.collectivesDatabase[foundId];
+                var score = (parseInt(item.likes) || 0) + (parseInt(item.shares) || 0) + (parseInt(item.comments) || 0);
+
+                processedItems.push({
+                    id: foundId,
+                    name: official.name,
+                    score: score,
+                    url: item.url || "#",
+                    hromada: official.location.toLowerCase()
+                });
+            }
+        });
+
+        // Сортуємо за балами
+        processedItems.sort(function(a, b) { return b.score - a.score; });
+
+        // Призначаємо ранги
+        processedItems.forEach(function(item, index) {
+            item.rank = index + 1;
+            var locKey = item.hromada;
+            if (!window.currentBattleData[locKey] || item.score > window.currentBattleData[locKey].score) {
+                window.currentBattleData[locKey] = item;
+            }
+        });
+
+        console.log("Дані оброблено. Оновлюємо інтерфейс...");
+        // Перемальовуємо, якщо зараз вибрано режим Битва
+        if (currentMapMode === 'battle') renderMarkers('battle');
+
+    } catch (e) {
+        console.error("Помилка завантаження рейтингу:", e);
     }
-
-    if (window.map) return;
-
-    const imgW = 900;
-    const imgH = 736;
-
-    window.map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: -1,
-        maxZoom: 2
-    });
-
-    const bounds = [[0, 0], [imgH, imgW]];
-    L.imageOverlay('map.jpg', bounds).addTo(window.map);
-    window.map.fitBounds(bounds);
-
-    window.markersLayer = L.layerGroup().addTo(window.map);
-    
-    // ОСЬ ТУТ ВОНИ МАЮТЬ БУТИ:
-    window.setMode('collectives'); // Малюємо громади відразу
-    loadBattleRanking();           // Запускаємо фонове завантаження балів
 }
 
-// БЕЗПЕЧНИЙ СТАРТ
-if (document.readyState === 'complete') {
+// 5. БЕЗПЕЧНИЙ СТАРТ
+// Чекаємо, поки завантажаться всі скрипти (Leaflet, дані тощо)
+window.addEventListener('load', function() {
     initMap();
-} else {
-    window.addEventListener('load', initMap);
-}
+});
