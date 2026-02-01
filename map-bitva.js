@@ -9,21 +9,43 @@ window.currentBattleData = {};
 var currentMapMode = 'collectives'; 
 
 // 1. ІНІЦІАЛІЗАЦІЯ КАРТИ
+// 1. ЗАХИСТ ВІД ПОМИЛКИ ІНІЦІАЛІЗАЦІЇ
 function initMap() {
-    if (map) return;
-    try {
-        // Створюємо карту (Simple CRS для статичних зображень)
-        map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
-        var bounds = [[0, 0], [736, 900]];
-        L.imageOverlay('map.jpg', bounds).addTo(map);
-        map.fitBounds(bounds);
-        markersLayer = L.layerGroup().addTo(map);
-        console.log("Карта ініціалізована");
-    } catch (e) {
-        console.error("Помилка ініціалізації карти:", e);
+    // Якщо Leaflet ще не завантажився, чекаємо 100мс і пробуємо знову
+    if (typeof L === 'undefined') {
+        console.warn("Leaflet ще не готовий, чекаю...");
+        setTimeout(initMap, 100);
+        return;
     }
+
+    // Якщо карта вже ініціалізована, нічого не робимо
+    if (window.map) return;
+
+    const imgW = 900;
+    const imgH = 736;
+
+    window.map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2
+    });
+
+    const bounds = [[0, 0], [imgH, imgW]];
+    L.imageOverlay('map.jpg', bounds).addTo(window.map);
+    window.map.fitBounds(bounds);
+
+    window.markersLayer = L.layerGroup().addTo(window.map);
+    
+    // Запускаємо початковий режим
+    setMode('collectives');
 }
 
+// 2. ФУНКЦІЯ ПЕРЕМИКАННЯ (window щоб бачили кнопки)
+window.setMode = function(mode) {
+    if (typeof renderMarkers === 'function') {
+        renderMarkers(mode);
+    }
+};
 // 2. ЗАВАНТАЖЕННЯ ДАНИХ ТА ПОРІВНЯННЯ З РЕЄСТРОМ
 async function loadBattleRanking() {
     var N8N_URL = "https://n8n.narodocnt.online/webhook/get-ranking";
@@ -156,14 +178,46 @@ function renderMarkers(mode) {
     });
 }
 
+// ... (тут твоя функція renderMarkers)
+
 // 4. ПЕРЕМИКАЧ РЕЖИМІВ
-window.setMapMode = function(mode) {
+window.setMode = function(mode) {
     renderMarkers(mode);
 };
 
-// 5. ЗАПУСК ПРИ ЗАВАНТАЖЕННІ
-document.addEventListener('DOMContentLoaded', function() {
+// 5. ПОРЯДОК ЗАПУСКУ
+function initMap() {
+    if (typeof L === 'undefined') {
+        console.warn("Leaflet ще не готовий, чекаю...");
+        setTimeout(initMap, 100);
+        return;
+    }
+
+    if (window.map) return;
+
+    const imgW = 900;
+    const imgH = 736;
+
+    window.map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2
+    });
+
+    const bounds = [[0, 0], [imgH, imgW]];
+    L.imageOverlay('map.jpg', bounds).addTo(window.map);
+    window.map.fitBounds(bounds);
+
+    window.markersLayer = L.layerGroup().addTo(window.map);
+    
+    // ОСЬ ТУТ ВОНИ МАЮТЬ БУТИ:
+    window.setMode('collectives'); // Малюємо громади відразу
+    loadBattleRanking();           // Запускаємо фонове завантаження балів
+}
+
+// БЕЗПЕЧНИЙ СТАРТ
+if (document.readyState === 'complete') {
     initMap();
-    renderMarkers('collectives'); // Починаємо зі звичайних колективів
-    loadBattleRanking(); // Завантажуємо битву у фоні
-});
+} else {
+    window.addEventListener('load', initMap);
+}
