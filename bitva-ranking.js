@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js - Фінальна версія
+ * bitva-ranking.js - Стабільна версія
  */
 async function loadAndRenderRanking() {
     var container = document.getElementById('rankingList');
@@ -10,24 +10,24 @@ async function loadAndRenderRanking() {
         var rawData = await response.json();
         var processed = [];
 
-        // Використовуємо звичайні цикли для надійності
         for (var i = 0; i < rawData.length; i++) {
             var item = rawData[i];
             var text = (item.message || item.text || "").toLowerCase();
             
-            for (var id in window.collectivesDatabase) {
-                var db = window.collectivesDatabase[id];
-                if (text.indexOf(db.location.toLowerCase()) !== -1 || text.indexOf(db.key.toLowerCase()) !== -1) {
-                    processed.push({
-                        id: id,
-                        name: db.name,
-                        location: db.location,
-                        leader: db.leader,
-                        media: db.media,
-                        score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0),
-                        url: item.facebookUrl || item.url || "#"
-                    });
-                    break;
+            if (window.collectivesDatabase) {
+                for (var id in window.collectivesDatabase) {
+                    var db = window.collectivesDatabase[id];
+                    if (text.indexOf(db.location.toLowerCase()) !== -1 || text.indexOf(db.key.toLowerCase()) !== -1) {
+                        processed.push({
+                            id: id,
+                            name: db.name,
+                            location: db.location,
+                            media: db.media,
+                            score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0),
+                            url: item.facebookUrl || item.url || "#"
+                        });
+                        break;
+                    }
                 }
             }
         }
@@ -37,10 +37,9 @@ async function loadAndRenderRanking() {
         var uniqueTop6 = [];
         var seen = {};
         for (var j = 0; j < processed.length; j++) {
-            var pItem = processed[j];
-            if (!seen[pItem.id] && uniqueTop6.length < 6) {
-                seen[pItem.id] = true;
-                uniqueTop6.push(pItem);
+            if (!seen[processed[j].id] && uniqueTop6.length < 6) {
+                seen[processed[j].id] = true;
+                uniqueTop6.push(processed[j]);
             }
         }
 
@@ -48,35 +47,27 @@ async function loadAndRenderRanking() {
 
         var html = "";
         for (var k = 0; k < uniqueTop6.length; k++) {
-            var finalItem = uniqueTop6[k];
-            var medals = ['🥇', '🥈', '🥉'];
-            var medal = k < 3 ? medals[k] : (k + 1);
-            var maxScore = uniqueTop6[0].score || 1;
-            var percent = (finalItem.score / maxScore) * 100;
+            var el = uniqueTop6[k];
+            var medal = (k === 0) ? "🥇" : (k === 1) ? "🥈" : (k === 2) ? "🥉" : (k + 1);
+            var barWidth = (el.score / (uniqueTop6[0].score || 1)) * 100;
 
             html += '<div class="rank-card">' +
                 '<div class="medal">' + medal + '</div>' +
-                '<img src="' + finalItem.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
+                '<img src="' + el.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
                 '<div class="rank-details">' +
-                    '<div class="rank-header">' +
-                        '<span class="rank-name">' + finalItem.name + '</span>' +
-                        '<span class="metric-info">' + finalItem.score + ' балів</span>' +
-                    '</div>' +
-                    '<div class="progress-wrapper"><div class="progress-fill" style="width:' + percent + '%"></div></div>' +
-                    '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">Громада: ' + finalItem.location + '</div>' +
+                    '<div class="rank-header"><span class="rank-name">' + el.name + '</span>' +
+                    '<span class="metric-info">' + el.score + ' балів</span></div>' +
+                    '<div class="progress-wrapper"><div class="progress-fill" style="width:' + barWidth + '%"></div></div>' +
+                    '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">' + el.location + '</div>' +
                 '</div>' +
-                '<a href="' + finalItem.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
+                '<a href="' + el.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
             '</div>';
         }
-
         container.innerHTML = html;
 
-        if (window.renderMarkers) {
-            window.renderMarkers(window.currentMapMode || 'collectives');
-        }
-    } catch (e) {
-        console.error("Ranking error:", e);
+        if (window.renderMarkers) window.renderMarkers(window.currentMapMode || 'collectives');
+    } catch (err) {
+        console.error("Ranking error:", err);
     }
 }
-
 document.addEventListener('DOMContentLoaded', loadAndRenderRanking);
