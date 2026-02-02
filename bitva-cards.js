@@ -1,33 +1,28 @@
-// bitva-cards.js - ТІЛЬКИ ШАБЛОН ТА СТИЛІ
-const rankingContainer = document.getElementById('rankingList');
+// Створюємо порожній список карток при завантаженні
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('rankingList');
+    if (!container) return;
 
-// Функція, яка просто малює порожній каркас карток
-function createEmptyCards() {
-    if (!rankingContainer) return;
-    
-    // Очищуємо контейнер і додаємо стилі (якщо їх немає в CSS)
-    rankingContainer.innerHTML = '';
-    
-    // Беремо назви громад з нашого локального списку
-    if (typeof hromadasGeoJSON !== 'undefined') {
-        hromadasGeoJSON.features.forEach(hromada => {
-            const card = document.createElement('div');
-            card.className = 'battle-card';
-            card.id = `card-${hromada.name.trim().toLowerCase()}`; // ID для пошуку
-            
-            card.innerHTML = `
-                <div class="card-rank">--</div>
-                <div class="card-info">
-                    <h4>${hromada.name}</h4>
-                    <div class="card-stats">
-                        <span>❤️ Бали: <b class="score-val">0</b></span>
-                    </div>
-                </div>
-            `;
-            rankingContainer.appendChild(card);
-        });
-    }
-}
+    // Список 6 громад-учасників
+    const participants = [
+        { id: 'смілянська', name: 'Смілянська громада', leader: 'Керівник: Надія Шварцман', photo: 'smila.jpg' },
+        { id: 'звенигородська', name: 'Звенигородська громада', leader: 'Керівник: Олександр Бойко', photo: 'zven.jpg' },
+        { id: 'кам’янська', name: 'Кам’янська громада', leader: 'Керівник: Олена Петрова', photo: 'kam.jpg' },
+        { id: 'тальнівська', name: 'Тальнівська громада', leader: 'Керівник: Іван Сидоренко', photo: 'talne.jpg' },
+        { id: 'христинівська', name: 'Христинівська громада', leader: 'Керівник: Марія Іванова', photo: 'hrist.jpg' },
+        { id: 'золотоніська', name: 'Золотоніська громада', leader: 'Керівник: Віктор Ткаченко', photo: 'zoloto.jpg' }
+    ];
 
-// Малюємо каркас відразу, як тільки завантажився HTML
-document.addEventListener('DOMContentLoaded', createEmptyCards);
+    container.innerHTML = participants.map(p => `
+        <div class="rank-card" id="card-${p.id}">
+            <div class="medal"><span class="card-rank">?</span></div>
+            <img src="${p.photo}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
+            <div class="rank-details">
+                <span class="rank-name">${p.name}</span>
+                <span class="rank-leader" style="font-size: 0.8em; color: #666;">${p.leader}</span>
+                <div class="progress-wrapper"><div class="progress-fill" style="width: 0%"></div></div>
+            </div>
+            <div class="rank-score"><span class="score-val">0</span> 🔥</div>
+        </div>
+    `).join('');
+});
