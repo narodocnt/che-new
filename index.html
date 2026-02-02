@@ -162,7 +162,8 @@
 <div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
     <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
         <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px; font-weight: bold; color: #333;">&times;</span>
-        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px;"></div>
+        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px; color: #333;">
+            </div>
     </div>
 </div>
 
@@ -171,6 +172,7 @@
 <script>
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
+    // Авторизація
     function handleAuthClick() {
         const user = localStorage.getItem('user');
         if (user) {
@@ -183,6 +185,7 @@
         }
     }
 
+    // Перехід до форм n8n
     function goToGeneralForm(type = 'main') {
         const user = localStorage.getItem('user');
         if (!user) {
@@ -197,72 +200,73 @@
         window.open(url, '_blank');
     }
 
+    // Керування режимами карти (Битва/Колективи)
     function updateMode(mode) {
-        document.getElementById('btn-col').style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
-        document.getElementById('btn-bat').style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
+        const btnCol = document.getElementById('btn-col');
+        const btnBat = document.getElementById('btn-bat');
+        if(btnCol) btnCol.style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
+        if(btnBat) btnBat.style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
         if (window.setMode) window.setMode(mode);
     }
 
-    function closeModal() { 
-        document.getElementById('listModal').style.display = 'none'; 
-        document.body.style.overflow = 'auto'; 
-    }
-</script>
-
-<script src="hromadas-data.js"></script> <script src="collectives-list.js"></script> <script src="collectives.js"></script> <script src="collectives-bitva.js"></script> <script src="bitva-rule-star.js"></script> <script src="bitva-cards.js"></script> <script src="map-bitva.js"></script> </body>
-<script>
-    
-// Ця функція МАЄ бути глобальною, щоб кнопка її бачила
-function toggleDropdown() {
-    const menu = document.getElementById("collectivesMenu");
-    if (menu) {
-        menu.classList.toggle("show");
-        console.log("Меню переключено");
-    } else {
-        console.error("Елемент collectivesMenu не знайдено!");
-    }
-}
-
-// Закриття при кліку поза меню
-window.onclick = function(event) {
-    if (!event.target.matches('.dropdown-toggle')) {
-        const dropdowns = document.getElementsByClassName("dropdown-content");
-        for (let i = 0; i < dropdowns.length; i++) {
-            if (dropdowns[i].classList.contains('show')) {
-                dropdowns[i].classList.remove('show');
-            }
+    // Випадаюче меню "Колективи ▼"
+    function toggleDropdown() {
+        const menu = document.getElementById("collectivesMenu");
+        if (menu) {
+            menu.classList.toggle("show");
         }
     }
-}
-  function filterCollectives(genre) {
-    console.log("Відкриваємо жанр:", genre);
-    
-    // 1. Закриваємо випадаюче меню
-    const menu = document.getElementById("collectivesMenu");
-    if (menu) menu.classList.remove("show");
 
-    // 2. Перевіряємо, чи є дані для цього жанру
-    if (typeof collectivesData !== 'undefined' && collectivesData[genre]) {
-        showModal(collectivesData[genre]);
-    } else {
-        console.error("Дані для жанру '" + genre + "' не знайдені в collectives.js");
-        alert("Список ще наповнюється...");
-    }
-}
+    // Закриття меню при кліку поза ним
+    window.addEventListener('click', function(event) {
+        if (!event.target.matches('.dropdown-toggle')) {
+            const dropdowns = document.getElementsByClassName("dropdown-content");
+            for (let i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) {
+                    dropdowns[i].classList.remove('show');
+                }
+            }
+        }
+    });
 
-// Функція для показу модального вікна
-function showModal(content) {
-    const modal = document.getElementById('listModal'); // Перевір, чи є такий ID у твого модального вікна
-    const body = document.getElementById('modalBody');
-    
-    if (modal && body) {
-        body.innerHTML = content;
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Забороняємо прокрутку сайту під модалкою
-    } else {
-        // Якщо модалки немає в HTML, створимо її на льоту або виведемо просто alert
-        alert("Не знайдено вікно для виводу списку. Перевір ID 'listModal' в index.html");
+    // Фільтрація та показ модального вікна
+    function filterCollectives(genre) {
+        const menu = document.getElementById("collectivesMenu");
+        if (menu) menu.classList.remove("show");
+
+        if (typeof collectivesData !== 'undefined' && collectivesData[genre]) {
+            showModal(collectivesData[genre]);
+        } else {
+            alert("Список для цього жанру ще наповнюється...");
+        }
     }
-}
+
+    function showModal(content) {
+        const modal = document.getElementById('listModal');
+        const body = document.getElementById('modalBody');
+        if (modal && body) {
+            body.innerHTML = content;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeModal() { 
+        const modal = document.getElementById('listModal');
+        if (modal) {
+            modal.style.display = 'none'; 
+            document.body.style.overflow = 'auto';
+        }
+    }
 </script>
+
+<script src="hromadas-data.js"></script>
+<script src="collectives-list.js"></script>
+<script src="collectives.js"></script>
+<script src="collectives-bitva.js"></script>
+<script src="bitva-rule-star.js"></script>
+<script src="bitva-cards.js"></script>
+<script src="map-bitva.js"></script>
+
+</body>
 </html>
