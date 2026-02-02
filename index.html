@@ -258,6 +258,15 @@
             document.body.style.overflow = 'auto';
         }
     }
+    // Запуск таймера після завантаження сторінки
+window.addEventListener('load', function() {
+    if (typeof initRutaUI === 'function') {
+        console.log("⏰ Таймер активовано!");
+        initRutaUI();
+    } else {
+        console.error("❌ Функцію initRutaUI не знайдено в cheruta.js");
+    }
+});
 </script>
 
 <script src="hromadas-data.js"></script>
