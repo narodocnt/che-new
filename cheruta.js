@@ -1,30 +1,39 @@
 function initRutaUI() {
-    const banner = document.querySelector('.ruta-container');
-    if (!banner) return;
+    // Встановлюємо дату: 21 березня 2026 року
+    const target = new Date("March 21, 2026 09:00:00").getTime();
 
-    const oldUI = document.getElementById('ruta-ui-layer');
-    if (oldUI) oldUI.remove();
+    const update = () => {
+        const now = new Date().getTime();
+        const diff = target - now;
 
-    const uiHtml = `
-    <div id="ruta-ui-layer" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; padding: 5px 12px; box-sizing: border-box; z-index: 999;">
-        <div style="flex: 1; display: flex; justify-content: flex-start;">
-            <button onclick="window.open('https://narodocnt.online/polozhennya.pdf', '_blank')" 
-                style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase;">
-                ПОЛОЖЕННЯ
-            </button>
-        </div>
+        // Шукаємо елементи, які ми вже прописали в HTML
+        const dEl = document.getElementById("d-val");
+        const hEl = document.getElementById("h-val");
+        const mEl = document.getElementById("m-val");
+        const sEl = document.getElementById("s-val");
 
-        <div id="ruta-timer-display" style="display: flex; gap: 4px; color: #f1c40f; flex: 1; justify-content: center; font-family: monospace; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px black;">
-            <span id="d-val">00</span>:<span id="h-val">00</span>:<span id="m-val">00</span>:<span id="s-val">00</span>
-        </div>
+        if (diff < 0) {
+            const display = document.getElementById("ruta-timer-display");
+            if (display) display.innerHTML = "РОЗПОЧАТО";
+            return;
+        }
 
-        <div style="flex: 1; display: flex; justify-content: flex-end;">
-            <button onclick="goToGeneralForm('cheruta')" 
-                style="background: #ff4500; border: none; color: white; padding: 7px 12px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255,69,0,0.3);">
-                ЗАЯВКА
-            </button>
-        </div>
-    </div>`;
+        // Розрахунок часу
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+        const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+
+        // Оновлюємо текст, якщо елементи існують
+        if (dEl) dEl.innerText = d;
+        if (hEl) hEl.innerText = h;
+        if (mEl) mEl.innerText = m;
+        if (sEl) sEl.innerText = s;
+    };
+
+    setInterval(update, 1000);
+    update();
+}
 
     banner.style.position = 'relative';
     banner.insertAdjacentHTML('beforeend', uiHtml);
