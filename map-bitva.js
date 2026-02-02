@@ -136,3 +136,111 @@ setTimeout(() => {
     renderMarkers(); 
     loadRankingForMap(); 
 }, 1000);
+
+// Автоматичний запуск карти при завантаженні
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Спроба запуску карти...");
+    if (typeof initMap === 'function') {
+        initMap();
+    } else {
+        console.error("Помилка: Функція initMap не знайдена в map-bitva.js");
+    }
+});
+
+let currentMode = 'collectives';
+
+function initMap() {
+    console.log("✅ Leaflet знайдено! Створюємо карту Черкащини...");
+
+    // Твій специфічний CRS для координат на картинці
+    window.map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2,
+        zoomSnap: 0.1,
+        attributionControl: false
+    });
+
+    // Розміри твоєї карти-картинки (як було в оригіналі)
+    const bounds = [[0, 0], [736, 1140]]; 
+    
+    // Якщо у тебе є файл фонової карти, він підтягнеться сюди
+    // L.imageOverlay('map-bg.png', bounds).addTo(window.map);
+
+    window.map.fitBounds(bounds);
+
+    // Створюємо шар для точок
+    window.markersLayer = L.layerGroup().addTo(window.map);
+
+    if (typeof loadHromadas === 'function') {
+        loadHromadas();
+    }
+}
+
+function loadHromadas() {
+    if (typeof hromadasGeoJSON === 'undefined') {
+        console.error("Помилка: hromadasGeoJSON не знайдено!");
+        return;
+    }
+    renderMarkers(currentMode);
+}
+
+function renderMarkers(mode) {
+    if (!window.markersLayer) return;
+    window.markersLayer.clearLayers();
+
+    hromadasGeoJSON.features.forEach(function(h) {
+        const gName = h.name.trim().toLowerCase();
+        
+        if (mode === 'battle') {
+            const bKey = getBattleKey(gName);
+            if (bKey) {
+                // Малюємо 6 точок для битви
+                L.marker([736 - h.y, h.x], {
+                    icon: L.divIcon({ 
+                        className: 'count-icon', 
+                        html: `<span>${window.currentBattleData?.[bKey]?.rank || '!'}</span>`, 
+                        iconSize: [30, 30] 
+                    })
+                }).addTo(window.markersLayer);
+            }
+        } else {
+            // Режим колективів
+            const list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
+            if (list.length > 0) {
+                L.marker([736 - h.y, h.x], {
+                    icon: L.divIcon({ 
+                        className: 'count-icon', 
+                        html: `<span>${list.length}</span>`, 
+                        iconSize: [30, 30] 
+                    })
+                }).on('click', () => showCollectivesList(h.name, list))
+                  .addTo(window.markersLayer);
+            }
+        }
+    });
+}
+
+function getBattleKey(gName) {
+    if (gName.includes("сміл")) return "смілянська";
+    if (gName.includes("звениг")) return "звенигородська";
+    if (gName.includes("кам")) return "кам’янська";
+    if (gName.includes("тальн")) return "тальнівська";
+    if (gName.includes("христин")) return "христинівська";
+    if (gName.includes("золот")) return "золотоніська";
+    return null;
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    renderMarkers(mode);
+}
+
+// Функція для кнопок в HTML
+window.updateMode = function(mode) {
+    const btnCol = document.getElementById('btn-col');
+    const btnBat = document.getElementById('btn-bat');
+    if(btnCol) btnCol.style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
+    if(btnBat) btnBat.style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
+    setMode(mode);
+}
