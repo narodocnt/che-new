@@ -1,29 +1,32 @@
 /**
- * map-bitva.js - Тільки логіка карти
+ * map-bitva.js - Повертаємо кружечки
  */
 var map;
 var markersLayer;
+window.currentMapMode = 'collectives';
 
 function initMap() {
     if (map) return;
-    // Використовуємо ваші робочі налаштування
     map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
     const bounds = [[0, 0], [736, 900]];
     L.imageOverlay('map.jpg', bounds).addTo(map);
     map.fitBounds(bounds);
     markersLayer = L.layerGroup().addTo(map);
-    renderMarkers('collectives'); 
+    
+    // Початковий рендер
+    setTimeout(() => renderMarkers('collectives'), 500);
 }
 
 window.renderMarkers = function(mode) {
     if (!markersLayer || !window.hromadasGeoJSON) return;
     markersLayer.clearLayers();
+    window.currentMapMode = mode;
 
     window.hromadasGeoJSON.features.forEach(h => {
         const gName = h.name.trim().toLowerCase();
         
         if (mode === 'battle') {
-            // Шукаємо дані в глобальному рейтингу, який підготував bitva-ranking.js
+            // Беремо дані з рейтингу, який підготував bitva-ranking.js
             const battleItem = (window.currentBattleRanking || []).find(item => 
                 gName.includes(item.location.toLowerCase().substring(0, 5))
             );
@@ -39,7 +42,7 @@ window.renderMarkers = function(mode) {
                  .addTo(markersLayer);
             }
         } else {
-            // Звичайний режим колективів
+            // Звичайний режим колективів (кружечки з цифрами)
             const list = (window.collectivesList && window.collectivesList[gName]) || [];
             if (list.length > 0) {
                 const icon = L.divIcon({ 
@@ -56,6 +59,4 @@ window.renderMarkers = function(mode) {
 };
 
 window.setMapMode = function(mode) { window.renderMarkers(mode); };
-
-// Чекаємо, поки Leaflet завантажиться повністю
 window.addEventListener('load', initMap);
