@@ -8,7 +8,6 @@
     <link rel="icon" type="image/jpg" href="narodocnt.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="contest.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -19,35 +18,21 @@
         header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 15px; }
         .logo-img { height: 60px; border-radius: 8px; }
-        .logo-text h1 { font-size: 1.1rem; margin: 0; line-height: 1.2; }
-        .logo-text p { font-size: 0.85rem; margin: 0; color: #7f8c8d; }
-
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .header-socials { display: flex; gap: 12px; }
-        .header-socials a { font-size: 1.6rem; transition: 0.3s; }
-        .fa-facebook { color: #1877F2; } .fa-youtube { color: #FF0000; } .fa-telegram { color: #24A1DE; }
-
-        .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
-
-        nav { background: var(--nav); display: flex; justify-content: center; position: relative; flex-wrap: wrap; padding: 10px; }
-        .main-nav { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 15px; background: var(--nav); }
-        .nav-btn { display: inline-flex; align-items: center; justify-content: center; height: 45px; padding: 0 25px; background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; border: none; cursor: pointer; transition: all 0.2s ease; }
-        .nav-btn:hover { background-color: #5a6268; }
-
-        #map { height: 500px; width: 100%; max-width: 900px; margin: 20px auto; border-radius: 15px; border: 3px solid var(--nav); position: relative; z-index: 5; }
-        .map-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .count-icon { display: flex !important; align-items: center; justify-content: center; background: #3498db; color: white; border-radius: 50%; font-weight: bold; font-size: 13px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
-
-        .ruta-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
-        footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
         
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1001; border-radius: 8px; overflow: hidden; }
-        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; }
-        .dropdown-content a:hover { background-color: #f1f1f1; }
-        .show { display: block; }
+        nav { background: var(--nav); display: flex; justify-content: center; padding: 10px; gap: 12px; }
+        .nav-btn { padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; border: none; }
+        
+        #map { height: 500px; width: 100%; max-width: 900px; margin: 20px auto; border-radius: 15px; border: 3px solid var(--nav); z-index: 5; }
+        .map-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+
+        .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        .rank-card { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; background: white; border-radius: 10px; margin-bottom: 10px; }
+        .rank-photo { width: 80px; height: 60px; object-fit: cover; border-radius: 5px; }
+        .progress-wrapper { background: #eee; height: 10px; border-radius: 5px; margin-top: 5px; width: 100%; }
+        .progress-fill { background: #e67e22; height: 100%; border-radius: 5px; transition: width 0.5s; }
+        
+        footer { background: #2f3640; padding: 40px; color: white; text-align: center; }
     </style>
 </head>
 <body>
@@ -60,53 +45,16 @@
             <p>Черкаського ОЦНТ</p>
         </div>
     </div>
-    <div class="header-right">
-        <div class="header-socials">
-            <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
-            <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
-            <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
-        </div>
-        <div class="auth-btn" id="loginBtn" onclick="handleAuthClick()">Увійти</div>
-    </div>
+    <div class="auth-btn" id="loginBtn" onclick="handleAuthClick()">Увійти</div>
 </header>
 
-<nav class="main-nav">
-   <div class="dropdown">
-        <button class="nav-btn dropdown-toggle" onclick="toggleDropdown()">Колективи ▼</button>
-        <div id="collectivesMenu" class="dropdown-content">
-            <a href="#" onclick="filterCollectives('vocal')">Вокальні</a>
-            <a href="#" onclick="filterCollectives('instrumental')">Інструментальні</a>
-            <a href="#" onclick="filterCollectives('dance')">Хореографічні</a>
-            <a href="#" onclick="filterCollectives('folklore')">Фольклорні</a>
-        </div>
-    </div>
+<nav>
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
     <a href="javascript:void(0)" class="nav-btn" onclick="goToGeneralForm('main')">ПОДАТИ ЗАЯВКУ</a>
 </nav>
 
-<div class="ruta-container">
-    <img src="cheruta.jpg" alt="Червона Рута" style="width: 100%; display: block;">
-    <div id="ruta-ui-layer" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; box-sizing: border-box; z-index: 100;">
-        <div style="flex: 1; display: flex; justify-content: flex-start;">
-            <button onclick="window.open('https://narodocnt.online/polozhennya.pdf', '_blank')" 
-                style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase;">
-                ПОЛОЖЕННЯ
-            </button>
-        </div>
-        <div id="ruta-timer-display" style="display: flex; gap: 4px; color: #f1c40f; flex: 1; justify-content: center; font-family: monospace; font-size: 20px; font-weight: bold; text-shadow: 1px 1px 2px black;">
-            <span id="d-val">00</span>:<span id="h-val">00</span>:<span id="m-val">00</span>:<span id="s-val">00</span>
-        </div>
-        <div style="flex: 1; display: flex; justify-content: flex-end;">
-            <button onclick="goToGeneralForm('cheruta')" 
-                style="background: #ff4500; border: none; color: white; padding: 8px 15px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255,69,0,0.3);">
-                ЗАЯВКА
-            </button>
-        </div>
-    </div>
-</div>
-
-<div id="map-section" class="contest-container" style="background: #fff;">
-    <h2>📍 Культурна мапа Черкащини</h2>
+<div id="map-section" class="contest-container">
+    <h2 style="text-align: center;">📍 Культурна мапа Черкащини</h2>
     <div class="map-controls">
         <button id="btn-col" class="nav-btn" style="background:#e67e22;" onclick="updateMode('collectives')">КОЛЕКТИВИ</button>
         <button id="btn-bat" class="nav-btn" style="background:#2f3640;" onclick="updateMode('battle')">БИТВА</button>
@@ -114,135 +62,34 @@
     <div id="map"></div>
 </div>
 
-<div class="contest-container" style="text-align: center; padding: 10px;">
-    <img src="bitva.jpg" style="width:100%; max-width:600px; border-radius:10px; margin-bottom: 10px;">
-    <div style="text-align: center; margin: 20px 0; background: #2c3e50; padding: 20px; border-radius: 15px;">
-        <h1 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 2.2em; color: #fff;">
-            🏆 Битва вподобайків 
-            <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 32px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);">★</span>
-        </h1>
-        <p style="margin: 8px 0 20px 0; color: #bdc3c7; font-size: 1.2em; font-weight: 300;">Обласний фестиваль «Музична варта»</p>
-        <div id="rankingList" style="max-width: 900px; margin: 0 auto; text-align: left;">
-            <p style="text-align:center; color: #888;">Завантаження рейтингу...</p>
-        </div>
+<div class="contest-container" style="background: #2c3e50; color: white;">
+    <h1 style="text-align: center;">🏆 Битва вподобайків</h1>
+    <div id="rankingList">
+        <p style="text-align:center;">Завантаження рейтингу...</p>
     </div>
 </div>
 
-<footer id="contacts">
-    <div class="social-icons">
-        <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
-        <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
-        <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
-    </div>
-    <p style="margin-top:20px;">Email: narodocnt@ukr.net</p>
+<footer>
+    <p>Email: narodocnt@ukr.net</p>
 </footer>
-
-<div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
-    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px; font-weight: bold; color: #333;">&times;</span>
-        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px; color: #333;"></div>
-    </div>
-</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
-    const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
-
-    function handleAuthClick() {
-        const user = localStorage.getItem('user');
-        if (user) {
-            if (confirm(`Вийти з аккаунту ${user}?`)) {
-                localStorage.removeItem('user');
-                location.reload();
-            }
-        } else {
-            window.location.href = AUTH_URL;
-        }
-    }
-
-    function goToGeneralForm(type = 'main') {
-        const user = localStorage.getItem('user');
-        if (!user) {
-            alert("🔒 Авторизуйтесь, будь ласка!");
-            handleAuthClick();
-            return;
-        }
-        const userName = encodeURIComponent(user);
-        let url = (type === 'cheruta') 
-            ? `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`
-            : `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
-        window.open(url, '_blank');
-    }
-
-    function updateMode(mode) {
-        const btnCol = document.getElementById('btn-col');
-        const btnBat = document.getElementById('btn-bat');
-        if(btnCol) btnCol.style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
-        if(btnBat) btnBat.style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
-        if (window.setMapMode) window.setMapMode(mode);
-    }
-
-    function toggleDropdown() {
-        document.getElementById("collectivesMenu").classList.toggle("show");
-    }
-
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropdown-toggle')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            for (var i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
-            }
-        }
-    }
-
-    function filterCollectives(genre) {
-        document.getElementById("collectivesMenu").classList.remove("show");
-        if (typeof collectivesData !== 'undefined' && collectivesData[genre]) {
-            showModal(collectivesData[genre]);
-        } else {
-            alert("Список ще наповнюється...");
-        }
-    }
-
-    function showModal(content) {
-        const modal = document.getElementById('listModal');
-        const body = document.getElementById('modalBody');
-        body.innerHTML = content;
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal() { 
-        document.getElementById('listModal').style.display = 'none'; 
-        document.body.style.overflow = 'auto';
-    }
-
-    function initRutaUI() {
-        const target = new Date("March 21, 2026 09:00:00").getTime();
-        setInterval(function() {
-            const now = new Date().getTime();
-            const diff = target - now;
-            if (diff < 0) return;
-            document.getElementById("d-val").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            document.getElementById("h-val").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            document.getElementById("m-val").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            document.getElementById("s-val").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-        }, 1000);
-    }
-    window.onload = initRutaUI;
-</script>
-
 <script src="hromadas-data.js"></script>
 <script src="collectives-list.js"></script>
-<script src="collectives.js"></script>
 <script src="collectives-bitva.js"></script>
-<script src="bitva-rule-star.js"></script>
+
 <script src="bitva-ranking.js"></script>
 <script src="map-bitva.js"></script>
+
+<script>
+    // Допоміжні функції прямо в HTML
+    function updateMode(mode) {
+        if (window.setMapMode) window.setMapMode(mode);
+        document.getElementById('btn-col').style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
+        document.getElementById('btn-bat').style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
+    }
+</script>
 
 </body>
 </html>
