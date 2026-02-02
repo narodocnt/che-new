@@ -1,65 +1,76 @@
 /**
- * map-bitva.js - Тільки карта
+ * bitva-ranking.js
  */
-var map;
-var markersLayer;
-window.currentMapMode = 'collectives';
+async function loadAndRenderRanking() {
+    var container = document.getElementById('rankingList');
+    if (!container) return;
 
-function initMap() {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer || map) return;
+    try {
+        var response = await fetch("https://n8n.narodocnt.online/webhook/get-ranking");
+        var rawData = await response.json();
+        var processed = [];
 
-    map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
-    const bounds = [[0, 0], [736, 900]];
-    L.imageOverlay('map.jpg', bounds).addTo(map);
-    map.fitBounds(bounds);
-    markersLayer = L.layerGroup().addTo(map);
-    
-    // Малюємо звичайні кружечки громад відразу
-    renderMarkers('collectives');
+        rawData.forEach(function(item) {
+            var text = (item.message || item.text || "").toLowerCase();
+            for (var id in window.collectivesDatabase) {
+                var db = window.collectivesDatabase[id];
+                if (text.includes(db.location.toLowerCase()) || text.includes(db.key.toLowerCase())) {
+                    processed.push({
+                        id: id,
+                        name: db.name,
+                        location: db.location,
+                        leader: db.leader,
+                        media: db.media,
+                        score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0),
+                        url: item.facebookUrl || item.url || "#"
+                    });
+                    break;
+                }
+            }
+        });
+
+        processed.sort(function(a, b) { return b.score - a.score; });
+        
+        var uniqueTop6 = [];
+        var seen = {};
+        processed.forEach(function(item) {
+            if (!seen[item.id] && uniqueTop6.length < 6) {
+                seen[item.id] = true;
+                uniqueTop6.push(item);
+            }
+        });
+
+        window.currentBattleRanking = uniqueTop6;
+
+        var html = "";
+        uniqueTop6.forEach(function(item, i) {
+            var medals = ['🥇', '🥈', '🥉'];
+            var medal = i < 3 ? medals[i] : (i + 1);
+            var percent = (item.score / (uniqueTop6[0].score || 1)) * 100;
+
+            html += '<div class="rank-card">' +
+                '<div class="medal">' + medal + '</div>' +
+                '<img src="' + item.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
+                '<div class="rank-details">' +
+                    '<div class="rank-header">' +
+                        '<span class="rank-name">' + item.name + '</span>' +
+                        '<span class="metric-info">' + item.score + ' балів</span>' +
+                    '</div>' +
+                    '<div class="progress-wrapper"><div class="progress-fill" style="width:' + percent + '%"></div></div>' +
+                    '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">Громада: ' + item.location + '</div>' +
+                '</div>' +
+                '<a href="' + item.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
+            '</div>';
+        });
+
+        container.innerHTML = html;
+
+        if (window.renderMarkers) {
+            window.renderMarkers(window.currentMapMode || 'collectives');
+        }
+    } catch (e) {
+        console.error("Error loading ranking:", e);
+    }
 }
 
-window.renderMarkers = function(mode) {
-    if (!markersLayer || !window.hromadasGeoJSON) return;
-    markersLayer.clearLayers();
-    window.currentMapMode = mode;
-
-    window.hromadasGeoJSON.features.forEach(h => {
-        const gName = h.name.trim().toLowerCase();
-        
-        if (mode === 'battle') {
-            // Шукаємо дані в рейтингу
-            const bItem = (window.currentBattleRanking || []).find(item => 
-                item.location.toLowerCase().includes(gName.substring(0, 5)) || 
-                gName.includes(item.location.toLowerCase().substring(0, 5))
-            );
-
-            if (bItem) {
-                const icon = L.divIcon({ 
-                    className: 'count-icon battle-marker', 
-                    html: `<span>${bItem.score}</span>`, 
-                    iconSize: [30, 30] 
-                });
-                L.marker([736 - h.y, h.x], { icon: icon })
-                 .bindPopup(`<b>${bItem.name}</b><br>Балів: ${bItem.score}`)
-                 .addTo(markersLayer);
-            }
-        } else {
-            // Звичайні кружечки
-            const list = (window.collectivesList && window.collectivesList[gName]) || [];
-            if (list.length > 0) {
-                const icon = L.divIcon({ 
-                    className: 'count-icon', 
-                    html: `<span>${list.length}</span>`, 
-                    iconSize: [30, 30] 
-                });
-                L.marker([736 - h.y, h.x], { icon: icon })
-                 .bindPopup(`<b>${h.name}</b><br>${list.join('<br>')}`)
-                 .addTo(markersLayer);
-            }
-        }
-    });
-};
-
-window.setMapMode = function(mode) { window.renderMarkers(mode); };
-window.addEventListener('load', initMap);
+document.addEventListener('DOMContentLoaded', loadAndRenderRanking);
