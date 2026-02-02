@@ -51,34 +51,62 @@ window.setMapMode = window.setMode;
 function renderMarkers(mode) {
     if (!window.markersLayer || typeof hromadasGeoJSON === 'undefined') return;
     window.markersLayer.clearLayers();
-    
+
     hromadasGeoJSON.features.forEach(function(h) {
         var gName = h.name.trim().toLowerCase();
-        var label = "•";
         
+        // РЕЖИМ БИТВА
         if (mode === 'battle') {
-            // Пошук ключа для битви (смілянська і т.д.)
-            var key = "";
-            if (gName.includes("сміл")) key = "смілянська";
-            else if (gName.includes("звениг")) key = "звенигородська";
-            else if (gName.includes("кам")) key = "кам’янська";
-            else if (gName.includes("тальн")) key = "тальнівська";
-            else if (gName.includes("христин")) key = "христинівська";
-            else if (gName.includes("золот")) key = "золотоніська";
-            else if (gName.includes("чорноб")) key = "чорнобаївська";
-
-            if (window.currentBattleData[key]) {
-                label = window.currentBattleData[key].rank;
+            var key = getBattleKey(gName);
+            // ПОМИЛКА БУЛА ТУТ: Малюємо маркер ТІЛЬКИ якщо громада є в базі битви (6 штук)
+            if (key && window.currentBattleData && window.currentBattleData[key]) {
+                var d = window.currentBattleData[key];
+                L.marker([736 - h.y, h.x], {
+                    icon: L.divIcon({ className: 'count-icon', html: '<span>' + d.rank + '</span>', iconSize: [30, 30] })
+                }).bindPopup("<b>" + d.name + "</b><br>Місце: " + d.rank).addTo(window.markersLayer);
             }
-        } else {
+        } 
+        // РЕЖИМ КОЛЕКТИВИ
+        else {
             var list = (typeof collectivesList !== 'undefined' && collectivesList[gName]) || [];
-            label = list.length > 0 ? list.length : "•";
-        }
+            var label = list.length > 0 ? list.length : "•";
+            
+            var m = L.marker([736 - h.y, h.x], {
+                icon: L.divIcon({ className: 'count-icon', html: '<span>' + label + '</span>', iconSize: [30, 30] })
+            });
 
-        L.marker([736 - h.y, h.x], {
-            icon: L.divIcon({ className: 'count-icon', html: '<span>' + label + '</span>', iconSize: [30, 30] })
-        }).addTo(window.markersLayer);
+            // Додаємо клік, який відкриває твоє модальне вікно
+            m.on('click', function() {
+                if (list.length > 0) {
+                    showCollectivesList(h.name, list);
+                }
+            });
+            m.addTo(window.markersLayer);
+        }
     });
+}
+
+// Допоміжна функція для зв'язку імен громад
+function getBattleKey(gName) {
+    if (gName.includes("сміл")) return "смілянська";
+    if (gName.includes("звениг")) return "звенигородська";
+    if (gName.includes("кам")) return "кам’янська";
+    if (gName.includes("тальн")) return "тальнівська";
+    if (gName.includes("христин")) return "христинівська";
+    if (gName.includes("золот")) return "золотоніська";
+    if (gName.includes("чорноб")) return "чорнобаївська";
+    return null;
+}
+
+// Функція для показу списку у модалці
+function showCollectivesList(name, list) {
+    const modal = document.getElementById('listModal');
+    const body = document.getElementById('modalBody');
+    if (!modal || !body) return;
+
+    body.innerHTML = '<h2>' + name + '</h2><ul>' + list.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
 
 // ЗАВАНТАЖЕННЯ ДАНИХ
