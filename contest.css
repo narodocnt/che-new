@@ -142,3 +142,45 @@
     .btn-watch { width: 100%; margin-left: 0; }
     .medal { width: 100%; margin-bottom: 10px; margin-right: 0; }
 }
+
+/* Контейнер для кнопки та меню */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Саме випадаюче меню */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #ffffff;
+    min-width: 220px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    z-index: 2000; /* Щоб було поверх карти */
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+/* Елементи списку */
+.dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    text-align: left;
+    transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+    background-color: #f8f9fa;
+    color: #e67e22;
+}
+
+/* Клас, який додає JS */
+.show {
+    display: block !important;
+}
