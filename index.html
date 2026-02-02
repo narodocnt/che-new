@@ -234,5 +234,20 @@ window.onclick = function(event) {
         }
     }
 }
+    function filterCollectives(genre) {
+    console.log("Шукаємо жанр:", genre);
+    
+    // 1. Закриваємо випадаюче меню
+    const menu = document.getElementById("collectivesMenu");
+    if (menu) menu.classList.remove("show");
+
+    // 2. Викликаємо функцію показу таблиці (вона має бути у твоєму файлі bitva-rule-star.js або подібному)
+    // Якщо назва функції у тебе була інша, наприклад showTable(genre), зміни назву нижче
+    if (typeof showGenreTable === 'function') {
+        showGenreTable(genre);
+    } else {
+        alert("Функцію показу таблиці не знайдено. Перевір, чи підключено файл зі списками.");
+    }
+}
 </script>
 </html>
