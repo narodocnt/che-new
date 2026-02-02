@@ -1,22 +1,32 @@
 /**
- * map-bitva.js - Тільки карта
+ * map-bitva.js - Фінальна версія
  */
 var map;
 var markersLayer;
 window.currentMapMode = 'collectives';
 
 function initMap() {
-    const mapContainer = document.getElementById('map');
+    // Перевірка, чи завантажена бібліотека Leaflet
+    if (typeof L === 'undefined') {
+        console.error("Leaflet (L) не знайдено. Чекаємо...");
+        return;
+    }
+
+    var mapContainer = document.getElementById('map');
     if (!mapContainer || map) return;
 
-    map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
-    const bounds = [[0, 0], [736, 900]];
-    L.imageOverlay('map.jpg', bounds).addTo(map);
-    map.fitBounds(bounds);
-    markersLayer = L.layerGroup().addTo(map);
-    
-    // Малюємо звичайні кружечки громад відразу
-    renderMarkers('collectives');
+    try {
+        map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+        var bounds = [[0, 0], [736, 900]];
+        L.imageOverlay('map.jpg', bounds).addTo(map);
+        map.fitBounds(bounds);
+        markersLayer = L.layerGroup().addTo(map);
+        
+        renderMarkers('collectives');
+        console.log("Карта ініціалізована успішно");
+    } catch (e) {
+        console.error("Map init error:", e);
+    }
 }
 
 window.renderMarkers = function(mode) {
@@ -24,42 +34,48 @@ window.renderMarkers = function(mode) {
     markersLayer.clearLayers();
     window.currentMapMode = mode;
 
-    window.hromadasGeoJSON.features.forEach(h => {
-        const gName = h.name.trim().toLowerCase();
+    window.hromadasGeoJSON.features.forEach(function(h) {
+        var gName = h.name.trim().toLowerCase();
         
         if (mode === 'battle') {
-            // Шукаємо дані в рейтингу
-            const bItem = (window.currentBattleRanking || []).find(item => 
-                item.location.toLowerCase().includes(gName.substring(0, 5)) || 
-                gName.includes(item.location.toLowerCase().substring(0, 5))
-            );
+            var bRanking = window.currentBattleRanking || [];
+            var bItem = null;
+            for (var i = 0; i < bRanking.length; i++) {
+                if (gName.indexOf(bRanking[i].location.toLowerCase().substring(0, 5)) !== -1) {
+                    bItem = bRanking[i];
+                    break;
+                }
+            }
 
             if (bItem) {
-                const icon = L.divIcon({ 
-                    className: 'count-icon battle-marker', 
-                    html: `<span>${bItem.score}</span>`, 
+                var iconB = L.divIcon({ 
+                    className: 'count-icon', 
+                    html: '<span style="background:#e67e22; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white;">' + bItem.score + '</span>', 
                     iconSize: [30, 30] 
                 });
-                L.marker([736 - h.y, h.x], { icon: icon })
-                 .bindPopup(`<b>${bItem.name}</b><br>Балів: ${bItem.score}`)
+                L.marker([736 - h.y, h.x], { icon: iconB })
+                 .bindPopup('<b>' + bItem.name + '</b><br>Балів: ' + bItem.score)
                  .addTo(markersLayer);
             }
         } else {
-            // Звичайні кружечки
-            const list = (window.collectivesList && window.collectivesList[gName]) || [];
+            var list = (window.collectivesList && window.collectivesList[gName]) || [];
             if (list.length > 0) {
-                const icon = L.divIcon({ 
+                var iconC = L.divIcon({ 
                     className: 'count-icon', 
-                    html: `<span>${list.length}</span>`, 
+                    html: '<span style="background:#3498db; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white;">' + list.length + '</span>', 
                     iconSize: [30, 30] 
                 });
-                L.marker([736 - h.y, h.x], { icon: icon })
-                 .bindPopup(`<b>${h.name}</b><br>${list.join('<br>')}`)
+                L.marker([736 - h.y, h.x], { icon: iconC })
+                 .bindPopup('<div style="max-height:120px; overflow-y:auto;"><b>' + h.name + '</b><br>' + list.join('<br>') + '</div>')
                  .addTo(markersLayer);
             }
         }
     });
 };
 
-window.setMapMode = function(mode) { window.renderMarkers(mode); };
+window.setMapMode = function(mode) { 
+    window.renderMarkers(mode); 
+};
+
+// Запуск при повному завантаженні всіх ресурсів
 window.addEventListener('load', initMap);
