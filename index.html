@@ -234,19 +234,34 @@ window.onclick = function(event) {
         }
     }
 }
-    function filterCollectives(genre) {
-    console.log("Шукаємо жанр:", genre);
+  function filterCollectives(genre) {
+    console.log("Відкриваємо жанр:", genre);
     
     // 1. Закриваємо випадаюче меню
     const menu = document.getElementById("collectivesMenu");
     if (menu) menu.classList.remove("show");
 
-    // 2. Викликаємо функцію показу таблиці (вона має бути у твоєму файлі bitva-rule-star.js або подібному)
-    // Якщо назва функції у тебе була інша, наприклад showTable(genre), зміни назву нижче
-    if (typeof showGenreTable === 'function') {
-        showGenreTable(genre);
+    // 2. Перевіряємо, чи є дані для цього жанру
+    if (typeof collectivesData !== 'undefined' && collectivesData[genre]) {
+        showModal(collectivesData[genre]);
     } else {
-        alert("Функцію показу таблиці не знайдено. Перевір, чи підключено файл зі списками.");
+        console.error("Дані для жанру '" + genre + "' не знайдені в collectives.js");
+        alert("Список ще наповнюється...");
+    }
+}
+
+// Функція для показу модального вікна
+function showModal(content) {
+    const modal = document.getElementById('listModal'); // Перевір, чи є такий ID у твого модального вікна
+    const body = document.getElementById('modalBody');
+    
+    if (modal && body) {
+        body.innerHTML = content;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Забороняємо прокрутку сайту під модалкою
+    } else {
+        // Якщо модалки немає в HTML, створимо її на льоту або виведемо просто alert
+        alert("Не знайдено вікно для виводу списку. Перевір ID 'listModal' в index.html");
     }
 }
 </script>
