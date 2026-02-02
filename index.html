@@ -85,15 +85,15 @@
 </header>
 
 <nav class="main-nav">
-    <div class="dropdown">
-        <button class="nav-btn dropbtn">КОЛЕКТИВИ <i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-content">
-            <a href="javascript:void(0)" onclick="openGenre('vocal')">Вокально-хоровий</a>
-            <a href="javascript:void(0)" onclick="openGenre('choreographic')">Хореографічний</a>
-            <a href="javascript:void(0)" onclick="openGenre('theatrical')">Театральний</a>
-            <a href="javascript:void(0)" onclick="openGenre('instrumental')">Музично-інструментальний</a>
-        </div>
+   <div class="dropdown">
+    <button class="nav-btn dropdown-toggle" onclick="toggleDropdown()">Колективи ▼</button>
+    <div id="collectivesMenu" class="dropdown-content">
+        <a href="#" onclick="filterCollectives('vocal')">Вокальні</a>
+        <a href="#" onclick="filterCollectives('instrumental')">Інструментальні</a>
+        <a href="#" onclick="filterCollectives('dance')">Хореографічні</a>
+        <a href="#" onclick="filterCollectives('folklore')">Фольклорні</a>
     </div>
+</div>
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
     <a href="javascript:void(0)" class="nav-btn" onclick="goToGeneralForm('main')">ПОДАТИ ЗАЯВКУ</a>
 </nav>
