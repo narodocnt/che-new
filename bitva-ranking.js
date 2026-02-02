@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js
+ * bitva-ranking.js - Фінальна версія
  */
 async function loadAndRenderRanking() {
     var container = document.getElementById('rankingList');
@@ -10,11 +10,14 @@ async function loadAndRenderRanking() {
         var rawData = await response.json();
         var processed = [];
 
-        rawData.forEach(function(item) {
+        // Використовуємо звичайні цикли для надійності
+        for (var i = 0; i < rawData.length; i++) {
+            var item = rawData[i];
             var text = (item.message || item.text || "").toLowerCase();
+            
             for (var id in window.collectivesDatabase) {
                 var db = window.collectivesDatabase[id];
-                if (text.includes(db.location.toLowerCase()) || text.includes(db.key.toLowerCase())) {
+                if (text.indexOf(db.location.toLowerCase()) !== -1 || text.indexOf(db.key.toLowerCase()) !== -1) {
                     processed.push({
                         id: id,
                         name: db.name,
@@ -27,41 +30,44 @@ async function loadAndRenderRanking() {
                     break;
                 }
             }
-        });
+        }
 
         processed.sort(function(a, b) { return b.score - a.score; });
         
         var uniqueTop6 = [];
         var seen = {};
-        processed.forEach(function(item) {
-            if (!seen[item.id] && uniqueTop6.length < 6) {
-                seen[item.id] = true;
-                uniqueTop6.push(item);
+        for (var j = 0; j < processed.length; j++) {
+            var pItem = processed[j];
+            if (!seen[pItem.id] && uniqueTop6.length < 6) {
+                seen[pItem.id] = true;
+                uniqueTop6.push(pItem);
             }
-        });
+        }
 
         window.currentBattleRanking = uniqueTop6;
 
         var html = "";
-        uniqueTop6.forEach(function(item, i) {
+        for (var k = 0; k < uniqueTop6.length; k++) {
+            var finalItem = uniqueTop6[k];
             var medals = ['🥇', '🥈', '🥉'];
-            var medal = i < 3 ? medals[i] : (i + 1);
-            var percent = (item.score / (uniqueTop6[0].score || 1)) * 100;
+            var medal = k < 3 ? medals[k] : (k + 1);
+            var maxScore = uniqueTop6[0].score || 1;
+            var percent = (finalItem.score / maxScore) * 100;
 
             html += '<div class="rank-card">' +
                 '<div class="medal">' + medal + '</div>' +
-                '<img src="' + item.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
+                '<img src="' + finalItem.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
                 '<div class="rank-details">' +
                     '<div class="rank-header">' +
-                        '<span class="rank-name">' + item.name + '</span>' +
-                        '<span class="metric-info">' + item.score + ' балів</span>' +
+                        '<span class="rank-name">' + finalItem.name + '</span>' +
+                        '<span class="metric-info">' + finalItem.score + ' балів</span>' +
                     '</div>' +
                     '<div class="progress-wrapper"><div class="progress-fill" style="width:' + percent + '%"></div></div>' +
-                    '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">Громада: ' + item.location + '</div>' +
+                    '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">Громада: ' + finalItem.location + '</div>' +
                 '</div>' +
-                '<a href="' + item.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
+                '<a href="' + finalItem.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
             '</div>';
-        });
+        }
 
         container.innerHTML = html;
 
@@ -69,7 +75,7 @@ async function loadAndRenderRanking() {
             window.renderMarkers(window.currentMapMode || 'collectives');
         }
     } catch (e) {
-        console.error("Error loading ranking:", e);
+        console.error("Ranking error:", e);
     }
 }
 
