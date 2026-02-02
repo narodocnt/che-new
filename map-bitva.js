@@ -1,7 +1,7 @@
 /**
  * map-bitva.js - Фінальна версія
  */
-var map;
+var map; 
 var markersLayer;
 window.currentMapMode = 'collectives';
 
