@@ -122,5 +122,33 @@ async function loadBattleRanking() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('rankingList');
+    if (!container) return;
+
+    // Список учасників (Рівно 6)
+    const participants = [
+        { id: 'смілянська', name: 'Смілянська громада', leader: 'Н. Шварцман', photo: 'smila.jpg' },
+        { id: 'звенигородська', name: 'Звенигородська громада', leader: 'О. Бойко', photo: 'zven.jpg' },
+        { id: 'кам’янська', name: 'Кам’янська громада', leader: 'О. Петрова', photo: 'kam.jpg' },
+        { id: 'тальнівська', name: 'Тальнівська громада', leader: 'І. Сидоренко', photo: 'talne.jpg' },
+        { id: 'христинівська', name: 'Христинівська громада', leader: 'М. Іванова', photo: 'hrist.jpg' },
+        { id: 'золотоніська', name: 'Золотоніська громада', leader: 'В. Ткаченко', photo: 'zoloto.jpg' }
+    ];
+
+    // Використовуємо .innerHTML, щоб видалити старе і поставити тільки ці 6 карток
+    container.innerHTML = participants.map(p => `
+        <div class="rank-card" id="card-${p.id}">
+            <div class="medal"><span class="card-rank">?</span></div>
+            <img src="${p.photo}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
+            <div class="rank-details">
+                <span class="rank-name">${p.name}</span>
+                <span class="rank-leader">${p.leader}</span>
+                <div class="progress-wrapper"><div class="progress-fill" id="fill-${p.id}" style="width: 0%"></div></div>
+            </div>
+            <div class="rank-score"><span id="score-${p.id}">0</span> 🔥</div>
+        </div>
+    `).join('');
+});
 // СТАРТ
 window.onload = initMap;
