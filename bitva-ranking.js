@@ -1,86 +1,51 @@
-/**
- * bitva-ranking.js - Стерильна версія для GitHub Actions
- */
-function loadAndRenderRanking() {
+async function loadAndRenderRanking() {
     var container = document.getElementById('rankingList');
     if (!container) return;
 
-    // Використовуємо старий добрий XMLHttpRequest замість fetch для 100% сумісності
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://n8n.narodocnt.online/webhook/get-ranking", true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            try {
-                var rawData = JSON.parse(xhr.responseText);
-                var processed = [];
+    try {
+        var response = await fetch("https://n8n.narodocnt.online/webhook/get-ranking");
+        var rawData = await response.json();
+        var processed = [];
 
-                for (var i = 0; i < rawData.length; i++) {
-                    var item = rawData[i];
-                    var text = (item.message || item.text || "").toLowerCase();
-                    
-                    if (window.collectivesDatabase) {
-                        for (var id in window.collectivesDatabase) {
-                            var db = window.collectivesDatabase[id];
-                            if (text.indexOf(db.location.toLowerCase()) !== -1 || text.indexOf(db.key.toLowerCase()) !== -1) {
-                                processed.push({
-                                    id: id,
-                                    name: db.name,
-                                    location: db.location,
-                                    media: db.media,
-                                    score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0),
-                                    url: item.facebookUrl || item.url || "#"
-                                });
-                                break;
-                            }
-                        }
+        rawData.forEach(item => {
+            var text = (item.message || "").toLowerCase();
+            if (window.collectivesDatabase) {
+                for (var id in window.collectivesDatabase) {
+                    var db = window.collectivesDatabase[id];
+                    if (text.includes(db.location.toLowerCase())) {
+                        processed.push({
+                            id: id,
+                            name: db.name,
+                            location: db.location,
+                            // ВИПРАВЛЕННЯ: якщо картинки немає в репозиторії, ставимо логотип
+                            media: "narodocnt.jpg", 
+                            score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0),
+                            url: item.facebookUrl || "#"
+                        });
+                        break;
                     }
                 }
-
-                processed.sort(function(a, b) { return b.score - a.score; });
-                
-                var uniqueTop6 = [];
-                var seen = {};
-                for (var j = 0; j < processed.length; j++) {
-                    if (!seen[processed[j].id] && uniqueTop6.length < 6) {
-                        seen[processed[j].id] = true;
-                        uniqueTop6.push(processed[j]);
-                    }
-                }
-
-                window.currentBattleRanking = uniqueTop6;
-
-                var html = "";
-                for (var k = 0; k < uniqueTop6.length; k++) {
-                    var el = uniqueTop6[k];
-                    var medal = (k === 0) ? "🥇" : (k === 1) ? "🥈" : (k === 2) ? "🥉" : (k + 1);
-                    var barWidth = (el.score / (uniqueTop6[0].score || 1)) * 100;
-
-                    html += '<div class="rank-card">' +
-                        '<div class="medal">' + medal + '</div>' +
-                        '<img src="' + el.media + '" class="rank-photo" onerror="this.src=\'narodocnt.jpg\'">' +
-                        '<div class="rank-details">' +
-                            '<div class="rank-header"><span class="rank-name">' + el.name + '</span>' +
-                            '<span class="metric-info">' + el.score + ' балів</span></div>' +
-                            '<div class="progress-wrapper"><div class="progress-fill" style="width:' + barWidth + '%"></div></div>' +
-                            '<div style="font-size:12px; color:#7f8c8d; margin-top:5px;">' + el.location + '</div>' +
-                        '</div>' +
-                        '<a href="' + el.url + '" class="btn-watch" target="_blank">Голосувати</a>' +
-                    '</div>';
-                }
-                container.innerHTML = html;
-
-                if (window.renderMarkers) window.renderMarkers(window.currentMapMode || 'collectives');
-            } catch (err) {
-                console.error("Data error:", err);
             }
-        }
-    };
-    xhr.send();
-}
+        });
 
-// Запуск відразу після завантаження дерева DOM
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadAndRenderRanking);
-} else {
-    loadAndRenderRanking();
+        processed.sort((a, b) => b.score - a.score);
+        var uniqueTop6 = processed.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i).slice(0, 6);
+        window.currentBattleRanking = uniqueTop6;
+
+        container.innerHTML = uniqueTop6.map((el, k) => `
+            <div class="rank-card">
+                <div class="medal">${k + 1}</div>
+                <img src="${el.media}" class="rank-photo">
+                <div class="rank-details">
+                    <div class="rank-header"><span>${el.name}</span><strong>${el.score} 🔥</strong></div>
+                </div>
+                <a href="${el.url}" class="btn-watch" target="_blank">Голос</a>
+            </div>
+        `).join('');
+
+        if (window.renderMarkers) window.renderMarkers('battle');
+    } catch (e) {
+        console.error("Помилка завантаження рейтингу:", e);
+    }
 }
+window.onload = loadAndRenderRanking;
