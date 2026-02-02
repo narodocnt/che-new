@@ -267,6 +267,34 @@ window.addEventListener('load', function() {
         console.error("❌ Функцію initRutaUI не знайдено в cheruta.js");
     }
 });
+function initRutaUI() {
+    const target = new Date("March 21, 2026 09:00:00").getTime();
+    
+    function update() {
+        const now = new Date().getTime();
+        const diff = target - now;
+
+        if (diff < 0) {
+            const timerDisplay = document.getElementById("ruta-timer-display");
+            if (timerDisplay) timerDisplay.innerHTML = "ФЕСТИВАЛЬ РОЗПОЧАТО!";
+            return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+        const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+
+        if (document.getElementById("d-val")) document.getElementById("d-val").innerText = d;
+        if (document.getElementById("h-val")) document.getElementById("h-val").innerText = h;
+        if (document.getElementById("m-val")) document.getElementById("m-val").innerText = m;
+        if (document.getElementById("s-val")) document.getElementById("s-val").innerText = s;
+    }
+
+    setInterval(update, 1000);
+    update();
+}
+    
 </script>
 
 <script src="hromadas-data.js"></script>
