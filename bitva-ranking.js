@@ -1,77 +1,65 @@
 /**
- * bitva-ranking.js - Логіка карток та підготовка даних
+ * map-bitva.js - Тільки карта
  */
-async function loadAndRenderRanking() {
-    const container = document.getElementById('rankingList');
-    if (!container) return;
+var map;
+var markersLayer;
+window.currentMapMode = 'collectives';
 
-    try {
-        console.log("Завантаження даних з n8n...");
-        const response = await fetch("https://n8n.narodocnt.online/webhook/get-ranking");
-        const rawData = await response.json();
-        let processed = [];
+function initMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer || map) return;
 
-        // Зв'язуємо дані n8n з вашою базою учасників
-        rawData.forEach(item => {
-            const text = (item.message || item.text || "").toLowerCase();
-            for (let id in window.collectivesDatabase) {
-                const db = window.collectivesDatabase[id];
-                if (text.includes(db.location.toLowerCase()) || text.includes(db.key.toLowerCase())) {
-                    processed.push({ 
-                        ...db, 
-                        score: (parseInt(item.likes)||0) + (parseInt(item.comments)||0) + (parseInt(item.shares)||0), 
-                        url: item.facebookUrl || item.url || "#", 
-                        id: id 
-                    });
-                    break;
-                }
-            }
-        });
-
-        // Сортування та унікальність
-        processed.sort((a, b) => b.score - a.score);
-        const uniqueTop6 = [];
-        const seen = new Set();
-        processed.forEach(item => {
-            if (!seen.has(item.id) && uniqueTop6.length < 6) {
-                seen.add(item.id);
-                uniqueTop6.push(item);
-            }
-        });
-
-        window.currentBattleRanking = uniqueTop6; // Дані для карти
-
-        // Вивід карток
-        container.innerHTML = uniqueTop6.map((item, i) => `
-            <div class="rank-card">
-                <div class="medal">${i < 3 ? ['🥇','🥈','🥉'][i] : i+1}</div>
-                <img src="${item.media}" class="rank-photo" onerror="this.src='narodocnt.jpg'">
-                <div class="rank-details">
-                    <div class="rank-header">
-                        <span class="rank-name">${item.name}</span>
-                        <span class="metric-info">${item.score} балів</span>
-                    </div>
-                    <div class="progress-wrapper">
-                        <div class="progress-fill" style="width:${(item.score/uniqueTop6[0].score)*100}%"></div>
-                    </div>
-                    <div style="font-size:12px; color: #7f8c8d; margin-top:5px;">
-                        Громада: ${item.location} | Керівник: ${item.leader}
-                    </div>
-                </div>
-                <a href="${item.url}" class="btn-watch" target="_blank">Голосувати</a>
-            </div>
-        `).join('');
-
-        // Після того, як картки готові, кажемо карті оновитися
-        if (window.renderMarkers) {
-            window.renderMarkers(window.currentMapMode || 'collectives');
-        }
-
-    } catch (e) {
-        console.error("Помилка завантаження рейтингу:", e);
-        container.innerHTML = "<p style='text-align:center'>Тимчасова помилка оновлення даних...</p>";
-    }
+    map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2 });
+    const bounds = [[0, 0], [736, 900]];
+    L.imageOverlay('map.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
+    markersLayer = L.layerGroup().addTo(map);
+    
+    // Малюємо звичайні кружечки громад відразу
+    renderMarkers('collectives');
 }
 
-// Запускаємо, коли документ готовий
-document.addEventListener('DOMContentLoaded', loadAndRenderRanking);
+window.renderMarkers = function(mode) {
+    if (!markersLayer || !window.hromadasGeoJSON) return;
+    markersLayer.clearLayers();
+    window.currentMapMode = mode;
+
+    window.hromadasGeoJSON.features.forEach(h => {
+        const gName = h.name.trim().toLowerCase();
+        
+        if (mode === 'battle') {
+            // Шукаємо дані в рейтингу
+            const bItem = (window.currentBattleRanking || []).find(item => 
+                item.location.toLowerCase().includes(gName.substring(0, 5)) || 
+                gName.includes(item.location.toLowerCase().substring(0, 5))
+            );
+
+            if (bItem) {
+                const icon = L.divIcon({ 
+                    className: 'count-icon battle-marker', 
+                    html: `<span>${bItem.score}</span>`, 
+                    iconSize: [30, 30] 
+                });
+                L.marker([736 - h.y, h.x], { icon: icon })
+                 .bindPopup(`<b>${bItem.name}</b><br>Балів: ${bItem.score}`)
+                 .addTo(markersLayer);
+            }
+        } else {
+            // Звичайні кружечки
+            const list = (window.collectivesList && window.collectivesList[gName]) || [];
+            if (list.length > 0) {
+                const icon = L.divIcon({ 
+                    className: 'count-icon', 
+                    html: `<span>${list.length}</span>`, 
+                    iconSize: [30, 30] 
+                });
+                L.marker([736 - h.y, h.x], { icon: icon })
+                 .bindPopup(`<b>${h.name}</b><br>${list.join('<br>')}`)
+                 .addTo(markersLayer);
+            }
+        }
+    });
+};
+
+window.setMapMode = function(mode) { window.renderMarkers(mode); };
+window.addEventListener('load', initMap);
