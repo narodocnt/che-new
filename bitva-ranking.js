@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js - Пошук учасників за ключовими словами в тексті
+ * bitva-ranking.js - Розумне порівняння та вивід точних даних
  */
 function loadBattleRanking() {
     const container = document.getElementById('rankingList');
@@ -12,84 +12,88 @@ function loadBattleRanking() {
             const resultsMap = {};
 
             rawData.forEach(item => {
-                // Беремо текст поста з поля message
-                const text = (item.message || "").toLowerCase();
-                const fbUrl = item.facebookUrl || "";
+                // Беремо "брудний" текст із таблиці для пошуку
+                const tableText = (item.text || "").toLowerCase();
+                
+                // Статистика з таблиці
+                const likes = parseInt(item.likes) || 0;
+                const comments = parseInt(item.comments) || 0;
+                const shares = parseInt(item.shares) || 0;
+                const totalScore = likes + comments + shares;
+
                 let foundId = null;
 
-                // ШУКАЄМО ЗБІГ: Проходимо по кожному учаснику в базі
+                // ШУКАЄМО ВІДПОВІДНІСТЬ
                 for (let id in db) {
                     const entry = db[id];
-                    // Шукаємо назву локації (напр. "смілянська") або ключ (напр. "smila") у тексті поста
-                    const locationKeyword = entry.location.toLowerCase().replace("ська", ""); // беремо корінь
-                    const keyKeyword = entry.key.toLowerCase();
+                    // Шукаємо за локацією (напр. "смілянська") або ключем (напр. "smila")
+                    const locSearch = entry.location.toLowerCase().substring(0, 5);
+                    const keySearch = entry.key.toLowerCase();
 
-                    if (text.includes(locationKeyword) || text.includes(keyKeyword)) {
+                    if (tableText.includes(locSearch) || tableText.includes(keySearch)) {
                         foundId = id;
                         break;
                     }
                 }
 
                 if (foundId) {
-                    // Якщо знайшли громаду в тексті — записуємо статистику
-                    const likes = parseInt(item.likes) || 0;
-                    const comments = parseInt(item.comments) || 0;
-                    const shares = parseInt(item.shares) || 0;
-                    const total = likes + comments + shares;
-
-                    // Зберігаємо тільки унікальні (якщо постів кілька для однієї громади — беремо кращий)
-                    if (!resultsMap[foundId] || total > resultsMap[foundId].total) {
+                    // Якщо знайшли збіг, зберігаємо дані. 
+                    // Якщо одна громада зустрічається двічі — залишаємо ту, де вищий бал.
+                    if (!resultsMap[foundId] || totalScore > resultsMap[foundId].total) {
                         resultsMap[foundId] = {
-                            ...db[foundId],
+                            // Беремо ВСІ ТОЧНІ ДАНІ з твого файлу (name, leader, institution, location)
+                            ...db[foundId], 
+                            // Додаємо цифри з таблиці
                             likes,
                             comments,
                             shares,
-                            total,
-                            url: fbUrl
+                            total: totalScore,
+                            // Пріоритет медіа: якщо в таблиці є пряме посилання — беремо його, якщо ні — з файлу
+                            finalMedia: item.media || db[foundId].media,
+                            url: item.facebookUrl
                         };
                     }
                 }
             });
 
-            const processed = Object.values(resultsMap);
-            processed.sort((a, b) => b.total - a.total);
+            // Сортуємо: лідери зверху
+            const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total);
 
-            if (processed.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Громад не знайдено в тексті постів. Перевірте зміст повідомлень.</p>";
+            if (sorted.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:white; padding:20px;'>Опрацювання даних Битви...</p>";
                 return;
             }
 
-            container.innerHTML = processed.map((el, index) => {
+            // Рендеринг карток з ТОЧНИМИ назвами
+            container.innerHTML = sorted.map((el, index) => {
                 const rank = index + 1;
-                let medal = rank;
-                if (rank === 1) medal = "🥇";
-                if (rank === 2) medal = "🥈";
-                if (rank === 3) medal = "🥉";
+                const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
 
                 return `
                 <div class="battle-card">
                     <div class="card-left">
-                        <img src="${el.media}" onerror="this.src='narodocnt.jpg'">
+                        <img src="${el.finalMedia}" onerror="this.src='narodocnt.jpg'">
                         <div class="rank-badge">${medal}</div>
                     </div>
                     <div class="card-right">
                         <div class="card-top">
-                            <span class="location-label">📍 ${el.location}</span>
+                            <span class="location-label">📍 ${el.location} громада</span>
                             <h3 class="collective-name">${el.name}</h3>
-                            <p class="leader-name">${el.leader}</p>
+                            <p class="leader-name">Керівник: <b>${el.leader}</b></p>
+                            <p class="institution-text">${el.institution}</p>
                         </div>
                         <div class="stats-grid">
                             <div class="stat">👍 ${el.likes}</div>
                             <div class="stat">💬 ${el.comments}</div>
                             <div class="stat">🔁 ${el.shares}</div>
-                            <div class="stat-total">БАЛИ: ${el.total}</div>
+                            <div class="stat-total">РАЗОМ: ${el.total}</div>
                         </div>
                     </div>
-                    <a href="${el.url}" target="_blank" class="vote-link">ГОЛОС</a>
+                    <a href="${el.url}" target="_blank" class="vote-link">ГОЛОСУВАТИ</a>
                 </div>`;
             }).join('');
         })
-        .catch(err => console.error("Помилка завантаження Битви:", err));
+        .catch(err => console.error("Помилка завантаження рейтингу:", err));
 }
 
 window.addEventListener('load', loadBattleRanking);
