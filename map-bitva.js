@@ -31,32 +31,31 @@ document.addEventListener('DOMContentLoaded', () => {
 window.updateMode = function(mode) {
     console.log("🔄 Перемикання режиму мапи на:", mode);
 
-    // Оновлюємо візуал кнопок
+    // 1. Оновлюємо кнопки
     const btnCol = document.getElementById('btn-col');
     const btnBat = document.getElementById('btn-bat');
-
     if (btnCol && btnBat) {
-        if (mode === 'collectives') {
-            btnCol.style.background = '#e67e22';
-            btnBat.style.background = '#2f3640';
-        } else {
-            btnCol.style.background = '#2f3640';
-            btnBat.style.background = '#e67e22';
+        btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
+        btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
+    }
+
+    // 2. Очищаємо маркери (шар має бути спільним або доступним)
+    if (window.markersLayer) {
+        window.markersLayer.clearLayers();
+    }
+
+    // 3. Викликаємо потрібний файл
+    if (mode === 'battle') {
+        if (typeof renderBitvaMode === 'function') {
+            renderBitvaMode(); 
+        }
+    } else {
+        // ВИКЛИК ФАЙЛУ Map-колективи.js
+        if (typeof renderMarkers === 'function') {
+            renderMarkers('collectives'); 
         }
     }
-
-    // Очищаємо старі маркери
-    if (markersLayer) markersLayer.clearLayers();
-
-    // Запускаємо потрібний рендер
-    if (mode === 'battle') {
-        renderBitvaMode();
-    } else {
-        if (window.renderMarkers) window.renderMarkers('collectives'); 
-        // Припускаємо, що функція для звичайних колективів у вас в іншому файлі
-    }
 };
-
 // 3. Логіка Битви (ваш код з виправленнями)
 function renderBitvaMode() {
     console.log("⚔️ Малюємо маркери Битви...");
