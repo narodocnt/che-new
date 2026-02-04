@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const bounds = [[0, 0], [736, 1147]]; // Розміри вашої карти
-    L.imageOverlay('map-chernivtsi.jpg', bounds).addTo(map); // Ваша картинка мапи
+    L.imageOverlay('map.jpg', bounds).addTo(map); // Ваша картинка мапи
     map.fitBounds(bounds);
 
     markersLayer = L.layerGroup().addTo(map);
