@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js - Фінальна версія: 6 карток, повна статистика
+ * bitva-ranking.js - Фінальна версія з фільтрацією дублікатів
  */
 function loadBattleRanking() {
     const container = document.getElementById('rankingList');
@@ -8,48 +8,53 @@ function loadBattleRanking() {
     fetch("https://n8n.narodocnt.online/webhook/get-ranking")
         .then(res => res.json())
         .then(rawData => {
-            let processed = [];
             const db = window.collectivesDatabase;
+            const resultsMap = {}; // Тут ми будемо зберігати тільки унікальні записи
 
-            // Обробляємо дані з n8n
             rawData.forEach(item => {
                 const fbUrl = item.facebookUrl || "";
-                let foundEntry = null;
+                let foundId = null;
 
-                // Шукаємо збіг по ID (10, 11, 12, 14, 17, 20) в URL
+                // Шукаємо, якому ID з бази належить цей пост
                 for (let id in db) {
                     if (fbUrl.includes(id)) {
-                        foundEntry = JSON.parse(JSON.stringify(db[id])); // Клонуємо об'єкт
+                        foundId = id;
                         break;
                     }
                 }
 
-                if (foundEntry) {
+                if (foundId) {
                     const likes = parseInt(item.likes) || 0;
                     const comments = parseInt(item.comments) || 0;
                     const shares = parseInt(item.shares) || 0;
-                    
-                    processed.push({
-                        ...foundEntry,
-                        likes: likes,
-                        comments: comments,
-                        shares: shares,
-                        total: likes + comments + shares,
-                        url: fbUrl
-                    });
+                    const total = likes + comments + shares;
+
+                    // Якщо ми вже бачили цей ID, беремо той запис, де більше балів (про всяк випадок)
+                    if (!resultsMap[foundId] || total > resultsMap[foundId].total) {
+                        resultsMap[foundId] = {
+                            ...db[foundId],
+                            likes,
+                            comments,
+                            shares,
+                            total,
+                            url: fbUrl
+                        };
+                    }
                 }
             });
 
-            // Сортуємо: хто набрав більше балів — той вище
+            // Перетворюємо об'єкт назад у масив для сортування
+            let processed = Object.values(resultsMap);
+
+            // Сортуємо за рейтингом
             processed.sort((a, b) => b.total - a.total);
 
-            // Якщо даних менше 6 (наприклад, сервер ще вантажить), додаємо пусті або виводимо що є
             if (processed.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:white;'>Отримання даних з Facebook...</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Дані оновлюються...</p>";
                 return;
             }
 
-            // Малюємо рівно 6 карток
+            // Виводимо картки (тепер кожна громада буде лише один раз)
             container.innerHTML = processed.map((el, index) => {
                 const rank = index + 1;
                 let medal = rank;
@@ -70,9 +75,9 @@ function loadBattleRanking() {
                             <p class="leader-name">Керівник: ${el.leader}</p>
                         </div>
                         <div class="stats-grid">
-                            <div class="stat"><span class="icon">👍</span> ${el.likes}</div>
-                            <div class="stat"><span class="icon">💬</span> ${el.comments}</div>
-                            <div class="stat"><span class="icon">🔁</span> ${el.shares}</div>
+                            <div class="stat">👍 ${el.likes}</div>
+                            <div class="stat">💬 ${el.comments}</div>
+                            <div class="stat">🔁 ${el.shares}</div>
                             <div class="stat-total">БАЛИ: ${el.total}</div>
                         </div>
                     </div>
