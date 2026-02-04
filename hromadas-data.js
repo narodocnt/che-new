@@ -1,4 +1,4 @@
-const hromadasGeoJSON = {
+window hromadasGeoJSON = {
   "type": "FeatureCollection",
   "features": [
    {
