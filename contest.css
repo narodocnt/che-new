@@ -184,3 +184,47 @@
 .show {
     display: block !important;
 }
+/* Стиль кружечка з цифрою */
+.marker-pin-collectives {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #3498db; /* Красивий синій колір */
+    border: 2px solid white;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.marker-pin-collectives:hover {
+    transform: scale(1.2);
+    background: #2980b9;
+}
+
+/* Стиль спливаючої таблички */
+.map-popup-content {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+}
+
+.popup-scroll-list {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 13px;
+    padding-right: 5px;
+}
+
+.popup-item {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    line-height: 1.4;
+}
+
+.popup-item:last-child {
+    border-bottom: none;
+}
