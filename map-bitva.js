@@ -1,36 +1,32 @@
 /**
- * bitva-map.js - Рейтинг на карті з використанням координат GeoJSON
+ * bitva-map.js - Автономний скрипт для мапи Битви
  */
 window.renderBitvaMode = function(layerGroup) {
-    console.log("⚔️ Запуск режиму Битва на карті...");
-    
-    const geoJSON = window.hromadasGeoJSON;
-    const db = window.collectivesDatabase;
-
-    if (!layerGroup || !geoJSON || !db) {
-        console.error("❌ Помилка: Необхідні дані не знайдені!");
+    // Перевіряємо чи є база даних, щоб не "ляснув" весь скрипт
+    if (!window.hromadasGeoJSON || !window.collectivesDatabase) {
+        console.warn("Дані для карти Битви ще не завантажені.");
         return;
     }
 
+    const geoJSON = window.hromadasGeoJSON;
+    const db = window.collectivesDatabase;
+
+    // Очищаємо шар перед малюванням, щоб не було дублів
     layerGroup.clearLayers();
 
-    // 1. Отримуємо дані рейтингу з n8n
     fetch("https://n8n.narodocnt.online/webhook/get-ranking")
         .then(res => res.json())
         .then(rawData => {
             const resultsMap = {};
 
-            // 2. Розрахунок рейтингу (точно як у bitva-ranking.js)
+            // Розрахунок рейтингу (точно як у вашому робочому ранкінгу)
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
-                const likes = parseInt(item.likes) || 0;
-                const comments = parseInt(item.comments) || 0;
-                const shares = parseInt(item.shares) || 0;
-                const totalScore = likes + comments + shares;
+                const totalScore = (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0);
 
                 for (let id in db) {
-                    const locSearch = db[id].location.toLowerCase().substring(0, 5);
-                    if (tableText.includes(locSearch)) {
+                    const locRoot = db[id].location.toLowerCase().substring(0, 5);
+                    if (tableText.includes(locRoot)) {
                         if (!resultsMap[id] || totalScore > resultsMap[id].total) {
                             resultsMap[id] = { 
                                 ...db[id], 
@@ -42,56 +38,44 @@ window.renderBitvaMode = function(layerGroup) {
                 }
             });
 
-            // 3. Сортуємо для отримання місць (1, 2, 3...)
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total);
 
-            // 4. Малюємо маркери на карті
+            // Малюємо маркери
             sorted.forEach((el, index) => {
                 const rank = index + 1;
                 
-                // Шукаємо координати громади в GeoJSON за назвою локації
+                // Пошук громади в GeoJSON для координат
                 const hromada = geoJSON.features.find(f => 
                     f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5))
                 );
 
                 if (hromada) {
-                    // Твоя формула перерахунку:
+                    // Ваша точна піксельна формула
                     const lat = 736 - hromada.y;
                     const lng = hromada.x;
 
-                    // Колір залежно від місця
                     const color = rank === 1 ? "#FFD700" : (rank === 2 ? "#C0C0C0" : (rank === 3 ? "#CD7F32" : "#e67e22"));
 
                     const icon = L.divIcon({
-                        className: 'bitva-icon',
-                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px;">${rank}</div>`,
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16]
+                        className: 'map-rank-marker',
+                        html: `<div style="background:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:13px;">${rank}</div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
                     });
 
-                    // Створюємо Popup (точно як у картках)
-                    const popupContent = `
-                        <div class="map-bitva-popup" style="min-width:180px;">
-                            <div style="color:${color}; font-weight:bold; font-size:14px;">🏆 Місце №${rank}</div>
-                            <h3 style="margin:5px 0; font-size:14px; line-height:1.2;">${el.name}</h3>
+                    const popup = `
+                        <div style="min-width:180px; font-family:sans-serif;">
+                            <div style="color:${color}; font-weight:bold; font-size:13px;">🏆 Місце №${rank}</div>
+                            <h3 style="margin:5px 0; font-size:14px;">${el.name}</h3>
                             <p style="margin:2px 0; font-size:11px;">📍 ${el.location} громада</p>
                             <p style="margin:2px 0; font-size:11px;">👤 ${el.leader}</p>
-                            <div style="margin:8px 0; font-weight:bold; font-size:13px; background:#fdf7f2; padding:4px; border-radius:4px;">
-                                Балів: ${el.total}
-                            </div>
-                            <a href="${el.url}" target="_blank" 
-                               style="display:block; background:#e67e22; color:white; text-align:center; padding:8px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:10px; text-transform:uppercase;">
-                               Голосувати
-                            </a>
+                            <div style="margin:8px 0; font-weight:bold; font-size:12px; background:#fdf7f2; padding:4px;">Балів: ${el.total}</div>
+                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-align:center; padding:8px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:10px; text-transform:uppercase;">Голосувати</a>
                         </div>`;
 
-                    L.marker([lat, lng], { icon: icon })
-                        .bindPopup(popupContent)
-                        .addTo(layerGroup);
+                    L.marker([lat, lng], { icon: icon }).bindPopup(popup).addTo(layerGroup);
                 }
             });
-
-            console.log(`✅ На мапу додано ${sorted.length} учасників Битви.`);
         })
-        .catch(err => console.error("❌ Помилка завантаження рейтингу для карти:", err));
+        .catch(err => console.error("Помилка синхронізації мапи Битви:", err));
 };
