@@ -1,44 +1,50 @@
 window.renderCollectivesMode = function(layerGroup) {
-    console.log("🛠️ Функція renderCollectivesMode запущена");
-    if (!layerGroup || !window.hromadasGeoJSON || !window.collectivesList) {
-        console.error("❌ Дані не завантажені!");
+    console.log("🛠️ Початок малювання колективів...");
+    
+    // Беремо дані прямо з window
+    const geoJSON = window.hromadasGeoJSON;
+    const list = window.collectivesList;
+
+    if (!layerGroup || !geoJSON || !list) {
+        console.error("❌ Помилка: Дані не знайдені у window!", { geoJSON: !!geoJSON, list: !!list });
         return;
     }
 
     layerGroup.clearLayers();
-    let drawnCount = 0;
+    let drawn = 0;
 
-    window.hromadasGeoJSON.features.forEach(hromada => {
-        // Очищаємо назву: тільки корінь (перші 5 літер), щоб "Бабанська" збіглася з "бабанська"
-        const nameKey = hromada.name.trim().toLowerCase().substring(0, 5);
+    geoJSON.features.forEach(hromada => {
+        // Очищаємо назву громади для пошуку
+        const name = hromada.name.trim().toLowerCase();
         
-        // Шукаємо в списку collectivesList
-        let foundKey = Object.keys(window.collectivesList).find(k => k.toLowerCase().includes(nameKey));
-        const list = foundKey ? window.collectivesList[foundKey] : [];
-        const count = list.length;
+        // Шукаємо в списку (враховуючи, що в списку ключі можуть бути без слова "громада")
+        const collectives = list[name] || [];
+        const count = collectives.length;
 
         if (count > 0) {
+            // Малюємо маркер (Leaflet використовує [lat, lng], тому 736 - y)
+            const lat = 736 - hromada.y;
+            const lng = hromada.x;
+
             const icon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div class="marker-pin-collectives" style="background:#3498db; width:30px; height:30px; border-radius:50%; border:2px solid white; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.3);">${count}</div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
+                className: 'custom-icon',
+                html: `<div style="background:#e67e22; width:28px; height:28px; border-radius:50%; border:2px solid white; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-size:12px;">${count}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
             });
 
-            const popupContent = `
-                <div style="min-width:200px;">
-                    <strong style="color:#2c3e50;">📍 ${hromada.name}</strong><br>
-                    <small>Колективів: ${count}</small><hr>
-                    <div style="max-height:150px; overflow-y:auto; font-size:12px;">
-                        ${list.map(item => `<div style="padding:3px 0; border-bottom:1px solid #eee;">${item}</div>`).join('')}
+            const popup = `
+                <div style="min-width:200px; font-family: sans-serif;">
+                    <b style="color:#d35400;">📍 ${hromada.name}</b><hr>
+                    <div style="max-height:150px; overflow-y:auto; font-size:11px;">
+                        ${collectives.map(c => `<div style="padding:3px 0; border-bottom:1px solid #eee;">${c}</div>`).join('')}
                     </div>
                 </div>`;
 
-            const marker = L.marker([736 - hromada.y, hromada.x], { icon: icon });
-            marker.bindPopup(popupContent);
-            marker.addTo(layerGroup);
-            drawnCount++;
+            L.marker([lat, lng], { icon: icon }).bindPopup(popup).addTo(layerGroup);
+            drawn++;
         }
     });
-    console.log(`✅ Намальовано кружечків: ${drawnCount}`);
+
+    console.log(`✅ Успішно додано ${drawn} громад на мапу.`);
 };
