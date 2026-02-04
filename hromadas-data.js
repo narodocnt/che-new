@@ -1,4 +1,4 @@
-window hromadasGeoJSON = {
+window.hromadasGeoJSON = {
   "type": "FeatureCollection",
   "features": [
    {
