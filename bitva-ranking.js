@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js - Фінальна версія з фільтрацією дублікатів
+ * bitva-ranking.js - Пошук учасників за ключовими словами в тексті
  */
 function loadBattleRanking() {
     const container = document.getElementById('rankingList');
@@ -9,27 +9,35 @@ function loadBattleRanking() {
         .then(res => res.json())
         .then(rawData => {
             const db = window.collectivesDatabase;
-            const resultsMap = {}; // Тут ми будемо зберігати тільки унікальні записи
+            const resultsMap = {};
 
             rawData.forEach(item => {
+                // Беремо текст поста з поля message
+                const text = (item.message || "").toLowerCase();
                 const fbUrl = item.facebookUrl || "";
                 let foundId = null;
 
-                // Шукаємо, якому ID з бази належить цей пост
+                // ШУКАЄМО ЗБІГ: Проходимо по кожному учаснику в базі
                 for (let id in db) {
-                    if (fbUrl.includes(id)) {
+                    const entry = db[id];
+                    // Шукаємо назву локації (напр. "смілянська") або ключ (напр. "smila") у тексті поста
+                    const locationKeyword = entry.location.toLowerCase().replace("ська", ""); // беремо корінь
+                    const keyKeyword = entry.key.toLowerCase();
+
+                    if (text.includes(locationKeyword) || text.includes(keyKeyword)) {
                         foundId = id;
                         break;
                     }
                 }
 
                 if (foundId) {
+                    // Якщо знайшли громаду в тексті — записуємо статистику
                     const likes = parseInt(item.likes) || 0;
                     const comments = parseInt(item.comments) || 0;
                     const shares = parseInt(item.shares) || 0;
                     const total = likes + comments + shares;
 
-                    // Якщо ми вже бачили цей ID, беремо той запис, де більше балів (про всяк випадок)
+                    // Зберігаємо тільки унікальні (якщо постів кілька для однієї громади — беремо кращий)
                     if (!resultsMap[foundId] || total > resultsMap[foundId].total) {
                         resultsMap[foundId] = {
                             ...db[foundId],
@@ -43,18 +51,14 @@ function loadBattleRanking() {
                 }
             });
 
-            // Перетворюємо об'єкт назад у масив для сортування
-            let processed = Object.values(resultsMap);
-
-            // Сортуємо за рейтингом
+            const processed = Object.values(resultsMap);
             processed.sort((a, b) => b.total - a.total);
 
             if (processed.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Дані оновлюються...</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Громад не знайдено в тексті постів. Перевірте зміст повідомлень.</p>";
                 return;
             }
 
-            // Виводимо картки (тепер кожна громада буде лише один раз)
             container.innerHTML = processed.map((el, index) => {
                 const rank = index + 1;
                 let medal = rank;
@@ -72,7 +76,7 @@ function loadBattleRanking() {
                         <div class="card-top">
                             <span class="location-label">📍 ${el.location}</span>
                             <h3 class="collective-name">${el.name}</h3>
-                            <p class="leader-name">Керівник: ${el.leader}</p>
+                            <p class="leader-name">${el.leader}</p>
                         </div>
                         <div class="stats-grid">
                             <div class="stat">👍 ${el.likes}</div>
@@ -84,10 +88,8 @@ function loadBattleRanking() {
                     <a href="${el.url}" target="_blank" class="vote-link">ГОЛОС</a>
                 </div>`;
             }).join('');
-            
-            if (window.renderMarkers) window.renderMarkers('battle');
         })
-        .catch(err => console.error("Помилка рейтингу:", err));
+        .catch(err => console.error("Помилка завантаження Битви:", err));
 }
 
 window.addEventListener('load', loadBattleRanking);
