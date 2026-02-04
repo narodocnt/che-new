@@ -1,72 +1,121 @@
+/**
+ * bitva-ranking.js - Професійний рейтинг з точними даними
+ */
 function loadBattleRanking() {
-    console.log("🚀 Пошук збігів розпочато...");
-    var container = document.getElementById('rankingList');
-    if (!container || !window.collectivesDatabase) return;
+    console.log("🚀 Пошук збігів Битви розпочато...");
+    const container = document.getElementById('rankingList');
+    if (!container) return;
+
+    // Перевіряємо наявність нашої бази
+    const db = window.collectivesDatabase;
+    if (!db) {
+        container.innerHTML = "<p style='text-align:center; color:white;'>Помилка: База учасників не завантажена.</p>";
+        return;
+    }
 
     fetch("https://n8n.narodocnt.online/webhook/get-ranking")
         .then(res => res.json())
         .then(rawData => {
-            var processed = [];
-            var db = window.collectivesDatabase;
+            let processed = [];
 
             rawData.forEach(item => {
-                // Беремо текст повідомлення або URL, якщо тексту немає
-                var text = (item.message || item.facebookUrl || "").toLowerCase();
+                // Витягуємо ID поста з URL Фейсбуку або шукаємо в тексті ключове слово
+                const fbUrl = item.facebookUrl || "";
+                const message = (item.message || "").toLowerCase();
                 
-                for (var key in db) {
-                    var entry = db[key];
-                    // Шукаємо за коротким коренем назви (наприклад, "золот")
-                    var rootName = entry.location.toLowerCase().substring(0, 5);
-                    
-                    if (text.includes(rootName)) {
-                        processed.push({
-                            id: key,
-                            name: entry.name,
-                            location: entry.location,
-                            media: "narodocnt.jpg",
-                            score: (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0),
-                            url: item.facebookUrl || "#"
-                        });
-                        break; 
+                let foundEntry = null;
+                let foundId = null;
+
+                // 1. Спробуємо знайти через ID поста в URL (найнадійніше)
+                for (let id in db) {
+                    if (fbUrl.includes(id)) {
+                        foundEntry = db[id];
+                        foundId = id;
+                        break;
                     }
                 }
-            });
 
-            // Сортування
-            processed.sort((a, b) => b.score - a.score);
+                // 2. Якщо не знайшли по ID, шукаємо по ключовому слову (key) в тексті
+                if (!foundEntry) {
+                    for (let id in db) {
+                        if (message.includes(db[id].key.toLowerCase())) {
+                            foundEntry = db[id];
+                            foundId = id;
+                            break;
+                        }
+                    }
+                }
 
-            // Видаляємо дублікати громад
-            var uniqueTop6 = [];
-            var seen = {};
-            processed.forEach(item => {
-                if (!seen[item.id] && uniqueTop6.length < 6) {
-                    seen[item.id] = true;
-                    uniqueTop6.push(item);
+                if (foundEntry) {
+                    const likes = parseInt(item.likes) || 0;
+                    const comments = parseInt(item.comments) || 0;
+                    const shares = parseInt(item.shares) || 0;
+
+                    processed.push({
+                        ...foundEntry,
+                        likes,
+                        comments,
+                        shares,
+                        totalScore: likes + comments + shares,
+                        url: fbUrl
+                    });
                 }
             });
 
-            console.log("📊 Знайдено збігів для громад:", uniqueTop6.length);
+            // Сортування за загальним балом
+            processed.sort((a, b) => b.totalScore - a.totalScore);
 
-            if (uniqueTop6.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#bdc3c7;'>Рейтинг оновлюється. Збігів не знайдено.</p>";
+            // Видаляємо дублікати, якщо один і той же учасник прийшов двічі
+            const uniqueResults = [];
+            const seenIds = new Set();
+            processed.forEach(el => {
+                if (!seenIds.has(el.key)) {
+                    seenIds.add(el.key);
+                    uniqueResults.push(el);
+                }
+            });
+
+            if (uniqueResults.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#ccc;'>Дані оновлюються...</p>";
                 return;
             }
 
-            container.innerHTML = uniqueTop6.map((el, i) => `
-                <div class="rank-card" style="display:flex; align-items:center; background:rgba(255,255,255,0.1); margin-bottom:10px; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); color:white;">
-                    <div style="font-weight:bold; width:30px; font-size:18px; color:#f1c40f;">${i+1}</div>
-                    <img src="${el.media}" style="width:60px; height:45px; object-fit:cover; margin-right:15px; border-radius:6px; border:1px solid #555;">
-                    <div style="flex-grow:1;">
-                        <div style="font-weight:bold; font-size:14px;">${el.name}</div>
-                        <div style="font-size:12px; color:#bdc3c7;">${el.location} — <b style="color:#f1c40f;">${el.score} 🔥</b></div>
+            // Рендеринг карток
+            container.innerHTML = uniqueResults.map((el, index) => {
+                const rank = index + 1;
+                let badge = `<span class="rank-number">${rank}</span>`;
+                if (rank === 1) badge = `<span class="rank-number gold">🥇</span>`;
+                if (rank === 2) badge = `<span class="rank-number silver">🥈</span>`;
+                if (rank === 3) badge = `<span class="rank-number bronze">🥉</span>`;
+
+                return `
+                <div class="battle-card">
+                    <div class="card-image-box">
+                        <img src="${el.media}" alt="${el.name}" onerror="this.src='narodocnt.jpg'">
+                        ${badge}
                     </div>
-                    <a href="${el.url}" target="_blank" style="background:#e67e22; color:white; padding:8px 12px; text-decoration:none; border-radius:6px; font-size:12px; font-weight:bold;">ГОЛОС</a>
+                    <div class="card-info">
+                        <div class="card-header">
+                            <h3>${el.name}</h3>
+                            <p class="location-tag">📍 ${el.location} громада</p>
+                        </div>
+                        <p class="institution-text">${el.institution}</p>
+                        <div class="stats-row">
+                            <div class="stat-item" title="Вподобайки">👍 <span>${el.likes}</span></div>
+                            <div class="stat-item" title="Коментарі">💬 <span>${el.comments}</span></div>
+                            <div class="stat-item" title="Поширення">🔁 <span>${el.shares}</span></div>
+                            <div class="stat-total">РАЗОМ: <span>${el.totalScore}</span></div>
+                        </div>
+                    </div>
+                    <a href="${el.url}" target="_blank" class="vote-btn">ГОЛОСУВАТИ</a>
                 </div>
-            `).join('');
-            
+                `;
+            }).join('');
+
+            // Оновлюємо карту, якщо функція доступна
             if (window.renderMarkers) window.renderMarkers('battle');
         })
-        .catch(err => console.error("Помилка fetch:", err));
+        .catch(err => console.error("Помилка завантаження рейтингу:", err));
 }
 
 window.addEventListener('load', loadBattleRanking);
