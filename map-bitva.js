@@ -1,69 +1,44 @@
 /**
- * map-bitva.js - Універсальне керування мапою (Колективи + Битва)
+ * map-bitva.js
  */
+let map; 
+window.markersLayer = L.layerGroup(); // Створюємо групу шарів як глобальний об'єкт
 
-let map; // Глобальна змінна карти
-let markersLayer; // Шар для маркерів
-
-// 1. Ініціалізація карти при завантаженні
 document.addEventListener('DOMContentLoaded', () => {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    // Створюємо карту (координати та зум під вашу картинку-підкладку)
     map = L.map('map', {
         crs: L.CRS.Simple,
         minZoom: -1,
         maxZoom: 2
     });
 
-    const bounds = [[0, 0], [736, 1147]]; // Розміри вашої карти
-    L.imageOverlay('map.jpg', bounds).addTo(map); // Ваша картинка мапи
+    const bounds = [[0, 0], [736, 1147]];
+    L.imageOverlay('map.jpg', bounds).addTo(map);
     map.fitBounds(bounds);
 
-    markersLayer = L.layerGroup().addTo(map);
+    // Додаємо групу шарів на карту
+    window.markersLayer.addTo(map);
     
-    // Запускаємо початковий режим
+    // Початковий запуск
     updateMode('collectives');
 });
 
-// 2. Головна функція перемикання режимів (викликається кнопками з HTML)
 window.updateMode = function(mode) {
     console.log("🔄 Режим змінено на:", mode);
 
-    // 1. Кольори кнопок
-    const btnCol = document.getElementById('btn-col');
-    const btnBat = document.getElementById('btn-bat');
-    if (btnCol && btnBat) {
-        btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
-        btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
-    }
-
-    // 2. Очищення мапи (важливо для обох режимів)
+    // Очищаємо шари ПЕРЕД викликом функцій
     if (window.markersLayer) {
         window.markersLayer.clearLayers();
-    } else if (map) {
-        // Якщо markersLayer не визначено, очищаємо через сам об'єкт карти (якщо там є групи)
-        map.eachLayer(layer => {
-            if (layer instanceof L.Marker) map.removeLayer(layer);
-        });
     }
 
-    // 3. Запуск потрібного малювання
     if (mode === 'battle') {
-        // Викликаємо функцію Битви
-        if (typeof renderBitvaMode === 'function') {
-            renderBitvaMode();
-        } else {
-            console.error("❌ Функція renderBitvaMode не знайдена!");
-        }
+        renderBitvaMode();
     } else {
-        // ВИКЛИК ВАШОЇ ФУНКЦІЇ КОЛЕКТИВІВ
         if (typeof window.renderCollectivesMode === 'function') {
-            // Передаємо markersLayer як аргумент layerGroup, який очікує ваша функція
-            window.renderCollectivesMode(window.markersLayer || map);
-        } else {
-            console.error("❌ Функція renderCollectivesMode не знайдена!");
+            // Передаємо саме markersLayer
+            window.renderCollectivesMode(window.markersLayer);
         }
     }
 };
