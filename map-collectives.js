@@ -41,17 +41,8 @@ window.renderCollectivesMode = function(layerGroup) {
                     </div>
                 </div>`;
 
-           // Створюємо маркер
-            const marker = L.marker([lat, lng], { icon: icon });
-            
-            // Додаємо табличку з вимкненим автозміщенням карти
-            const popupOptions = {
-                maxWidth: 350,
-                autoPan: false, // Цей рядок забороняє карті рухатися
-                className: 'custom-popup-style'
-            };
-
-            marker.bindPopup(popupHtml, popupOptions).addTo(layerGroup);
+          L.marker([lat, lng], { icon: icon }).bindPopup(popup).addTo(layerGroup);
+            drawn++;
         }
     });
 
