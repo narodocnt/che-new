@@ -55,7 +55,7 @@ window.updateMode = function(mode) {
     }
 };
 
-// ФУНКЦІЯ МАЛЮВАННЯ БИТВИ (РЕЙТИНГ)
+// ФУНКЦІЯ МАЛЮВАННЯ БИТВИ (РЕЙТИНГ) З КЕРІВНИКОМ ТА КНОПКОЮ
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
 
@@ -76,7 +76,12 @@ window.renderBitvaMode = function() {
                     const locSearch = db[id].location.toLowerCase().substring(0, 5);
                     if (tableText.includes(locSearch)) {
                         if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                            resultsMap[id] = { ...db[id], total: totalScore, url: item.facebookUrl };
+                            resultsMap[id] = { 
+                                ...db[id], 
+                                total: totalScore, 
+                                url: item.facebookUrl,
+                                leader: db[id].leader // Беремо керівника з бази
+                            };
                         }
                     }
                 }
@@ -91,21 +96,47 @@ window.renderBitvaMode = function() {
                 );
 
                 if (hromada) {
-                    const lat = 736 - hromada.y; // Формула, що працює
+                    const lat = 736 - hromada.y;
                     const lng = hromada.x;
                     
                     const color = rank === 1 ? "#FFD700" : (rank === 2 ? "#C0C0C0" : (rank === 3 ? "#CD7F32" : "#e67e22"));
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px;">${rank}</div>`,
+                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px; cursor:pointer;">${rank}</div>`,
                         iconSize: [32, 32],
                         iconAnchor: [16, 16]
                     });
 
+                    // Оновлений Popup з керівником та кнопкою
+                    const popupContent = `
+                        <div style="min-width:200px; text-align:center; font-family: sans-serif;">
+                            <div style="color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
+                            <strong style="font-size:14px; display:block; line-height:1.2; margin-bottom:4px;">${el.name}</strong>
+                            <div style="font-size:11px; color:#666; margin-bottom:8px;">Керівник: <b>${el.leader || 'Не вказано'}</b></div>
+                            
+                            <div style="background:#fdf7f2; padding:6px; border-radius:6px; margin-bottom:10px; border:1px solid #eee;">
+                                <span style="font-weight:bold; font-size:14px; color:#333;">${el.total} балів</span>
+                            </div>
+                            
+                            <a href="${el.url}" target="_blank" style="
+                                display:block; 
+                                background:#e67e22; 
+                                color:white; 
+                                text-decoration:none; 
+                                padding:10px; 
+                                border-radius:6px; 
+                                font-weight:bold; 
+                                font-size:11px; 
+                                text-transform:uppercase;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            ">👍 ГОЛОСУВАТИ НА FACEBOOK</a>
+                        </div>
+                    `;
+
                     L.marker([lat, lng], { icon: icon })
                         .addTo(window.markersLayer)
-                        .bindPopup(`<b>🏆 №${rank} ${el.name}</b><br>Балів: ${el.total}`);
+                        .bindPopup(popupContent);
                 }
             });
         })
