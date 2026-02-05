@@ -1,60 +1,78 @@
 /**
- * map-bitva.js - ПЕРЕВІРЕНА ВЕРСІЯ (координати 900x736)
+ * renderBitvaMode - Малює ТОП-6 рейтингу на мапі
  */
-let map;
-window.markersLayer = L.layerGroup(); 
+window.renderBitvaMode = function() {
+    console.log("⚔️ Запуск режиму Битви...");
 
-document.addEventListener('DOMContentLoaded', () => {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-
-    // 1. Ініціалізація карти (Використовуємо CRS.Simple для координат картинки)
-    map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: -1,
-        maxZoom: 2,
-        zoomSnap: 0.1
-    });
-
-    // 2. ВАЖЛИВО: Ваші межі [Висота, Ширина]
-    // Якщо картинка 900x736, то межі мають бути саме такими:
-    const bounds = [[0, 0], [736, 900]]; 
-
-    // Додаємо картинку на карту
-    L.imageOverlay('map.jpg', bounds).addTo(map);
-
-    // Центруємо карту по межах картинки
-    map.fitBounds(bounds);
-
-    // Додаємо шар для маркерів
-    window.markersLayer.addTo(map);
-    
-    // Запускаємо початковий режим
-    updateMode('collectives');
-});
-
-window.updateMode = function(mode) {
-    console.log("🔄 Перемикання на:", mode);
-
-    const btnCol = document.getElementById('btn-col');
-    const btnBat = document.getElementById('btn-bat');
-
-    if (btnCol && btnBat) {
-        btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
-        btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
+    // Перевіряємо наявність шару та даних
+    if (!window.markersLayer || !window.collectivesDatabase || !window.hromadasGeoJSON) {
+        console.error("❌ Помилка: Необхідні дані або шар markersLayer не знайдені.");
+        return;
     }
 
-    // Очищаємо всі маркери перед зміною режиму
+    // Очищаємо шар перед малюванням (про всяк випадок)
     window.markersLayer.clearLayers();
 
-    if (mode === 'battle') {
-        if (typeof renderBitvaMode === 'function') {
-            renderBitvaMode();
-        }
-    } else {
-        if (typeof window.renderCollectivesMode === 'function') {
-            // Передаємо нашу групу шарів у функцію колективів
-            window.renderCollectivesMode(window.markersLayer);
-        }
-    }
+    fetch("https://n8n.narodocnt.online/webhook/get-ranking")
+        .then(res => res.json())
+        .then(rawData => {
+            const db = window.collectivesDatabase;
+            const geoJSON = window.hromadasGeoJSON;
+            const resultsMap = {};
+
+            // 1. Обробка даних з n8n
+            rawData.forEach(item => {
+                const tableText = (item.text || "").toLowerCase();
+                const totalScore = (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0);
+
+                for (let id in db) {
+                    const locSearch = db[id].location.toLowerCase().substring(0, 5);
+                    if (tableText.includes(locSearch)) {
+                        if (!resultsMap[id] || totalScore > resultsMap[id].total) {
+                            resultsMap[id] = { ...db[id], total: totalScore, url: item.facebookUrl };
+                        }
+                    }
+                }
+            });
+
+            const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
+
+            // 2. Малювання маркерів Битви
+            sorted.forEach((el, index) => {
+                const rank = index + 1;
+                // Шукаємо громаду в GeoJSON
+                const hromada = geoJSON.features.find(f => 
+                    f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5))
+                );
+
+                if (hromada) {
+                    // ТА Ж САМА ФОРМУЛА, що і в колективах
+                    const lat = 736 - hromada.y;
+                    const lng = hromada.x;
+                    
+                    const color = rank === 1 ? "#FFD700" : (rank === 2 ? "#C0C0C0" : (rank === 3 ? "#CD7F32" : "#e67e22"));
+
+                    const icon = L.divIcon({
+                        className: 'map-rank-marker',
+                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px; cursor:pointer;">${rank}</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    // Додаємо маркер саме у window.markersLayer
+                    L.marker([lat, lng], { icon: icon })
+                        .addTo(window.markersLayer)
+                        .bindPopup(`
+                            <div style="min-width:180px; text-align:center;">
+                                <b style="color:${color}; font-size:16px;">🏆 РЕЙТИНГ: №${rank}</b><br>
+                                <strong style="font-size:14px;">${el.name}</strong><br>
+                                <div style="margin:8px 0; background:#fdf7f2; padding:5px; font-weight:bold; border-radius:4px;">Балів: ${el.total}</div>
+                                <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:10px; text-transform:uppercase;">Голосувати</a>
+                            </div>
+                        `);
+                }
+            });
+            console.log("✅ Маркери Битви успішно додані.");
+        })
+        .catch(err => console.error("Помилка Битви:", err));
 };
