@@ -13,7 +13,7 @@ var toggleRules = function(e) {
                         '👍 Лайк — <b>1 бал</b><br>' +
                         '💬 Коментар — <b>1 бал</b><br>' +
                         '🔄 Репост — <b>1 бал</b><br>' +
-                        '<p style="font-size:11px; color:#888; margin-top:8px;">* Оновлення відбувається автоматично з Facebook</p>';
+                        '<p style="font-size:11px; color:#888; margin-top:8px;">* Рейтинг оновлюється двічі на добу з Facebook*</p>';
         document.body.appendChild(box);
     }
 
