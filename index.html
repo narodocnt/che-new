@@ -196,48 +196,57 @@
     }
 
     // Відкриття меню заявок (з перевіркою авторизації)
+  // 3. МЕНЮ ЗАЯВОК (завантаження з menu.html)
     async function openApplicationMenu() {
         const user = localStorage.getItem('user');
         if (!user) {
-            alert("🔒 Авторизуйтесь, будь ласка, через Google для доступу до заявок!");
+            alert("🔒 Авторизуйтесь через Google для доступу до заявок!");
             handleAuthClick();
             return;
         }
 
         try {
-            // Завантажуємо вміст твого файлу menu.html
             const response = await fetch('menu.html');
-            const html = await response.text();
+            if (!response.ok) throw new Error("Файл menu.html не знайдено на сервері");
+            let html = await response.text();
             
-            // Витягуємо тільки те, що всередині тегів контенту, або весь файл
+            // Виводимо в модальне вікно
             showModal(html);
         } catch (error) {
-            console.error("Помилка завантаження меню:", error);
-            alert("Не вдалося завантажити перелік заявок.");
+            console.error("Помилка:", error);
+            alert("Помилка завантаження списку заявок. Перевірте наявність файлу menu.html");
         }
     }
 
-    // Перехід до конкретної форми n8n (викликається з меню або банера)
+    // 4. ПЕРЕХІД ДО ФОРМ (Основна логіка)
     function goToGeneralForm(type = 'main') {
         const user = localStorage.getItem('user');
         if (!user) {
-            alert("🔒 Авторизуйтесь, будь ласка!");
+            alert("🔒 Будь ласка, авторизуйтесь!");
             handleAuthClick();
             return;
         }
+        
         const userName = encodeURIComponent(user);
         let url = "";
-        
+
+        // Визначаємо URL на основі типу
         if (type === 'cheruta') {
             url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
         } else if (type === 'main') {
             url = `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
         } else {
-            // Для інших типів, які можуть бути в menu.html
+            // Універсальний шлях для інших заявок з menu.html
             url = `https://n8n.narodocnt.online/webhook/${type}/n8n-form?name=${userName}`;
         }
         
+        console.log("Відкриваємо форму:", url);
         window.open(url, '_blank');
+    }
+
+    // Псевдонім для сумісності з кнопками в menu.html
+    function openUrl(type) {
+        goToGeneralForm(type);
     }
 
     function updateMode(mode) {
