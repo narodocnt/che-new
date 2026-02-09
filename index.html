@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Відділ народної творчості Черкаського ОЦНТ</title>
+
+    <link rel="icon" type="image/jpg" href="narodocnt.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="contest.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root { --primary: #1e272e; --accent: #e67e22; --bg: #f5f6fa; --nav: #2f3640; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--primary); overflow-x: hidden; }
+
+        /* Хедер */
+        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo-box { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 60px; border-radius: 8px; }
+        .logo-text h1 { font-size: 1.1rem; margin: 0; line-height: 1.2; }
+        .logo-text p { font-size: 0.85rem; margin: 0; color: #7f8c8d; }
+
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .header-socials { display: flex; gap: 12px; }
+        .header-socials a { font-size: 1.6rem; transition: 0.3s; }
+        .fa-facebook { color: #1877F2; } .fa-youtube { color: #FF0000; } .fa-telegram { color: #24A1DE; }
+
+        .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+
+        /* Навігація */
+        nav { background: var(--nav); display: flex; justify-content: center; position: relative; flex-wrap: wrap; padding: 10px; }
+        .main-nav { display: flex; gap: 12px; align-items: center; justify-content: center; }
+        .nav-btn { display: inline-flex; align-items: center; justify-content: center; height: 45px; padding: 0 25px; background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; border: none; cursor: pointer; transition: all 0.2s ease; }
+        .nav-btn:hover { background-color: #5a6268; }
+
+        /* [БЛОК 2] СТИЛІ ІНТЕРАКТИВНОЇ КАРТИ */
+        #map { 
+            height: 500px; 
+            width: 100%; 
+            max-width: 900px; 
+            margin: 20px auto; 
+            border-radius: 15px; 
+            border: 3px solid var(--nav);
+            position: relative;
+            z-index: 5;
+        }
+        .map-controls { 
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; 
+        }
+        .count-icon {
+            display: flex !important; align-items: center; justify-content: center;
+            background: #3498db; color: white; border-radius: 50%;
+            font-weight: bold; font-size: 13px; border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+
+        /* Контейнери та картки */
+        .ruta-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
+
+        /* Стилі для випадаючого меню колективів */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; background-color: white; min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 8px;
+        }
+        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; border-bottom: 1px solid #eee; text-align: left; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .show { display: block; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-box">
+        <img src="narodocnt.jpg" class="logo-img">
+        <div class="logo-text">
+            <h1>Відділ народної творчості</h1>
+            <p>Черкаського ОЦНТ</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="header-socials">
+            <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
+        </div>
+        <div class="auth-btn" id="loginBtn" onclick="handleAuthClick()">Увійти</div>
+    </div>
+</header>
+
+<nav class="main-nav">
+   <div class="dropdown">
+    <button class="nav-btn dropdown-toggle" onclick="toggleDropdown()">Колективи ▼</button>
+    <div id="collectivesMenu" class="dropdown-content">
+        <a href="#" onclick="filterCollectives('vocal')">Вокальні</a>
+        <a href="#" onclick="filterCollectives('instrumental')">Інструментальні</a>
+        <a href="#" onclick="filterCollectives('dance')">Хореографічні</a>
+        <a href="#" onclick="filterCollectives('folklore')">Фольклорні</a>
+    </div>
+</div>
+    <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
+    <a href="javascript:void(0)" class="nav-btn" onclick="openApplicationMenu()">ПОДАТИ ЗАЯВКУ</a>
+</nav>
+
+<div class="ruta-container" style="position: relative; width: 100%; overflow: hidden;">
+    <img src="cheruta.jpg" alt="Червона Рута" style="width: 100%; display: block;">
+    
+    <div id="ruta-ui-layer" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; box-sizing: border-box; z-index: 100;">
+        
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+            <button onclick="window.open('https://narodocnt.online/polozhennya.pdf', '_blank')" 
+                style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase;">
+                ПОЛОЖЕННЯ
+            </button>
+        </div>
+
+        <div id="ruta-timer-display" style="display: flex; gap: 4px; color: #f1c40f; flex: 1; justify-content: center; font-family: monospace; font-size: 20px; font-weight: bold; text-shadow: 1px 1px 2px black;">
+            <span id="d-val">00</span>:<span id="h-val">00</span>:<span id="m-val">00</span>:<span id="s-val">00</span>
+        </div>
+
+        <div style="flex: 1; display: flex; justify-content: flex-end;">
+            <button onclick="goToGeneralForm('cheruta')" 
+                style="background: #ff4500; border: none; color: white; padding: 8px 15px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255,69,0,0.3);">
+                ЗАЯВКА
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="map-section" class="contest-container" style="background: #fff;">
+    <h2>📍 Культурна мапа Черкащини</h2>
+    <div class="map-controls">
+        <button id="btn-col" class="nav-btn" style="background:#e67e22;" onclick="updateMode('collectives')">КОЛЕКТИВИ</button>
+        <button id="btn-bat" class="nav-btn" style="background:#2f3640;" onclick="updateMode('battle')">БИТВА</button>
+    </div>
+    <div id="map"></div>
+</div>
+
+<div class="contest-container" style="text-align: center; padding: 10px;">
+    <img src="bitva.jpg" style="width:100%; max-width:600px; border-radius:10px; margin-bottom: 10px;">
+    
+    <div style="text-align: center; margin: 20px 0; position: relative; background: #2c3e50; padding: 20px; border-radius: 15px;">
+        <h1 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 2.2em; color: #fff;">
+            🏆 Битва вподобайків 
+            <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 32px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);">★</span>
+        </h1>
+        <p style="margin: 8px 0 20px 0; color: #bdc3c7; font-size: 1.2em; font-weight: 300;">
+            Обласний фестиваль «Музична варта»
+        </p>
+        
+        <div id="rankingList" style="max-width: 900px; margin: 0 auto; text-align: left;">
+            <p style="text-align:center; color: #888;">Завантаження рейтингу...</p>
+        </div>
+    </div>
+</div>
+
+<footer id="contacts">
+    <div class="social-icons">
+        <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
+        <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
+        <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
+    </div>
+    <p style="margin-top:20px;">Email: narodocnt@ukr.net</p>
+</footer>
+
+<div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
+    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-
