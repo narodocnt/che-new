@@ -95,24 +95,26 @@
 </header>
 
 <nav class="main-nav">
-   <div class="dropdown">
-    <button class="nav-btn dropdown-toggle" onclick="toggleDropdown()">Колективи ▼</button>
-    <div id="collectivesMenu" class="dropdown-content">
-        <a href="#" onclick="filterCollectives('vocal')">Вокальні</a>
-        <a href="#" onclick="filterCollectives('instrumental')">Інструментальні</a>
-        <a href="#" onclick="filterCollectives('dance')">Хореографічні</a>
-        <a href="#" onclick="filterCollectives('folklore')">Фольклорні</a>
+    <div class="dropdown">
+        <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('collectivesMenu')">Колективи ▼</button>
+        <div id="collectivesMenu" class="dropdown-content">
+            <a href="#" onclick="filterCollectives('vocal')">Вокальні</a>
+            <a href="#" onclick="filterCollectives('instrumental')">Інструментальні</a>
+            <a href="#" onclick="filterCollectives('dance')">Хореографічні</a>
+            <a href="#" onclick="filterCollectives('folklore')">Фольклорні</a>
+        </div>
     </div>
-</div>
+
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
-<div class="dropdown">
-    <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ПОДАТИ ЗАЯВКУ ▼</button>
-    <div id="appsMenu" class="dropdown-content">
-        <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
-        <a href="#" onclick="goToGeneralForm('KonkursChit')">Конкурс читців</a>
-        <a href="#" onclick="goToGeneralForm('main')">Загальна заявка</a>
+
+    <div class="dropdown">
+        <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ПОДАТИ ЗАЯВКУ ▼</button>
+        <div id="appsMenu" class="dropdown-content">
+            <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
+            <a href="#" onclick="goToGeneralForm('we-from-ukraine')">Конкурс читців</a>
+            <a href="#" onclick="goToGeneralForm('main')">Загальна заявка</a>
+        </div>
     </div>
-</div>
 </nav>
 
 <div class="ruta-container" style="position: relative; width: 100%; overflow: hidden;">
