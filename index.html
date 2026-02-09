@@ -109,7 +109,7 @@
     <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ПОДАТИ ЗАЯВКУ ▼</button>
     <div id="appsMenu" class="dropdown-content">
         <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
-        <a href="#" onclick="goToGeneralForm('we-from-ukraine')">Ми — з України</a>
+        <a href="#" onclick="goToGeneralForm('KonkursChit')">Конкурс читців</a>
         <a href="#" onclick="goToGeneralForm('main')">Загальна заявка</a>
     </div>
 </div>
@@ -255,7 +255,7 @@ function handleAuthClick() {
     }
     else {
         // Універсальний варіант для коротких назв
-        url = `https://n8n.narodocnt.online/webhook/${type}/n8n-form?name=${userName}`;
+        url = `https://n8n.narodocnt.online/webhook/KonkursChit/n8n-form?name=${userName}`;
     }
     
     console.log("Остаточне посилання:", url);
