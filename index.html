@@ -219,7 +219,7 @@
     }
 
     // 4. ПЕРЕХІД ДО ФОРМ (Основна логіка)
-   function goToGeneralForm(type = 'main') {
+ function goToGeneralForm(type = 'main') {
     const user = localStorage.getItem('user');
     if (!user) {
         alert("🔒 Будь ласка, авторизуйтесь!");
@@ -230,25 +230,25 @@
     const userName = encodeURIComponent(user);
     let url = "";
 
-    // ТОЧНІ АДРЕСИ ДЛЯ КОЖНОЇ ЗАЯВКИ
-    if (type === 'cheruta') {
-        // Шлях для Червоної Рути (той самий, що на банері)
+    // ПЕРЕВІРКА: якщо type вже є посиланням (починається з http)
+    if (type.includes('http')) {
+        // Просто перевіряємо, чи є вже в посиланні знак питання
+        let separator = type.includes('?') ? '&' : '?';
+        url = `${type}${separator}name=${userName}`;
+    } 
+    // ЯКЩО ПЕРЕДАНО ПРОСТО НАЗВУ (короткий код)
+    else if (type === 'cheruta') {
         url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
     } 
     else if (type === 'main' || type === 'zajavka') {
-        // Основна загальна заявка
         url = `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
     }
-    else if (type === 'we_from_ukraine' || type === 'my_z_ukrainy') {
-        // Нова заявка "Ми з України" (Шевченка), яку ми обговорювали
-        url = `https://n8n.narodocnt.online/webhook/we-from-ukraine/n8n-form?name=${userName}`;
-    }
     else {
-        // Якщо тип не збігається, пробуємо універсальний шлях
+        // Універсальний варіант для коротких назв
         url = `https://n8n.narodocnt.online/webhook/${type}/n8n-form?name=${userName}`;
     }
     
-    console.log("Відкриваємо форму для типу:", type, "URL:", url);
+    console.log("Остаточне посилання:", url);
     window.open(url, '_blank');
 }
 
