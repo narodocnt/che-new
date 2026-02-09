@@ -105,7 +105,14 @@
     </div>
 </div>
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
-    <a href="javascript:void(0)" class="nav-btn" onclick="openApplicationMenu()">ПОДАТИ ЗАЯВКУ</a>
+<div class="dropdown">
+    <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ПОДАТИ ЗАЯВКУ ▼</button>
+    <div id="appsMenu" class="dropdown-content">
+        <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
+        <a href="#" onclick="goToGeneralForm('we-from-ukraine')">Ми — з України</a>
+        <a href="#" onclick="goToGeneralForm('main')">Загальна заявка</a>
+    </div>
+</div>
 </nav>
 
 <div class="ruta-container" style="position: relative; width: 100%; overflow: hidden;">
