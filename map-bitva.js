@@ -71,10 +71,10 @@ window.renderBitvaMode = function() {
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
                 
-                // ПРЯМЕ ЗВЕРНЕННЯ ДО ПОЛІВ APIFY
-                // Видаляємо будь-які згадки про topReactionsCount
+                // ПЕРЕВІРКА: Спробуємо три різні варіанти назв полів, які дає Apify
                 const lks = Number(item.likes) || 0;
-                const cms = Number(item.comments) || 0; // БЕРЕМО ТУТ 
+                // Виключаємо topReactionsCount силоміць
+                const cms = Number(item.commentsCount) || Number(item.comments) || 0; 
                 const shr = Number(item.shares) || 0;
                 
                 const totalScore = lks + cms + shr;
@@ -98,7 +98,6 @@ window.renderBitvaMode = function() {
             });
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
-
             if (window.markersLayer) window.markersLayer.clearLayers();
 
             sorted.forEach((el, index) => {
@@ -119,6 +118,7 @@ window.renderBitvaMode = function() {
                         iconAnchor: [16, 16]
                     });
 
+                    // ДОДАЄМО ДІАГНОСТИКУ: виводимо в дужках поруч із "2" назву поля
                     const popupContent = `
                         <div style="min-width:200px; text-align:center; font-family: sans-serif;">
                             <div style="color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
