@@ -68,24 +68,35 @@ window.renderBitvaMode = function() {
 
             if (!db || !geoJSON) return;
 
-            rawData.forEach(item => {
-                const tableText = (item.text || "").toLowerCase();
-                const totalScore = (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0);
+           rawData.forEach(item => {
+    const tableText = (item.text || "").toLowerCase();
+    
+    // ПРАВИЛЬНИЙ ПІДРАХУНОК:
+    // Беремо значення прямо з полів, які дає Apify
+    const likes = Number(item.likes) || 0;
+    const comments = Number(item.comments) || 0; // Саме тут була помилка ("2")
+    const shares = Number(item.shares) || 0;
 
-                for (let id in db) {
-                    const locSearch = db[id].location.toLowerCase().substring(0, 5);
-                    if (tableText.includes(locSearch)) {
-                        if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                            resultsMap[id] = { 
-                                ...db[id], 
-                                total: totalScore, 
-                                url: item.facebookUrl,
-                                leader: db[id].leader // Беремо керівника з бази
-                            };
-                        }
-                    }
-                }
-            });
+    // Загальний бал
+    const totalScore = likes + comments + shares;
+
+    for (let id in db) {
+        const locSearch = db[id].location.toLowerCase().substring(0, 5);
+        if (tableText.includes(locSearch)) {
+            if (!resultsMap[id] || totalScore > resultsMap[id].total) {
+                resultsMap[id] = { 
+                    ...db[id], 
+                    total: totalScore,
+                    likes: likes,       // Зберігаємо окремо для попапу
+                    comments: comments, // Тепер тут буде "1", а не "2"
+                    shares: shares,     // Зберігаємо поширення
+                    url: item.facebookUrl,
+                    leader: db[id].leader 
+                };
+            }
+        }
+    }
+});
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
 
