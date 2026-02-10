@@ -68,16 +68,16 @@ window.renderBitvaMode = function() {
 
             if (!db || !geoJSON) return;
 
-           rawData.forEach(item => {
+          rawData.forEach(item => {
     const tableText = (item.text || "").toLowerCase();
     
     // ПРАВИЛЬНИЙ ПІДРАХУНОК:
-    // Беремо значення прямо з полів, які дає Apify
+    // Ми беремо саме ті назви полів, які приходять від Apify
     const likes = Number(item.likes) || 0;
-    const comments = Number(item.comments) || 0; // Саме тут була помилка ("2")
+    const comments = Number(item.commentsCount) || Number(item.comments) || 0; 
     const shares = Number(item.shares) || 0;
 
-    // Загальний бал
+    // Рахуємо загальний бал
     const totalScore = likes + comments + shares;
 
     for (let id in db) {
@@ -87,9 +87,9 @@ window.renderBitvaMode = function() {
                 resultsMap[id] = { 
                     ...db[id], 
                     total: totalScore,
-                    likes: likes,       // Зберігаємо окремо для попапу
-                    comments: comments, // Тепер тут буде "1", а не "2"
-                    shares: shares,     // Зберігаємо поширення
+                    likes: likes,       // Тепер ці дані потраплять у ваш Popup
+                    comments: comments, // Тепер тут буде реальна цифра (напр. 1 або 3)
+                    shares: shares,
                     url: item.facebookUrl,
                     leader: db[id].leader 
                 };
