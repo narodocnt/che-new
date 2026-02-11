@@ -127,25 +127,37 @@ window.renderBitvaMode = function() {
                     });
 
                     // ДОДАЄМО ДІАГНОСТИКУ: виводимо в дужках поруч із "2" назву поля
-                    const popupContent = `
-                        <div style="min-width:200px; text-align:center; font-family: sans-serif;">
-                            <div style="color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
-                            <strong style="font-size:14px; display:block; line-height:1.2; margin-bottom:4px;">${el.name}</strong>
-                            <div style="font-size:11px; color:#666; margin-bottom:8px;">Керівник: <b>${el.leader || 'Не вказано'}</b></div>
-                            
-                            <div style="background:#fdf7f2; padding:8px; border-radius:6px; margin-bottom:10px; border:1px solid #eee; display:flex; justify-content:space-around; align-items:center;">
-                                <div style="font-size:10px; line-height:1.2;">👍<br><b>${el.likes}</b></div>
-                                <div style="font-size:10px; line-height:1.2;">💬<br><b>${el.comments}</b></div>
-                                <div style="font-size:10px; line-height:1.2;">🔄<br><b>${el.shares}</b></div>
-                            </div>
+                   // Знайдіть цей блок у map-bitva.js і замініть повністю
+const popupContent = `
+    <div style="width:220px; text-align:center; font-family: sans-serif; padding: 5px;">
+        <div style="color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
+        <strong style="font-size:14px; display:block; line-height:1.2; margin-bottom:4px;">${el.name}</strong>
+        <div style="font-size:11px; color:#666; margin-bottom:8px;">Керівник: <b>${el.leader || 'Не вказано'}</b></div>
+        
+        <div style="background:#fdf7f2; padding:8px; border-radius:6px; margin-bottom:10px; border:1px solid #eee; display:flex; justify-content:space-around; align-items:center;">
+            <div style="font-size:10px; line-height:1.2;">👍<br><b style="font-size:12px;">${el.likes || 0}</b></div>
+            <div style="font-size:10px; line-height:1.2;">💬<br><b style="font-size:12px;">${el.comments || 0}</b></div>
+            <div style="font-size:10px; line-height:1.2;">🔄<br><b style="font-size:12px;">${el.shares || 0}</b></div>
+        </div>
 
-                            <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22;">
-                                <span style="font-weight:bold; font-size:14px; color:#333;">${el.total} балів</span>
-                            </div>
-                            
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase;">👍 ГОЛОСУВАТИ</a>
-                        </div>
-                    `;
+        <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22;">
+            <span style="font-weight:bold; font-size:15px; color:#333;">${el.total} БАЛІВ</span>
+        </div>
+        
+        <a href="${el.url}" target="_blank" style="
+            display:block; 
+            background:#e67e22; 
+            color:white; 
+            text-decoration:none; 
+            padding:10px; 
+            border-radius:6px; 
+            font-weight:bold; 
+            font-size:11px; 
+            text-transform:uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        ">👍 ГОЛОСУВАТИ</a>
+    </div>
+`;
 
                     L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
                 }
