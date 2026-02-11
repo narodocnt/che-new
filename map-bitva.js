@@ -1,85 +1,107 @@
 /**
- * map-bitva.js - ПОВНА ВЕРСІЯ: КАРТА + КОЛЕКТИВИ + БИТВА
+ * map-bitva.js - Оновлено під структуру collectivesList
  */
 
-// 1. Ініціалізація карти (якщо вона ще не створена)
 if (typeof map === 'undefined') { var map; }
 if (typeof markersLayer === 'undefined') { window.markersLayer = L.layerGroup(); }
+
+// Функції спінера
+function showSpinner() {
+    const mapCont = document.getElementById('map');
+    if (!document.getElementById('map-loader')) {
+        const loader = document.createElement('div');
+        loader.id = 'map-loader';
+        loader.innerHTML = '<div class="spinner"></div>';
+        loader.style = "position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000; background:rgba(255,255,255,0.8); padding:15px; border-radius:10px; box-shadow: 0 0 10px rgba(0,0,0,0.2);";
+        mapCont.appendChild(loader);
+    }
+}
+
+function hideSpinner() {
+    const loader = document.getElementById('map-loader');
+    if (loader) loader.remove();
+}
 
 function ensureMapReady() {
     const container = document.getElementById('map');
     if (!container) return false;
     if (!map) {
-        map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -1,
-            maxZoom: 2,
-            zoomSnap: 0.1
-        });
+        map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2, zoomSnap: 0.1 });
         const bounds = [[0, 0], [736, 900]];
         L.imageOverlay('map.jpg', bounds).addTo(map);
         map.fitBounds(bounds);
         window.markersLayer.addTo(map);
+
+        // Динамічний розмір при зумі
+        map.on('zoomend', () => {
+            const currentZoom = map.getZoom();
+            const newSize = 16 + (currentZoom + 1) * 12;
+            document.querySelectorAll('.hromada-count-icon').forEach(el => {
+                el.style.width = newSize + 'px';
+                el.style.height = newSize + 'px';
+                el.style.fontSize = (newSize / 2.2) + 'px';
+            });
+        });
     }
     return true;
 }
 
-// Функція для показу списку колективів громади (те, що було раніше)
-window.showHromadaCollectives = function(hromadaName) {
-    const db = window.collectivesDatabase; // Беремо з collectives-list.js
-    let listHtml = `<h3>Колективи: ${hromadaName}</h3><ul style="text-align:left; max-height:300px; overflow-y:auto;">`;
-    let found = false;
-
-    for (let id in db) {
-        if (db[id].location.toLowerCase().includes(hromadaName.toLowerCase().substring(0, 5))) {
-            listHtml += `<li style="margin-bottom:10px;"><b>${db[id].name}</b><br><small>Керівник: ${db[id].leader || '—'}</small></li>`;
-            found = true;
-        }
-    }
-    listHtml += "</ul>";
-    
-    if (!found) listHtml = "<h3>Колективи</h3><p>Інформація оновлюється...</p>";
-    
-    // Викликаємо ваше модальне вікно (функція showModal вже є в index.html)
-    if (typeof showModal === 'function') {
-        showModal(listHtml);
-    } else {
-        alert("Дані громади: " + hromadaName);
-    }
-};
-
-// 2. РЕЖИМ КОЛЕКТИВІВ (Кружечки громад)
+// РЕЖИМ КОЛЕКТИВІВ (Використовує ваш новий список)
 window.renderCollectivesMode = function() {
     if (!ensureMapReady()) return;
+    showSpinner();
     window.markersLayer.clearLayers();
+
+    const listData = window.collectivesList; // Ваш новий файл
     const geoJSON = window.hromadasGeoJSON;
 
-    geoJSON.features.forEach(f => {
-        const lat = 736 - f.y;
-        const lng = f.x;
-        
-        // Малюємо сині кружечки громад
-        const marker = L.circleMarker([lat, lng], {
-            radius: 8,
-            fillColor: "#3498db",
-            color: "#fff",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
-        }).addTo(window.markersLayer);
+    setTimeout(() => {
+        geoJSON.features.forEach(f => {
+            const hName = f.name.toLowerCase().trim();
+            // Шукаємо громаду в списку (по першим 5 буквам для точності)
+            const key = Object.keys(listData).find(k => k.toLowerCase().includes(hName.substring(0, 5)));
+            
+            if (key && listData[key]) {
+                const count = listData[key].length;
+                const lat = 736 - f.y;
+                const lng = f.x;
 
-        // Клік відкриває список колективів
-        marker.on('click', () => {
-            window.showHromadaCollectives(f.name);
+                const iconSize = 20 + (map.getZoom() + 1) * 6;
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="hromada-count-icon" style="background:#3498db; color:white; width:${iconSize}px; height:${iconSize}px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:${iconSize/2.2}px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.4);">${count}</div>`,
+                    iconSize: [iconSize, iconSize],
+                    iconAnchor: [iconSize/2, iconSize/2]
+                });
+
+                const marker = L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer);
+
+                marker.on('click', () => {
+                    let listHtml = `<div style="padding:10px; font-family: sans-serif; color: black;">
+                        <h3 style="color:#2c3e50; margin-top:0;">${key.toUpperCase()}</h3>
+                        <p style="font-size: 0.9em; color: #7f8c8d;">Всього колективів: ${count}</p>
+                        <hr>
+                        <ul style="text-align:left; max-height:350px; overflow-y:auto; padding-left:0; list-style:none;">`;
+                    
+                    listData[key].forEach(item => {
+                        listHtml += `<li style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px;">${item}</li>`;
+                    });
+                    
+                    listHtml += "</ul></div>";
+                    if (typeof showModal === 'function') showModal(listHtml);
+                });
+
+                marker.bindTooltip(`<b>${key}</b>`, { direction: 'top', offset: [0, -10] });
+            }
         });
-        
-        marker.bindTooltip(f.name, { direction: 'top', offset: [0, -5] });
-    });
+        hideSpinner();
+    }, 400);
 };
 
-// 3. РЕЖИМ БИТВИ (Топ-6 лідерів)
+// РЕЖИМ БИТВИ
 window.renderBitvaMode = function() {
     if (!ensureMapReady()) return;
+    showSpinner();
     window.markersLayer.clearLayers();
 
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
@@ -93,16 +115,13 @@ window.renderBitvaMode = function() {
 
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
-                const lks = parseInt(item.likes) || 0;
-                const cms = parseInt(item.comments) || 0; 
-                const shr = parseInt(item.shares) || 0;
-                const totalScore = lks + cms + shr;
+                const totalScore = (parseInt(item.likes) || 0) + (parseInt(item.comments) || 0) + (parseInt(item.shares) || 0);
 
                 for (let id in db) {
                     const locSearch = db[id].location.toLowerCase().substring(0, 5);
                     if (tableText.includes(locSearch)) {
                         if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                            resultsMap[id] = { ...db[id], total: totalScore, likes: lks, comments: cms, shares: shr, url: item.facebookUrl };
+                            resultsMap[id] = { ...db[id], total: totalScore, likes: item.likes, comments: item.comments, shares: item.shares, url: item.facebookUrl };
                         }
                     }
                 }
@@ -121,44 +140,26 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; box-shadow: 0 0 10px rgba(0,0,0,0.5);">${rank}</div>`,
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16]
+                        html: `<div style="background:${color}; width:35px; height:35px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; box-shadow: 0 0 15px rgba(0,0,0,0.4);">${rank}</div>`,
+                        iconSize: [35, 35],
+                        iconAnchor: [17, 17]
                     });
 
                     const popupContent = `
-                        <div style="width:190px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
-                            <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
-                            <div style="font-weight:bold; font-size:12px; margin-bottom:8px; line-height:1.2;">${el.name}</div>
-                            <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee;">
-                                <div style="font-size:10px;">👍<br><b>${el.likes}</b></div>
-                                <div style="font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd; padding:0 8px;">💬<br><b>${el.comments}</b></div>
-                                <div style="font-size:10px;">🔄<br><b>${el.shares}</b></div>
+                        <div style="width:200px; text-align:center; color: black; padding:5px;">
+                            <b style="color:${color}; font-size:1.2em;">🏆 №${rank}</b><br>
+                            <b>${el.name}</b><hr>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.9em;">
+                                <span>👍 ${el.likes}</span><span>💬 ${el.comments}</span><span>🔄 ${el.shares}</span>
                             </div>
-                            <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22; font-weight:bold; font-size:14px; color:#e67e22;">
-                                ${el.total} БАЛІВ
-                            </div>
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:8px; border-radius:6px; font-weight:bold; font-size:10px; text-transform:uppercase;">Голосувати</a>
-                        </div>
-                    `;
+                            <div style="background:#e67e22; color:white; padding:5px; border-radius:5px; font-weight:bold;">${el.total} БАЛІВ</div>
+                            <a href="${el.url}" target="_blank" style="display:inline-block; margin-top:10px; padding:7px 15px; background:#2980b9; color:white; text-decoration:none; border-radius:4px; font-size:0.8em;">ГОЛОСУВАТИ</a>
+                        </div>`;
 
                     L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
                 }
             });
+            hideSpinner();
         })
-        .catch(err => console.error("❌ Помилка Битви:", err));
+        .catch(() => hideSpinner());
 };
-
-// 4. ПЕРЕМИКАЧ РЕЖИМІВ (щоб кнопки в index.html працювали)
-window.updateMode = function(mode) {
-    if (mode === 'battle') {
-        window.renderBitvaMode();
-    } else {
-        window.renderCollectivesMode();
-    }
-};
-
-// Запуск при старті
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => { window.renderCollectivesMode(); }, 200);
-});
