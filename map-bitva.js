@@ -2,6 +2,7 @@
  * map-bitva.js - Повна виправлена версія
  */
 let map;
+alert("СКРИПТ ЗАВАНТАЖЕНО!");
 window.markersLayer = L.layerGroup(); 
 
 document.addEventListener('DOMContentLoaded', () => {
