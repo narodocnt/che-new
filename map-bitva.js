@@ -1,49 +1,20 @@
 /**
- * map-bitva.js - Остаточна виправлена версія
+ * map-bitva.js - Спрощена стабільна версія
  */
 
-// Функція ініціалізації карти, якщо вона ще не створена
-function initMapIfNeeded() {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-
-    // Якщо карта ще не ініціалізована (ні в цьому файлі, ні в map-collectives)
+window.renderBitvaMode = function() {
+    console.log("⚔️ Запуск режиму Битви...");
+    
+    // Перевіряємо, чи існує глобальний об'єкт карти (створений іншим скриптом)
     if (!map) {
-        console.log("🗺️ Ініціалізація нової карти...");
-        map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -1,
-            maxZoom: 2,
-            zoomSnap: 0.1
-        });
-
-        const bounds = [[0, 0], [736, 900]];
-        L.imageOverlay('map.jpg', bounds).addTo(map);
-        map.fitBounds(bounds);
+        console.error("❌ Помилка: Карта (map) ще не створена.");
+        return;
     }
 
     // Перевіряємо шар маркерів
     if (!window.markersLayer) {
         window.markersLayer = L.layerGroup().addTo(map);
-    } else if (!map.hasLayer(window.markersLayer)) {
-        window.markersLayer.addTo(map);
     }
-}
-
-// Запуск при завантаженні
-document.addEventListener('DOMContentLoaded', () => {
-    initMapIfNeeded();
-    // Якщо при завантаженні вже вибрано режим битви, малюємо його
-    if (document.getElementById('btn-bat')?.style.background.includes('rgb(230, 126, 34)')) {
-        window.renderBitvaMode();
-    }
-});
-
-window.renderBitvaMode = function() {
-    console.log("⚔️ Запуск режиму Битви...");
-    
-    // Переконуємось, що карта готова
-    initMapIfNeeded();
 
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
@@ -54,10 +25,7 @@ window.renderBitvaMode = function() {
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
 
-            if (!db || !geoJSON) {
-                console.error("❌ Бази даних не знайдені");
-                return;
-            }
+            if (!db || !geoJSON) return;
 
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
@@ -85,7 +53,7 @@ window.renderBitvaMode = function() {
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
             
-            // Очищуємо старі кружечки перед малюванням нових
+            // Очищуємо ТІЛЬКИ шар маркерів
             window.markersLayer.clearLayers();
 
             sorted.forEach((el, index) => {
@@ -101,7 +69,7 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: auto;">${rank}</div>`,
+                        html: `<div style="background:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; box-shadow: 0 0 10px rgba(0,0,0,0.5);">${rank}</div>`,
                         iconSize: [30, 30],
                         iconAnchor: [15, 15]
                     });
@@ -122,9 +90,7 @@ window.renderBitvaMode = function() {
                         </div>
                     `;
 
-                    L.marker([lat, lng], { icon: icon })
-                        .addTo(window.markersLayer)
-                        .bindPopup(popupContent);
+                    L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
                 }
             });
         })
