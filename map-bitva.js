@@ -1,3 +1,49 @@
+JavaScript
+
+/**
+ * map-bitva.js - ЧИСТА ВЕРСІЯ
+ */
+let map;
+window.markersLayer = L.layerGroup(); 
+
+document.addEventListener('DOMContentLoaded', () => {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2,
+        zoomSnap: 0.1
+    });
+
+    const bounds = [[0, 0], [736, 900]]; 
+    L.imageOverlay('map.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
+    window.markersLayer.addTo(map);
+    
+    if (typeof updateMode === 'function') {
+        updateMode('collectives');
+    }
+});
+
+window.updateMode = function(mode) {
+    const btnCol = document.getElementById('btn-col');
+    const btnBat = document.getElementById('btn-bat');
+    if (btnCol && btnBat) {
+        btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
+        btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
+    }
+    if (window.markersLayer) window.markersLayer.clearLayers();
+    if (mode === 'battle') {
+        window.renderBitvaMode(); 
+    } else {
+        if (typeof window.renderCollectivesMode === 'function') {
+            window.renderCollectivesMode(window.markersLayer);
+        }
+    }
+};
+
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
 
