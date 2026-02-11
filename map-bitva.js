@@ -1,15 +1,13 @@
 /**
- * map-bitva.js - Повна виправлена версія
+ * map-bitva.js - ЧИСТА ВЕРСІЯ
  */
 let map;
-alert("СКРИПТ ЗАВАНТАЖЕНО!");
 window.markersLayer = L.layerGroup(); 
 
 document.addEventListener('DOMContentLoaded', () => {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    // 1. Створення об'єкта карти
     map = L.map('map', {
         crs: L.CRS.Simple,
         minZoom: -1,
@@ -17,36 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomSnap: 0.1
     });
 
-    // 2. Налаштування меж (Висота 736, Ширина 900)
     const bounds = [[0, 0], [736, 900]]; 
     L.imageOverlay('map.jpg', bounds).addTo(map);
     map.fitBounds(bounds);
-
-    // 3. Додавання шару для точок на карту
     window.markersLayer.addTo(map);
     
-    // 4. Початковий запуск (показуємо колективи)
     if (typeof updateMode === 'function') {
         updateMode('collectives');
     }
 });
 
-// ФУНКЦІЯ ПЕРЕМИКАННЯ РЕЖИМІВ
 window.updateMode = function(mode) {
-    console.log("🔄 Режим змінено на:", mode);
-
     const btnCol = document.getElementById('btn-col');
     const btnBat = document.getElementById('btn-bat');
-
     if (btnCol && btnBat) {
         btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
         btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
     }
-
-    if (window.markersLayer) {
-        window.markersLayer.clearLayers();
-    }
-
+    if (window.markersLayer) window.markersLayer.clearLayers();
     if (mode === 'battle') {
         window.renderBitvaMode(); 
     } else {
@@ -56,12 +42,9 @@ window.updateMode = function(mode) {
     }
 };
 
-// ФУНКЦІЯ МАЛЮВАННЯ БИТВИ (РЕЙТИНГ)
 window.renderBitvaMode = function() {
-    console.log("⚔️ Запуск режиму Битви...");
-
-    // Додаємо timestamp (?t=...), щоб обійти кеш браузера і n8n
-    const url = `https://n8n.narodocnt.online/webhook/get-ranking?t=${new Date().getTime()}`;
+    // Додаємо випадкове число до URL, щоб n8n не кешував дані
+    const url = `https://n8n.narodocnt.online/webhook/get-ranking?nocache=${Math.random()}`;
 
     fetch(url)
         .then(res => res.json())
@@ -70,15 +53,9 @@ window.renderBitvaMode = function() {
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
 
-            if (!db || !geoJSON) {
-                console.error("❌ Помилка: База даних або GeoJSON не завантажені");
-                return;
-            }
-
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
-                
-                // Перетворення на числа
+                // ВАЖЛИВО: Отримуємо цифри саме з тих полів, які приходять
                 const lks = parseInt(item.likes) || 0;
                 const cms = parseInt(item.comments) || 0; 
                 const shr = parseInt(item.shares) || 0;
@@ -94,8 +71,7 @@ window.renderBitvaMode = function() {
                                 likes: lks,
                                 comments: cms, 
                                 shares: shr,
-                                url: item.facebookUrl,
-                                leader: db[id].leader 
+                                url: item.facebookUrl
                             };
                         }
                     }
@@ -123,9 +99,9 @@ window.renderBitvaMode = function() {
                         iconAnchor: [16, 16]
                     });
 
-                    // ЧИСТИЙ ТА БЕЗПЕЧНИЙ HTML ПOПAПУ
+                    // КОМПАКТНИЙ HTML БЕЗ ДУБЛІВ (це виправить розтягування)
                     const popupContent = `
-                        <div style="width:210px; font-family: sans-serif; padding: 5px; background: white; border-radius: 10px;">
+                        <div style="width:200px; font-family: sans-serif; padding: 5px; background: white;">
                             <div style="text-align:center; color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
                             <div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:8px; line-height:1.2; color: #333;">${el.name}</div>
                             
@@ -136,18 +112,16 @@ window.renderBitvaMode = function() {
                             </div>
 
                             <div style="background:#fff4eb; text-align:center; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22;">
-                                <span style="font-weight:bold; font-size:15px; color:#e67e22;">${el.total} БАЛІВ</span>
+                                <span style="font-weight:bold; font-size:15px; color:#333;">${el.total} БАЛІВ</span>
                             </div>
                             
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">👍 ГОЛОСУВАТИ</a>
+                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase; text-align:center;">👍 ГОЛОСУВАТИ</a>
                         </div>
                     `;
 
-                    L.marker([lat, lng], { icon: icon })
-                        .addTo(window.markersLayer)
-                        .bindPopup(popupContent, { maxWidth: 250 });
+                    L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
                 }
             });
         })
-        .catch(err => console.error("❌ Помилка завантаження даних Битви:", err));
+        .catch(err => console.error("Помилка:", err));
 };
