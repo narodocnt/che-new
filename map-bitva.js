@@ -1,20 +1,49 @@
 /**
- * map-bitva.js - Спрощена стабільна версія
+ * map-bitva.js - ПОВНА АВТОНОМНА ВЕРСІЯ
  */
 
-window.renderBitvaMode = function() {
-    console.log("⚔️ Запуск режиму Битви...");
-    
-    // Перевіряємо, чи існує глобальний об'єкт карти (створений іншим скриптом)
-    if (!map) {
-        console.error("❌ Помилка: Карта (map) ще не створена.");
-        return;
-    }
+// 1. Створюємо змінні, якщо вони ще не існують
+if (typeof map === 'undefined') { var map; }
+if (typeof markersLayer === 'undefined') { window.markersLayer = L.layerGroup(); }
 
-    // Перевіряємо шар маркерів
-    if (!window.markersLayer) {
-        window.markersLayer = L.layerGroup().addTo(map);
+// 2. Головна функція створення карти
+function ensureMapReady() {
+    const container = document.getElementById('map');
+    if (!container) return false;
+
+    // Якщо карти ще немає — ініціалізуємо її
+    if (!map) {
+        console.log("🗺️ Створюємо карту з нуля...");
+        map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -1,
+            maxZoom: 2,
+            zoomSnap: 0.1
+        });
+
+        const bounds = [[0, 0], [736, 900]];
+        L.imageOverlay('map.jpg', bounds).addTo(map);
+        map.fitBounds(bounds);
+        
+        // Додаємо шар маркерів на карту
+        window.markersLayer.addTo(map);
     }
+    return true;
+}
+
+// Запуск при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (ensureMapReady()) {
+            console.log("✅ Карта готова");
+        }
+    }, 100); // Невелика затримка, щоб DOM встиг провантажитись
+});
+
+window.renderBitvaMode = function() {
+    console.log("⚔️ Режим Битви активовано");
+    
+    if (!ensureMapReady()) return;
 
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
@@ -25,7 +54,10 @@ window.renderBitvaMode = function() {
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
 
-            if (!db || !geoJSON) return;
+            if (!db || !geoJSON) {
+                console.error("❌ Не знайдено hromadas-data.js або collectives-bitva.js");
+                return;
+            }
 
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
@@ -38,14 +70,7 @@ window.renderBitvaMode = function() {
                     const locSearch = db[id].location.toLowerCase().substring(0, 5);
                     if (tableText.includes(locSearch)) {
                         if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                            resultsMap[id] = { 
-                                ...db[id], 
-                                total: totalScore, 
-                                likes: lks, 
-                                comments: cms, 
-                                shares: shr, 
-                                url: item.facebookUrl 
-                            };
+                            resultsMap[id] = { ...db[id], total: totalScore, likes: lks, comments: cms, shares: shr, url: item.facebookUrl };
                         }
                     }
                 }
@@ -53,14 +78,12 @@ window.renderBitvaMode = function() {
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
             
-            // Очищуємо ТІЛЬКИ шар маркерів
+            // Очищуємо старі кружечки
             window.markersLayer.clearLayers();
 
             sorted.forEach((el, index) => {
                 const rank = index + 1;
-                const hromada = geoJSON.features.find(f => 
-                    f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5))
-                );
+                const hromada = geoJSON.features.find(f => f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5)));
 
                 if (hromada) {
                     const lat = 736 - hromada.y;
