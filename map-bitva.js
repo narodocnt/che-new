@@ -1,11 +1,39 @@
+/**
+ * map-bitva.js - Повна робоча версія: Карта + Виправлені картки
+ */
+let map;
+window.markersLayer = L.layerGroup(); 
+
+// 1. ІНІЦІАЛІЗАЦІЯ КАРТИ (Повертаємо її на місце)
+document.addEventListener('DOMContentLoaded', () => {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    // Створюємо карту
+    map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 2,
+        zoomSnap: 0.1
+    });
+
+    // Налаштування меж (Висота 736, Ширина 900 - як було раніше)
+    const bounds = [[0, 0], [736, 900]]; 
+    L.imageOverlay('map.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    // Додаємо шар для точок
+    window.markersLayer.addTo(map);
+    
+    // Запускаємо початковий режим
+    if (typeof updateMode === 'function') {
+        updateMode('collectives');
+    }
+});
+
+// 2. ФУНКЦІЯ РЕНДЕРУ БИТВИ (З виправленими картками)
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
-
-    // Перевіряємо, чи існує карта та шар маркерів
-    if (!map) {
-        console.error("Помилка: об'єкт 'map' не знайдено.");
-        return;
-    }
 
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
@@ -34,7 +62,7 @@ window.renderBitvaMode = function() {
                                 total: totalScore, 
                                 likes: lks, 
                                 comments: cms, 
-                                shares: shr, 
+                                shr: shr, 
                                 url: item.facebookUrl 
                             };
                         }
@@ -44,14 +72,15 @@ window.renderBitvaMode = function() {
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
             
-            // Очищуємо ТІЛЬКИ маркери, не чіпаючи фон карти
             if (window.markersLayer) {
                 window.markersLayer.clearLayers();
             }
 
             sorted.forEach((el, index) => {
                 const rank = index + 1;
-                const hromada = geoJSON.features.find(f => f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5)));
+                const hromada = geoJSON.features.find(f => 
+                    f.name.toLowerCase().includes(el.location.toLowerCase().substring(0, 5))
+                );
 
                 if (hromada) {
                     const lat = 736 - hromada.y;
@@ -65,6 +94,7 @@ window.renderBitvaMode = function() {
                         iconAnchor: [15, 15]
                     });
 
+                    // ВИПРАВЛЕНИЙ HTML ПOПAПУ (Компактний і рівний)
                     const popupContent = `
                         <div style="width:190px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
                             <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
@@ -73,7 +103,7 @@ window.renderBitvaMode = function() {
                             <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee;">
                                 <div style="font-size:10px;">👍<br><b>${el.likes}</b></div>
                                 <div style="font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd; padding:0 8px;">💬<br><b>${el.comments}</b></div>
-                                <div style="font-size:10px;">🔄<br><b>${el.shares}</b></div>
+                                <div style="font-size:10px;">🔄<br><b>${el.shr}</b></div>
                             </div>
 
                             <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22; font-weight:bold; font-size:14px; color:#e67e22;">
@@ -84,9 +114,11 @@ window.renderBitvaMode = function() {
                         </div>
                     `;
 
-                    L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
+                    L.marker([lat, lng], { icon: icon })
+                        .addTo(window.markersLayer)
+                        .bindPopup(popupContent);
                 }
             });
         })
-        .catch(err => console.error("Помилка завантаження Битви:", err));
+        .catch(err => console.error("Помилка Битви:", err));
 };
