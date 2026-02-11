@@ -1,59 +1,12 @@
-JavaScript
-
-/**
- * map-bitva.js - ЧИСТА ВЕРСІЯ
- */
-let map;
-window.markersLayer = L.layerGroup(); 
-
-document.addEventListener('DOMContentLoaded', () => {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-
-    map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: -1,
-        maxZoom: 2,
-        zoomSnap: 0.1
-    });
-
-    const bounds = [[0, 0], [736, 900]]; 
-    L.imageOverlay('map.jpg', bounds).addTo(map);
-    map.fitBounds(bounds);
-    window.markersLayer.addTo(map);
-    
-    if (typeof updateMode === 'function') {
-        updateMode('collectives');
-    }
-});
-
-window.updateMode = function(mode) {
-    const btnCol = document.getElementById('btn-col');
-    const btnBat = document.getElementById('btn-bat');
-    if (btnCol && btnBat) {
-        btnCol.style.background = (mode === 'collectives') ? '#e67e22' : '#2f3640';
-        btnBat.style.background = (mode === 'battle') ? '#e67e22' : '#2f3640';
-    }
-    if (window.markersLayer) window.markersLayer.clearLayers();
-    if (mode === 'battle') {
-        window.renderBitvaMode(); 
-    } else {
-        if (typeof window.renderCollectivesMode === 'function') {
-            window.renderCollectivesMode(window.markersLayer);
-        }
-    }
-};
-
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
 
-    // Використовуємо випадкове число, щоб обійти кеш
-    const url = `https://n8n.narodocnt.online/webhook/get-ranking?nocache=${Math.random()}`;
+    const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
     fetch(url)
         .then(res => res.json())
         .then(rawData => {
-            // Беремо дані з вашого файлу зі списком учасників битви
+            // Використовуємо вашу базу учасників битви
             const db = window.collectivesBitvaDatabase || window.collectivesDatabase;
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
@@ -98,27 +51,24 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">${rank}</div>`,
+                        html: '<div style="background:' + color + '; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">' + rank + '</div>',
                         iconSize: [30, 30],
                         iconAnchor: [15, 15]
                     });
 
-                    // ЦЕЙ БЛОК ВИПРАВЛЯЄ РОЗТЯГНУТУ КАРТКУ
+                    // ЧИСТИЙ HTML БЕЗ ЗАЙВИХ СИМВОЛІВ
                     const popupContent = `
-                        <div style="width:190px; font-family:sans-serif; padding:5px; text-align:center;">
+                        <div style="width:180px; font-family:sans-serif; padding:5px; text-align:center;">
                             <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
                             <div style="font-weight:bold; font-size:12px; margin-bottom:8px; line-height:1.2; color:black;">${el.name}</div>
-                            
                             <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee;">
                                 <div style="font-size:10px; color:black;">👍<br><b>${el.likes}</b></div>
                                 <div style="font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd; padding:0 8px; color:black;">💬<br><b>${el.comments}</b></div>
                                 <div style="font-size:10px; color:black;">🔄<br><b>${el.shares}</b></div>
                             </div>
-
                             <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22; font-weight:bold; font-size:14px; color:#e67e22;">
                                 ${el.total} БАЛІВ
                             </div>
-                            
                             <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:8px; border-radius:6px; font-weight:bold; font-size:10px; text-transform:uppercase;">Голосувати</a>
                         </div>
                     `;
