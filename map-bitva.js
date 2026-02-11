@@ -55,7 +55,6 @@ window.updateMode = function(mode) {
     }
 };
 
-// ФУНКЦІЯ МАЛЮВАННЯ БИТВИ (РЕЙТИНГ) З КЕРІВНИКОМ ТА КНОПКОЮ
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
 
@@ -70,13 +69,11 @@ window.renderBitvaMode = function() {
 
             rawData.forEach(item => {
                 const tableText = (item.text || "").toLowerCase();
-                
-                // ПРИМУСОВЕ ПЕРЕТВОРЕННЯ НА ЧИСЛА
                 const lks = parseInt(item.likes) || 0;
                 const cms = parseInt(item.comments) || 0; 
                 const shr = parseInt(item.shares) || 0;
                 
-                console.log(`🔍 Дані: ${tableText.substring(0,20)}... | L:${lks} C:${cms} S:${shr}`);
+                console.log(`🔍 Дані: L:${lks} C:${cms} S:${shr}`);
 
                 const totalScore = lks + cms + shr;
 
@@ -90,8 +87,7 @@ window.renderBitvaMode = function() {
                                 likes: lks,
                                 comments: cms, 
                                 shares: shr,
-                                url: item.facebookUrl,
-                                leader: db[id].leader 
+                                url: item.facebookUrl 
                             };
                         }
                     }
@@ -114,16 +110,15 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px;">${rank}</div>`,
+                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">${rank}</div>`,
                         iconSize: [32, 32],
                         iconAnchor: [16, 16]
                     });
 
-                    // ЧИСТИЙ HTML БЕЗ ДУБЛІКАТІВ
                     const popupContent = `
-                        <div style="width:210px; font-family: sans-serif; padding: 5px; background: white;">
+                        <div style="width:205px; font-family: sans-serif; padding: 5px; background: white; border-radius: 8px;">
                             <div style="text-align:center; color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
-                            <div style="text-align:center; font-weight:bold; font-size:14px; margin-bottom:8px; line-height:1.2; color: #333;">${el.name}</div>
+                            <div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:8px; line-height:1.2; color: #333;">${el.name}</div>
                             
                             <div style="display:flex; justify-content:space-between; background:#fdf7f2; padding:8px; border-radius:6px; margin-bottom:10px; border:1px solid #eee; text-align:center;">
                                 <div style="flex:1; font-size:10px;">👍<br><b>${el.likes}</b></div>
@@ -135,7 +130,7 @@ window.renderBitvaMode = function() {
                                 <span style="font-weight:bold; font-size:15px; color:#333;">${el.total} БАЛІВ</span>
                             </div>
                             
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">👍 ГOЛOСУВAТИ</a>
+                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:10px; text-transform:uppercase; text-align:center;">👍 ГOЛOСУВAТИ</a>
                         </div>
                     `;
 
