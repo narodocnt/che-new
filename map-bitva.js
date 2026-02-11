@@ -68,35 +68,43 @@ window.renderBitvaMode = function() {
 
             if (!db || !geoJSON) return;
 
-            rawData.forEach(item => {
-                const tableText = (item.text || "").toLowerCase();
-                
-                // ПЕРЕВІРКА: Спробуємо три різні варіанти назв полів, які дає Apify
-                const lks = Number(item.likes) || 0;
-                // Виключаємо topReactionsCount силоміць
-                const cms = Number(item.commentsCount) || Number(item.comments) || 0; 
-                const shr = Number(item.shares) || 0;
-                
-                const totalScore = lks + cms + shr;
+           rawData.forEach(item => {
+    const tableText = (item.text || "").toLowerCase();
+    
+    // БЕЗПЕЧНИЙ ПІДРАХУНОК
+    // Якщо поля немає в JSON, ставимо чіткий 0
+    const lks = Number(item.likes) || 0;
+    const shr = Number(item.shares) || 0;
+    
+    // Перевіряємо чи взагалі існує поле коментарів
+    let cms = 0;
+    if (item.comments !== undefined && item.comments !== null) {
+        cms = Number(item.comments);
+    } else if (item.commentsCount !== undefined) {
+        cms = Number(item.commentsCount);
+    } else {
+        cms = 0; // Якщо апіфай нічого не дав - ставимо нуль
+    }
+    
+    const totalScore = lks + cms + shr;
 
-                for (let id in db) {
-                    const locSearch = db[id].location.toLowerCase().substring(0, 5);
-                    if (tableText.includes(locSearch)) {
-                        if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                            resultsMap[id] = { 
-                                ...db[id], 
-                                total: totalScore,
-                                likes: lks,
-                                comments: cms, 
-                                shares: shr,
-                                url: item.facebookUrl,
-                                leader: db[id].leader 
-                            };
-                        }
-                    }
-                }
-            });
-
+    for (let id in db) {
+        const locSearch = db[id].location.toLowerCase().substring(0, 5);
+        if (tableText.includes(locSearch)) {
+            if (!resultsMap[id] || totalScore > resultsMap[id].total) {
+                resultsMap[id] = { 
+                    ...db[id], 
+                    total: totalScore,
+                    likes: lks,
+                    comments: cms, 
+                    shares: shr,
+                    url: item.facebookUrl,
+                    leader: db[id].leader 
+                };
+            }
+        }
+    }
+});
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
             if (window.markersLayer) window.markersLayer.clearLayers();
 
