@@ -1,12 +1,17 @@
 window.renderBitvaMode = function() {
     console.log("⚔️ Запуск режиму Битви...");
 
+    // Перевіряємо, чи існує карта та шар маркерів
+    if (!map) {
+        console.error("Помилка: об'єкт 'map' не знайдено.");
+        return;
+    }
+
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
     fetch(url)
         .then(res => res.json())
         .then(rawData => {
-            // Використовуємо вашу базу учасників битви
             const db = window.collectivesBitvaDatabase || window.collectivesDatabase;
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
@@ -38,7 +43,11 @@ window.renderBitvaMode = function() {
             });
 
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
-            if (window.markersLayer) window.markersLayer.clearLayers();
+            
+            // Очищуємо ТІЛЬКИ маркери, не чіпаючи фон карти
+            if (window.markersLayer) {
+                window.markersLayer.clearLayers();
+            }
 
             sorted.forEach((el, index) => {
                 const rank = index + 1;
@@ -51,24 +60,26 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: '<div style="background:' + color + '; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">' + rank + '</div>',
+                        html: `<div style="background:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; box-shadow: 0 0 10px rgba(0,0,0,0.5);">${rank}</div>`,
                         iconSize: [30, 30],
                         iconAnchor: [15, 15]
                     });
 
-                    // ЧИСТИЙ HTML БЕЗ ЗАЙВИХ СИМВОЛІВ
                     const popupContent = `
-                        <div style="width:180px; font-family:sans-serif; padding:5px; text-align:center;">
+                        <div style="width:190px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
                             <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
-                            <div style="font-weight:bold; font-size:12px; margin-bottom:8px; line-height:1.2; color:black;">${el.name}</div>
+                            <div style="font-weight:bold; font-size:12px; margin-bottom:8px; line-height:1.2;">${el.name}</div>
+                            
                             <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee;">
-                                <div style="font-size:10px; color:black;">👍<br><b>${el.likes}</b></div>
-                                <div style="font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd; padding:0 8px; color:black;">💬<br><b>${el.comments}</b></div>
-                                <div style="font-size:10px; color:black;">🔄<br><b>${el.shares}</b></div>
+                                <div style="font-size:10px;">👍<br><b>${el.likes}</b></div>
+                                <div style="font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd; padding:0 8px;">💬<br><b>${el.comments}</b></div>
+                                <div style="font-size:10px;">🔄<br><b>${el.shares}</b></div>
                             </div>
+
                             <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22; font-weight:bold; font-size:14px; color:#e67e22;">
                                 ${el.total} БАЛІВ
                             </div>
+                            
                             <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:8px; border-radius:6px; font-weight:bold; font-size:10px; text-transform:uppercase;">Голосувати</a>
                         </div>
                     `;
@@ -77,5 +88,5 @@ window.renderBitvaMode = function() {
                 }
             });
         })
-        .catch(err => console.error("Помилка:", err));
+        .catch(err => console.error("Помилка завантаження Битви:", err));
 };
