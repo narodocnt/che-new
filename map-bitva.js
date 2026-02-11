@@ -68,43 +68,36 @@ window.renderBitvaMode = function() {
 
             if (!db || !geoJSON) return;
 
-           rawData.forEach(item => {
-    const tableText = (item.text || "").toLowerCase();
-    
-    // БЕЗПЕЧНИЙ ПІДРАХУНОК
-    // Якщо поля немає в JSON, ставимо чіткий 0
-    const lks = Number(item.likes) || 0;
-    const shr = Number(item.shares) || 0;
-    
-    // Перевіряємо чи взагалі існує поле коментарів
-    let cms = 0;
-    if (item.comments !== undefined && item.comments !== null) {
-        cms = Number(item.comments);
-    } else if (item.commentsCount !== undefined) {
-        cms = Number(item.commentsCount);
-    } else {
-        cms = 0; // Якщо апіфай нічого не дав - ставимо нуль
-    }
-    
-    const totalScore = lks + cms + shr;
+            rawData.forEach(item => {
+                const tableText = (item.text || "").toLowerCase();
+                
+                // ПРИМУСОВЕ ПЕРЕТВОРЕННЯ НА ЧИСЛА
+                const lks = parseInt(item.likes) || 0;
+                const cms = parseInt(item.comments) || 0; 
+                const shr = parseInt(item.shares) || 0;
+                
+                console.log(`🔍 Дані: ${tableText.substring(0,20)}... | L:${lks} C:${cms} S:${shr}`);
 
-    for (let id in db) {
-        const locSearch = db[id].location.toLowerCase().substring(0, 5);
-        if (tableText.includes(locSearch)) {
-            if (!resultsMap[id] || totalScore > resultsMap[id].total) {
-                resultsMap[id] = { 
-                    ...db[id], 
-                    total: totalScore,
-                    likes: lks,
-                    comments: cms, 
-                    shares: shr,
-                    url: item.facebookUrl,
-                    leader: db[id].leader 
-                };
-            }
-        }
-    }
-});
+                const totalScore = lks + cms + shr;
+
+                for (let id in db) {
+                    const locSearch = db[id].location.toLowerCase().substring(0, 5);
+                    if (tableText.includes(locSearch)) {
+                        if (!resultsMap[id] || totalScore > resultsMap[id].total) {
+                            resultsMap[id] = { 
+                                ...db[id], 
+                                total: totalScore,
+                                likes: lks,
+                                comments: cms, 
+                                shares: shr,
+                                url: item.facebookUrl,
+                                leader: db[id].leader 
+                            };
+                        }
+                    }
+                }
+            });
+
             const sorted = Object.values(resultsMap).sort((a, b) => b.total - a.total).slice(0, 6);
             if (window.markersLayer) window.markersLayer.clearLayers();
 
@@ -121,43 +114,30 @@ window.renderBitvaMode = function() {
 
                     const icon = L.divIcon({
                         className: 'map-rank-marker',
-                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px; cursor:pointer;">${rank}</div>`,
+                        html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; border:2px solid white; color:black; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:14px;">${rank}</div>`,
                         iconSize: [32, 32],
                         iconAnchor: [16, 16]
                     });
 
-                    // ДОДАЄМО ДІАГНОСТИКУ: виводимо в дужках поруч із "2" назву поля
-                   // Знайдіть цей блок у map-bitva.js і замініть повністю
-const popupContent = `
-    <div style="width:220px; text-align:center; font-family: sans-serif; padding: 5px;">
-        <div style="color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
-        <strong style="font-size:14px; display:block; line-height:1.2; margin-bottom:4px;">${el.name}</strong>
-        <div style="font-size:11px; color:#666; margin-bottom:8px;">Керівник: <b>${el.leader || 'Не вказано'}</b></div>
-        
-        <div style="background:#fdf7f2; padding:8px; border-radius:6px; margin-bottom:10px; border:1px solid #eee; display:flex; justify-content:space-around; align-items:center;">
-            <div style="font-size:10px; line-height:1.2;">👍<br><b style="font-size:12px;">${el.likes || 0}</b></div>
-            <div style="font-size:10px; line-height:1.2;">💬<br><b style="font-size:12px;">${el.comments || 0}</b></div>
-            <div style="font-size:10px; line-height:1.2;">🔄<br><b style="font-size:12px;">${el.shares || 0}</b></div>
-        </div>
+                    // ЧИСТИЙ HTML БЕЗ ДУБЛІКАТІВ
+                    const popupContent = `
+                        <div style="width:210px; font-family: sans-serif; padding: 5px; background: white;">
+                            <div style="text-align:center; color:${color}; font-weight:900; font-size:16px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
+                            <div style="text-align:center; font-weight:bold; font-size:14px; margin-bottom:8px; line-height:1.2; color: #333;">${el.name}</div>
+                            
+                            <div style="display:flex; justify-content:space-between; background:#fdf7f2; padding:8px; border-radius:6px; margin-bottom:10px; border:1px solid #eee; text-align:center;">
+                                <div style="flex:1; font-size:10px;">👍<br><b>${el.likes}</b></div>
+                                <div style="flex:1; font-size:10px; border-left:1px solid #ddd; border-right:1px solid #ddd;">💬<br><b>${el.comments}</b></div>
+                                <div style="flex:1; font-size:10px;">🔄<br><b>${el.shares}</b></div>
+                            </div>
 
-        <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22;">
-            <span style="font-weight:bold; font-size:15px; color:#333;">${el.total} БАЛІВ</span>
-        </div>
-        
-        <a href="${el.url}" target="_blank" style="
-            display:block; 
-            background:#e67e22; 
-            color:white; 
-            text-decoration:none; 
-            padding:10px; 
-            border-radius:6px; 
-            font-weight:bold; 
-            font-size:11px; 
-            text-transform:uppercase;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        ">👍 ГОЛОСУВАТИ</a>
-    </div>
-`;
+                            <div style="background:#fff4eb; text-align:center; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22;">
+                                <span style="font-weight:bold; font-size:15px; color:#333;">${el.total} БАЛІВ</span>
+                            </div>
+                            
+                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">👍 ГOЛOСУВAТИ</a>
+                        </div>
+                    `;
 
                     L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer).bindPopup(popupContent);
                 }
