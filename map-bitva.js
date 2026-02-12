@@ -157,10 +157,10 @@ const popupContent = `
     <div style="width:230px; font-family: 'Montserrat', sans-serif; color: black; padding: 0;">
         <div style="position: relative; width: 100%; height: 130px; background: #000; border-radius: 8px 8px 0 0; overflow: hidden; border: 1px solid #eee;">
             <a href="${el.url}" target="_blank" style="display: block; width: 100%; height: 100%;">
-                <img src="${el.currentMedia}" 
-                     referrerpolicy="no-referrer" 
-                     style="width: 100%; height: 100%; object-fit: cover; display: block;" 
-                     onerror="this.src='https://via.placeholder.com/230x130?text=Facebook+Video'">
+               <img src="${el.currentMedia}" 
+                    referrerpolicy="no-referrer" 
+                    style="width: 100%; height: 100%; object-fit: cover; display: block;" 
+                    onerror="this.onerror=null; this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; this.parentElement.style.background='#333';">
                 
                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 126, 34, 0.9); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                     <div style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid white; margin-left: 3px;"></div>
