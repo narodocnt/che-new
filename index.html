@@ -72,6 +72,9 @@
         .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; border-bottom: 1px solid #eee; text-align: left; }
         .dropdown-content a:hover { background-color: #f1f1f1; }
         .show { display: block; }
+        html {
+    scroll-behavior: smooth;
+}
     </style>
 </head>
 <body>
@@ -106,9 +109,12 @@
     </div>
 
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
+    <a href="#battle-section" class="nav-btn" onclick="updateMode('battle')" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none;">
+    🔥 БИТВА ВПОДОБАЙКІВ
+</a>
 
     <div class="dropdown">
-        <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ПОДАТИ ЗАЯВКУ ▼</button>
+        <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ЗАЯВКИ ▼</button>
         <div id="appsMenu" class="dropdown-content">
             <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
             <a href="#" onclick="goToGeneralForm('we-from-ukraine')">Конкурс читців</a>
@@ -158,6 +164,7 @@
 </div>
 
 <div class="contest-container" style="text-align: center; padding: 10px;">
+    <div id="battle-section" class="contest-container" style="text-align: center; padding: 10px;">
     <img src="bitva.jpg" style="width:100%; max-width:600px; border-radius:10px; margin-bottom: 10px;">
     
     <div style="text-align: center; margin: 20px 0; position: relative; background: #2c3e50; padding: 20px; border-radius: 15px;">
