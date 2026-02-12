@@ -98,8 +98,7 @@ window.renderBitvaMode = function() {
     fetch(url)
         .then(res => res.json())
         .then(rawData => {
-            // Використовуємо вашу базу window.collectivesDatabase
-            const db = window.collectivesDatabase;
+            const db = window.collectivesDatabase; // Ваша база з collectives-bitva.js
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
 
@@ -142,17 +141,22 @@ window.renderBitvaMode = function() {
                         iconAnchor: [19, 19]
                     });
 
-                    // Картка з відео-мініатюрою та керівником
+                    // Картка з мініатюрою
                     const popupContent = `
-                        <div style="width:210px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
-                            <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:5px;">🏆 РЕЙТИНГ №${rank}</div>
+                        <div style="width:220px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
+                            <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:8px;">🏆 РЕЙТИНГ №${rank}</div>
                             
-                            <a href="${el.url}" target="_blank">
-                                <img src="${el.media}" class="video-preview" alt="Video preview">
-                            </a>
+                            <div style="margin-bottom:10px; position:relative; overflow:hidden; border-radius:8px; border:1px solid #ddd; background:#000;">
+                                <a href="${el.url}" target="_blank" style="display:block; line-height:0;">
+                                    <img src="${el.media}" style="width:100%; height:120px; object-fit:cover; display:block;" onerror="this.src='https://via.placeholder.com/220x120?text=Facebook+Video'">
+                                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(230,126,34,0.8); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white;">
+                                        <div style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid white; margin-left: 3px;"></div>
+                                    </div>
+                                </a>
+                            </div>
 
                             <div style="font-weight:bold; font-size:13px; margin-bottom:3px; line-height:1.2;">${el.name}</div>
-                            <div style="font-size:11px; color:#555; margin-bottom:8px;">Керівник: <b>${el.leader}</b></div>
+                            <div style="font-size:11px; color:#555; margin-bottom:10px;">Керівник: <b>${el.leader}</b></div>
                             
                             <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee; font-size:11px;">
                                 <div>👍 <b>${el.likes}</b></div>
@@ -160,18 +164,16 @@ window.renderBitvaMode = function() {
                                 <div>🔄 <b>${el.shares}</b></div>
                             </div>
 
-                            <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:10px; border:1px dashed #e67e22; font-weight:bold; font-size:15px; color:#e67e22;">
+                            <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:12px; border:1px dashed #e67e22; font-weight:bold; font-size:15px; color:#e67e22;">
                                 ${el.total} БАЛІВ
                             </div>
                             
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:8px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase;">Голосувати у Facebook</a>
+                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase;">Дивитись та голосувати</a>
                         </div>`;
 
                     const marker = L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer);
                     marker.bindPopup(popupContent);
-                    
-                    // ДОДАЄМО ПІДКАЗКУ ЯК У КОЛЕКТИВІВ
-                    marker.bindTooltip(`<b>${el.location.toUpperCase()} ГРОМАДА</b><br>${el.name}`, { direction: 'top', offset: [0, -15] });
+                    marker.bindTooltip(`<b>${el.location.toUpperCase()} ГРОМАДА</b>`, { direction: 'top', offset: [0, -15] });
                 }
             });
             hideSpinner();
