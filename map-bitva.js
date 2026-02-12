@@ -98,7 +98,7 @@ window.renderBitvaMode = function() {
     fetch(url)
         .then(res => res.json())
         .then(rawData => {
-            const db = window.collectivesDatabase; // Ваша база з collectives-bitva.js
+            const db = window.collectivesDatabase;
             const geoJSON = window.hromadasGeoJSON;
             const resultsMap = {};
 
@@ -141,39 +141,41 @@ window.renderBitvaMode = function() {
                         iconAnchor: [19, 19]
                     });
 
-                    // Картка з мініатюрою
+                    // КАРТКА З ВІДЕО ЗВЕРХУ (Як ви просили)
                     const popupContent = `
-                        <div style="width:220px; font-family:sans-serif; padding:5px; text-align:center; color: black;">
-                            <div style="color:${color}; font-weight:900; font-size:14px; margin-bottom:8px;">🏆 РЕЙТИНГ №${rank}</div>
-                            
-                            <div style="margin-bottom:10px; position:relative; overflow:hidden; border-radius:8px; border:1px solid #ddd; background:#000;">
-                                <a href="${el.url}" target="_blank" style="display:block; line-height:0;">
-                                    <img src="${el.media}" style="width:100%; height:120px; object-fit:cover; display:block;" onerror="this.src='https://via.placeholder.com/220x120?text=Facebook+Video'">
-                                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(230,126,34,0.8); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white;">
+                        <div style="width:230px; font-family: 'Montserrat', sans-serif; color: black; padding: 0;">
+                            <div style="position: relative; width: 100%; height: 130px; background: #000; border-radius: 8px 8px 0 0; overflow: hidden;">
+                                <a href="${el.url}" target="_blank" style="display: block; width: 100%; height: 100%;">
+                                    <img src="${el.media}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/230x130?text=Facebook+Video'">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 126, 34, 0.9); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                                         <div style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid white; margin-left: 3px;"></div>
+                                    </div>
+                                    <div style="position: absolute; top: 8px; left: 8px; background: ${color}; color: #000; font-weight: 900; font-size: 10px; padding: 3px 8px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                                        №${rank} У РЕЙТИНГУ
                                     </div>
                                 </a>
                             </div>
 
-                            <div style="font-weight:bold; font-size:13px; margin-bottom:3px; line-height:1.2;">${el.name}</div>
-                            <div style="font-size:11px; color:#555; margin-bottom:10px;">Керівник: <b>${el.leader}</b></div>
-                            
-                            <div style="display:flex; justify-content:space-around; background:#fdf7f2; padding:5px; border-radius:6px; margin-bottom:8px; border:1px solid #eee; font-size:11px;">
-                                <div>👍 <b>${el.likes}</b></div>
-                                <div>💬 <b>${el.comments}</b></div>
-                                <div>🔄 <b>${el.shares}</b></div>
-                            </div>
+                            <div style="padding: 10px; background: #fff; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;">
+                                <div style="font-size: 10px; color: #e67e22; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">📍 ${el.location} громада</div>
+                                <div style="font-weight: 800; font-size: 12px; line-height: 1.2; margin-bottom: 3px; min-height: 28px;">${el.name}</div>
+                                <div style="font-size: 10px; color: #666; margin-bottom: 10px;">Керівник: <b>${el.leader}</b></div>
 
-                            <div style="background:#fff4eb; padding:6px; border-radius:6px; margin-bottom:12px; border:1px dashed #e67e22; font-weight:bold; font-size:15px; color:#e67e22;">
-                                ${el.total} БАЛІВ
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #fdf7f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #f9e8d9; margin-bottom: 10px;">
+                                    <div style="font-size: 11px;">👍 ${el.likes}  💬 ${el.comments}  🔄 ${el.shares}</div>
+                                    <div style="background: #FFD700; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 900; font-size: 13px;">${el.total}</div>
+                                </div>
+
+                                <a href="${el.url}" target="_blank" style="display: block; background: #e67e22; color: white; text-decoration: none; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase; transition: background 0.3s;">
+                                    Підтримати у Facebook
+                                </a>
                             </div>
-                            
-                            <a href="${el.url}" target="_blank" style="display:block; background:#e67e22; color:white; text-decoration:none; padding:10px; border-radius:6px; font-weight:bold; font-size:11px; text-transform:uppercase;">Дивитись та голосувати</a>
-                        </div>`;
+                        </div>
+                    `;
 
                     const marker = L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer);
                     marker.bindPopup(popupContent);
-                    marker.bindTooltip(`<b>${el.location.toUpperCase()} ГРОМАДА</b>`, { direction: 'top', offset: [0, -15] });
+                    marker.bindTooltip(`<b>${el.location.toUpperCase()}</b>`, { direction: 'top', offset: [0, -15] });
                 }
             });
             hideSpinner();
