@@ -93,7 +93,7 @@ window.renderBitvaMode = function() {
     showSpinner();
     window.markersLayer.clearLayers();
 
-    // Додаємо мітку часу, щоб дані завжди були свіжими
+    // Додаємо t=... щоб дані не кешувалися
     const url = "https://n8n.narodocnt.online/webhook/get-ranking?t=" + new Date().getTime();
 
     fetch(url)
@@ -110,9 +110,8 @@ window.renderBitvaMode = function() {
                 const shr = parseInt(item.shares) || 0;
                 const totalScore = lks + cms + shr;
 
-                // Отримуємо мініатюру прямо з Apify (n8n)
-                // Зазвичай це поле називається thumbnail, facebookImage або просто image
-                const apifyMedia = item.thumbnail || item.facebookImage || item.image || "";
+                // БЕРЕМО КАРТИНКУ ТІЛЬКИ З ПОЛЯ 'media', ЯК У ВАШІЙ ТАБЛИЦІ
+                const apifyMedia = item.media || "";
 
                 for (let id in db) {
                     const locSearch = db[id].location.toLowerCase().substring(0, 5);
@@ -125,8 +124,8 @@ window.renderBitvaMode = function() {
                                 comments: cms, 
                                 shares: shr, 
                                 url: item.facebookUrl,
-                                // Пріоритет: свіжа мініатюра з Apify, якщо немає - з бази
-                                currentMedia: apifyMedia || db[id].media 
+                                // Використовуємо media з таблиці (apifyMedia)
+                                currentMedia: apifyMedia 
                             };
                         }
                     }
@@ -151,43 +150,41 @@ window.renderBitvaMode = function() {
                         iconAnchor: [19, 19]
                     });
 
-                   // ... усередині функції renderBitvaMode ...
+                    const popupContent = `
+                        <div style="width:230px; font-family: 'Montserrat', sans-serif; color: black; padding: 0;">
+                            <div style="position: relative; width: 100%; height: 130px; background: #333; border-radius: 8px 8px 0 0; overflow: hidden; border: 1px solid #eee; border-bottom: none;">
+                                <a href="${el.url}" target="_blank" style="display: block; width: 100%; height: 100%;">
+                                    <img src="${el.currentMedia}" 
+                                         referrerpolicy="no-referrer" 
+                                         style="width: 100%; height: 100%; object-fit: cover; display: block;" 
+                                         onerror="this.onerror=null; this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; this.parentElement.style.background='#444';">
+                                    
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 126, 34, 0.9); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+                                        <div style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid white; margin-left: 3px;"></div>
+                                    </div>
 
-const popupContent = `
-    <div style="width:230px; font-family: 'Montserrat', sans-serif; color: black; padding: 0;">
-        <div style="position: relative; width: 100%; height: 130px; background: #000; border-radius: 8px 8px 0 0; overflow: hidden; border: 1px solid #eee;">
-            <a href="${el.url}" target="_blank" style="display: block; width: 100%; height: 100%;">
-               <img src="${el.currentMedia}" 
-                    referrerpolicy="no-referrer" 
-                    style="width: 100%; height: 100%; object-fit: cover; display: block;" 
-                    onerror="this.onerror=null; this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; this.parentElement.style.background='#333';">
-                
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 126, 34, 0.9); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
-                    <div style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid white; margin-left: 3px;"></div>
-                </div>
+                                    <div style="position: absolute; top: 8px; left: 8px; background: ${color}; color: #000; font-weight: 900; font-size: 10px; padding: 3px 8px; border-radius: 20px;">
+                                        №${rank} У РЕЙТИНГУ
+                                    </div>
+                                </a>
+                            </div>
 
-                <div style="position: absolute; top: 8px; left: 8px; background: ${color}; color: #000; font-weight: 900; font-size: 10px; padding: 3px 8px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-                    №${rank} У РЕЙТИНГУ
-                </div>
-            </a>
-        </div>
+                            <div style="padding: 10px; background: #fff; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;">
+                                <div style="font-size: 10px; color: #e67e22; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">📍 ${el.location} громада</div>
+                                <div style="font-weight: 800; font-size: 12px; line-height: 1.2; margin-bottom: 3px;">${el.name}</div>
+                                <div style="font-size: 10px; color: #666; margin-bottom: 10px;">Керівник: <b>${el.leader}</b></div>
 
-        <div style="padding: 10px; background: #fff; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;">
-            <div style="font-size: 10px; color: #e67e22; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">📍 ${el.location} громада</div>
-            <div style="font-weight: 800; font-size: 12px; line-height: 1.2; margin-bottom: 3px;">${el.name}</div>
-            <div style="font-size: 10px; color: #666; margin-bottom: 10px;">Керівник: <b>${el.leader}</b></div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #fdf7f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #f9e8d9; margin-bottom: 10px;">
+                                    <div style="font-size: 11px;">👍 ${el.likes}  💬 ${el.comments}  🔄 ${el.shares}</div>
+                                    <div style="background: #FFD700; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 900; font-size: 13px;">${el.total}</div>
+                                </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #fdf7f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #f9e8d9; margin-bottom: 10px;">
-                <div style="font-size: 11px;">👍 ${el.likes}  💬 ${el.comments}  🔄 ${el.shares}</div>
-                <div style="background: #FFD700; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 900; font-size: 13px;">${el.total}</div>
-            </div>
-
-            <a href="${el.url}" target="_blank" style="display: block; background: #e67e22; color: white; text-decoration: none; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase;">
-                Підтримати у Facebook
-            </a>
-        </div>
-    </div>
-`;
+                                <a href="${el.url}" target="_blank" style="display: block; background: #e67e22; color: white; text-decoration: none; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase;">
+                                    Підтримати у Facebook
+                                </a>
+                            </div>
+                        </div>
+                    `;
 
                     const marker = L.marker([lat, lng], { icon: icon }).addTo(window.markersLayer);
                     marker.bindPopup(popupContent);
@@ -196,10 +193,7 @@ const popupContent = `
             });
             hideSpinner();
         })
-        .catch(err => {
-            console.error("Помилка Битви:", err);
-            hideSpinner();
-        });
+        .catch(() => hideSpinner());
 };
 window.updateMode = function(mode) {
     if (mode === 'battle') window.renderBitvaMode();
