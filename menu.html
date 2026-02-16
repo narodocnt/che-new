@@ -148,14 +148,26 @@
         // Налаштовуємо колір шапки в колір фону сайту
         tele.setHeaderColor('secondary_bg_color');
 
-        function openUrl(url) {
-            if (url.startsWith('https://')) {
-                // Використовуємо внутрішній браузер Telegram для кращого досвіду
-                tele.openLink(url);
-            } else {
-                console.error("Invalid URL");
-            }
+      function openUrl(url) {
+    if (url.startsWith('https://')) {
+        // 1. Отримуємо ID користувача з Telegram WebApp
+        const user = tele.initDataUnsafe?.user;
+        const chatId = user ? user.id : '';
+
+        // 2. Додаємо chat_id до посилання (замінюємо /webhook/ на /form/ для краси)
+        let finalUrl = url.replace('/webhook/', '/form/');
+        
+        if (chatId) {
+            // Перевіряємо, чи в посиланні вже є параметри
+            finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'chat_id=' + chatId;
         }
+
+        // 3. Відкриваємо посилання
+        tele.openLink(finalUrl);
+    } else {
+        console.error("Invalid URL");
+    }
+}
     </script>
 </body>
 </html>
