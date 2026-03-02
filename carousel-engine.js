@@ -31,24 +31,60 @@ async function initCarousel() {
         });
 
         // Запуск Swiper
-      const swiper = new Swiper('.swiper-container', {
-    effect: 'coverflow',        // Активація 3D
+     // Запуск Swiper
+const swiper = new Swiper('.swiper-container', {
+    effect: 'coverflow',
     grabCursor: true,
-    centeredSlides: true,       // Головний слайд суворо по центру
-    slidesPerView: 'auto',      // Дозволяє боковим слайдам "підповзати" під центральний
-    loop: true,                 // Нескінченне коло
-    coverflowEffect: {
-        rotate: 20,             // Кут повороту бокових (не ставте забагато, 20-30 достатньо)
-        stretch: 50,            // Це "стискає" слайди до центру (зробить коло щільнішим)
-        depth: 300,             // Глибина: чим більше число, тим менші бокові фото
-        modifier: 1,
-        slideShadows: true,     // Тіні для об'єму
+    centeredSlides: true,
+    slidesPerView: 'auto',
+    loop: true,
+
+    // 1. Додаємо автоплей
+    autoplay: {
+        delay: 3000, // Гортати кожні 3 секунди
+        disableOnInteraction: false, // НЕ вимикати назовсім після кліку
     },
+
+    coverflowEffect: {
+        rotate: 20,
+        stretch: 50,
+        depth: 300,
+        modifier: 1,
+        slideShadows: true,
+    },
+
     navigation: {
         nextEl: '.swiper-button-next',
         prevEl: '.swiper-button-prev',
     },
+
+    // 2. Логіка зупинки та відновлення (твоє замовлення на 10 сек)
+    on: {
+        touchStart: function() {
+            this.autoplay.stop(); // Зупинити, коли користувач торкнувся
+        },
+        navigationNext: function() {
+            this.autoplay.stop(); // Зупинити при натисканні стрілки
+            resetAutoplay(this);
+        },
+        navigationPrev: function() {
+            this.autoplay.stop(); // Зупинити при натисканні стрілки
+            resetAutoplay(this);
+        },
+        click: function() {
+            this.autoplay.stop(); // Зупинити при кліку на слайд
+            resetAutoplay(this);
+        }
+    }
 });
+
+// Функція для відновлення через 10 секунд
+function resetAutoplay(instance) {
+    clearTimeout(instance.resumeTimer); 
+    instance.resumeTimer = setTimeout(() => {
+        instance.autoplay.start();
+    }, 10000); // 10 секунд паузи
+}
     } catch (error) {
         console.error("Помилка завантаження даних:", error);
     }
