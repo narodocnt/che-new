@@ -187,3 +187,35 @@
         height: 35px;
     }
 }
+/* Навігація - виправлений блок */
+nav.main-nav { 
+    background: var(--nav); 
+    display: flex; 
+    justify-content: center; /* Центруємо всі кнопки */
+    align-items: center;
+    gap: 15px;               /* Відстань між кнопками, щоб не злипалися */
+    padding: 15px 10px;      /* Вертикальні відступи */
+    flex-wrap: wrap;         /* Щоб на мобільних кнопки переносилися на новий рядок */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Стилі кнопок, щоб вони мали однаковий вигляд */
+.nav-btn { 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    height: 40px;            /* Трохи менша висота для акуратності */
+    padding: 0 20px; 
+    background-color: #6c757d; 
+    color: white !important; 
+    text-decoration: none; 
+    border-radius: 8px; 
+    font-size: 13px;         /* Оптимальний розмір шрифту */
+    font-weight: 600; 
+    text-transform: uppercase; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+    white-space: nowrap;     /* Забороняємо тексту розриватися */
+}
