@@ -31,26 +31,22 @@ async function initCarousel() {
         });
 
         // Запуск Swiper
-       const swiper = new Swiper('.swiper-container', {
-    effect: 'coverflow', // Вмикаємо 3D ефект
+      const swiper = new Swiper('.swiper-container', {
+    effect: 'coverflow',        // Активація 3D
     grabCursor: true,
-    centeredSlides: true, // Центральна картка завжди посередині
-    slidesPerView: 'auto', // Автоматична ширина для ефекту
+    centeredSlides: true,       // Головний слайд суворо по центру
+    slidesPerView: 'auto',      // Дозволяє боковим слайдам "підповзати" під центральний
+    loop: true,                 // Нескінченне коло
     coverflowEffect: {
-        rotate: 30,      // Кут повороту бокових карток
-        stretch: 0,      // Відстань між картками (0 - оптимально)
-        depth: 200,      // Глибина (чим більше, тим менші бокові картки)
-        modifier: 1,     // Множник ефекту
-        slideShadows: true, // Тіні на бокових картках для об'єму
+        rotate: 20,             // Кут повороту бокових (не ставте забагато, 20-30 достатньо)
+        stretch: 50,            // Це "стискає" слайди до центру (зробить коло щільнішим)
+        depth: 300,             // Глибина: чим більше число, тим менші бокові фото
+        modifier: 1,
+        slideShadows: true,     // Тіні для об'єму
     },
-    loop: true,
     navigation: {
         nextEl: '.swiper-button-next',
         prevEl: '.swiper-button-prev',
-    },
-    pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
     },
 });
     } catch (error) {
