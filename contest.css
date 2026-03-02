@@ -9,17 +9,72 @@
 
 /* 2. Секція рейтингу та карток (Битва) */
 .ranking-section { 
-    max-width: 900px; margin: 50px auto; background: white; 
-    padding: 30px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+    max-width: 800px; /* Обмежуємо загальну ширину списку */
+    margin: 30px auto; 
+    padding: 20px;
 }
 
 .battle-card {
-    display: flex; background: white; margin-bottom: 12px;
-    border-radius: 12px; overflow: hidden; min-height: 115px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #eee;
+    display: flex; 
+    background: white; 
+    margin-bottom: 15px;
+    border-radius: 12px; 
+    overflow: hidden; 
+    height: 120px; /* Фіксована висота для ПК */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    border: 1px solid #eee;
     transition: transform 0.2s;
+    width: 100%; /* Картка займає всю ширину контейнера .ranking-section */
 }
-.battle-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+
+/* Фото зліва — тепер воно не буде розтягуватися */
+.card-left {
+    width: 160px; /* Фіксована ширина фото */
+    height: 100%;
+    flex-shrink: 0; /* Забороняємо стискати фото */
+    position: relative;
+}
+
+.card-left img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Права частина з текстом */
+.card-right {
+    flex-grow: 1;
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: row; /* Текст і зірка в один рядок */
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.card-info-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+/* Вертикальна кнопка голосування */
+.vote-link {
+    width: 40px;
+    background: #e67e22;
+    color: white !important;
+    text-decoration: none;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
 
 /* 3. Стилі 3D Каруселі (Swiper) */
 .swiper-container {
@@ -106,4 +161,29 @@
     .vote-link { writing-mode: horizontal-tb; padding: 10px; width: 100%; }
     
     .ranking-section { padding: 15px; }
+}
+@media (max-width: 600px) {
+    .battle-card {
+        height: auto; /* На мобільному дозволяємо підлаштуватись під контент */
+        flex-direction: row; /* Залишаємо горизонтальну орієнтацію, щоб не було на весь екран */
+    }
+
+    .card-left {
+        width: 100px; /* Зменшуємо фото на мобільному */
+        height: 100px;
+    }
+
+    .card-right {
+        padding: 8px;
+    }
+
+    .collective-name {
+        font-size: 13px;
+        line-height: 1.2;
+    }
+    
+    .star-rating-container {
+        width: 35px;
+        height: 35px;
+    }
 }
