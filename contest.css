@@ -318,3 +318,49 @@ nav.main-nav {
         transform: translateY(-50%);
     }
 }
+/* Основні стилі для картки-посилання (щоб вся картка була клікабельною) */
+.battle-card-link {
+    display: block; /* Робимо посилання блочним елементом */
+    text-decoration: none !none; /* Прибираємо підкреслення тексту */
+    color: inherit !inherit; /* Текст успадковує колір */
+    margin-bottom: 20px; /* Відступ між картками */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Плавний ефект при наведенні */
+}
+
+/* Ефект при наведенні або натисканні на всю картку */
+.battle-card-link:hover, .battle-card-link:active {
+    transform: translateY(-3px); /* Легке підняття */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15); /* Посилення тіні */
+}
+
+/* Стилі самої картки всередині посилання */
+.battle-card {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden; /* Щоб закруглення працювали */
+    border: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- Адаптація для мобільних пристроїв (екран менше 768px) --- */
+@media (max-width: 767px) {
+    .battle-container {
+        padding-left: 10px; /* Мінімальні відступи по боках */
+        padding-right: 10px;
+    }
+
+    .battle-card {
+        width: 100% !important; /* Картка займає всю ширину */
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Трішки зменшуємо фото на мобільному, щоб текст було видно */
+    .battle-card img {
+        height: 180px !important; 
+    }
+}
