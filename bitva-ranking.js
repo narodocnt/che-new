@@ -1,5 +1,5 @@
 /**
- * bitva-ranking.js - Версія із золотою зіркою та формулою рейтингу
+ * bitva-ranking.js - Оновлена версія: клікабельна картка, без кнопки, адаптивні класи
  */
 function loadBattleRanking() {
     const container = document.getElementById('rankingList');
@@ -47,35 +47,37 @@ function loadBattleRanking() {
                 const rank = index + 1;
                 const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
 
+                // Повертаємо всю картку, обгорнуту в посилання <a>
                 return `
-                <div class="battle-card">
-                    <div class="card-left">
-                        <img src="${el.finalMedia}" onerror="this.src='narodocnt.jpg'">
-                        <div class="rank-badge">${medal}</div>
-                    </div>
-                    <div class="card-right">
-                        <div class="card-top">
-                            <span class="location-label">📍 ${el.location} громада</span>
-                            <h3 class="collective-name">${el.name}</h3>
-                            <p class="leader-name">Керівник: ${el.leader}</p>
+                <a href="${el.url}" target="_blank" class="bitva-card-link">
+                    <div class="bitva-card">
+                        <div class="card-left">
+                            <img src="${el.finalMedia}" onerror="this.src='narodocnt.jpg'">
+                            <div class="rank-badge">${medal}</div>
                         </div>
-                        
-                        <div class="stats-formula">
-                            <span class="stat-unit">👍 ${el.likes}</span>
-                            <span class="math-sign">+</span>
-                            <span class="stat-unit">💬 ${el.comments}</span>
-                            <span class="math-sign">+</span>
-                            <span class="stat-unit">🔁 ${el.shares}</span>
-                            <span class="math-sign">=</span>
+                        <div class="card-right">
+                            <div class="card-top">
+                                <span class="location-label">📍 ${el.location} громада</span>
+                                <h3 class="collective-name">${el.name}</h3>
+                                <p class="leader-name">Керівник: ${el.leader}</p>
+                            </div>
                             
-                            <div class="star-rating-container">
-                                <div class="octagon-star"></div>
-                                <span class="total-score-value">${el.total}</span>
+                            <div class="stats-formula">
+                                <span class="stat-unit">👍 ${el.likes}</span>
+                                <span class="math-sign">+</span>
+                                <span class="stat-unit">💬 ${el.comments}</span>
+                                <span class="math-sign">+</span>
+                                <span class="stat-unit">🔁 ${el.shares}</span>
+                                <span class="math-sign">=</span>
+                                
+                                <div class="star-rating-container">
+                                    <div class="octagon-star"></div>
+                                    <span class="total-score-value">${el.total}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <a href="${el.url}" target="_blank" class="vote-link">ГОЛОСУВАТИ</a>
-                </div>`;
+                </a>`;
             }).join('');
         })
         .catch(err => console.error("Помилка:", err));
