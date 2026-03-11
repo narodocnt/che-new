@@ -49,36 +49,24 @@ function loadBattleRanking() {
 
                 // Повертаємо всю картку, обгорнуту в посилання <a>
                 return `
-                <a href="${el.url}" target="_blank" class="bitva-card-link">
-                    <div class="bitva-card">
-                        <div class="card-left">
-                            <img src="${el.finalMedia}" onerror="this.src='narodocnt.jpg'">
-                            <div class="rank-badge">${medal}</div>
-                        </div>
-                        <div class="card-right">
-                            <div class="card-top">
-                                <span class="location-label">📍 ${el.location} громада</span>
-                                <h3 class="collective-name">${el.name}</h3>
-                                <p class="leader-name">Керівник: ${el.leader}</p>
-                            </div>
-                            
-                            <div class="stats-formula">
-                                <span class="stat-unit">👍 ${el.likes}</span>
-                                <span class="math-sign">+</span>
-                                <span class="stat-unit">💬 ${el.comments}</span>
-                                <span class="math-sign">+</span>
-                                <span class="stat-unit">🔁 ${el.shares}</span>
-                                <span class="math-sign">=</span>
-                                
-                                <div class="star-rating-container">
-                                    <div class="octagon-star"></div>
-                                    <span class="total-score-value">${el.total}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </a>`;
-            }).join('');
+                <a href="${el.url}" target="_blank" class="battle-card-link">
+    <div class="battle-card">
+        <div class="card-left">
+            <img src="${el.finalMedia}" onerror="this.src='narodocnt.jpg'">
+            <div class="rank-badge">${medal}</div>
+        </div>
+        <div class="card-right" style="padding: 15px; flex-grow: 1; text-align: left;">
+            <span class="location-label" style="color: #e67e22; font-weight: bold;">📍 ${el.location} громада</span>
+            <h3 class="collective-name" style="margin: 5px 0; color: #2c3e50;">${el.name}</h3>
+            <p class="leader-name" style="color: #7f8c8d; margin: 0;">Керівник: ${el.leader}</p>
+            
+            <div class="stats-formula" style="margin-top: 12px; display: flex; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 8px;">
+                <span style="font-size: 0.9em;">👍 ${el.likes} + 💬 ${el.comments} + 🔁 ${el.shares}</span>
+                <b style="margin-left: auto; font-size: 1.2em; color: #2c3e50;">= ${el.total}</b>
+            </div>
+        </div>
+    </div>
+</a>`;
         })
         .catch(err => console.error("Помилка:", err));
 }
