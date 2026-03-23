@@ -1,10 +1,8 @@
-// Використовуємо self-invoking функцію
+// Фінальна версія about.js
 (function() {
     function injectAboutModule() {
-        // Перевіряємо, чи ми вже не додали вікно (щоб не дублювати)
         if (document.getElementById('aboutModal')) return;
 
-        // 1. Додаємо стилі
         const style = document.createElement('style');
         style.innerHTML = `
             .logo-animated {
@@ -12,42 +10,41 @@
                 cursor: pointer !important;
             }
             .logo-animated:hover {
-                transform: translateY(-10px) scale(1.02) !important;
-                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) !important;
+                transform: translateY(-10px) scale(1.03) !important;
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)) !important;
             }
             .modal-overlay {
                 display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
-                z-index: 99999; justify-content: center; align-items: center;
+                background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+                z-index: 999999; justify-content: center; align-items: center;
             }
             .modal-content {
                 background: #fff; padding: 40px; border-radius: 25px;
                 max-width: 550px; width: 90%; position: relative;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
                 border: 4px solid #f39c12; animation: slideInAbout 0.5s ease;
-                font-family: 'Segoe UI', Roboto, sans-serif; color: #333;
+                font-family: 'Segoe UI', Tahoma, sans-serif; color: #333;
             }
             @keyframes slideInAbout {
-                from { transform: translateY(50px); opacity: 0; }
+                from { transform: translateY(100px); opacity: 0; }
                 to { transform: translateY(0); opacity: 1; }
             }
-            .close-modal {
+            .close-modal-btn {
                 position: absolute; top: 15px; right: 20px;
-                font-size: 35px; cursor: pointer; color: #bbb; line-height: 1;
+                font-size: 35px; cursor: pointer; color: #ccc; line-height: 1;
             }
-            .close-modal:hover { color: #e74c3c; }
-            .modal-header { font-size: 26px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; color: #2c3e50; }
-            .genre-list { margin: 20px 0; padding-left: 20px; list-style: none; }
-            .genre-list li { margin-bottom: 10px; font-size: 17px; position: relative; }
-            .genre-list li::before { content: '✨'; position: absolute; left: -25px; }
+            .close-modal-btn:hover { color: #e74c3c; }
+            .modal-header { font-size: 26px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; color: #2c3e50; text-align: center; }
+            .genre-list { margin: 20px 0; padding-left: 25px; list-style: none; }
+            .genre-list li { margin-bottom: 12px; font-size: 18px; position: relative; }
+            .genre-list li::before { content: '✨'; position: absolute; left: -30px; }
         `;
         document.head.appendChild(style);
 
-        // 2. Додаємо HTML
         const modalHTML = `
             <div id="aboutModal" class="modal-overlay">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeAbout()">&times;</span>
+                    <span class="close-modal-btn" onclick="window.closeAbout()">&times;</span>
                     <div class="modal-header">Про нас</div>
                     <div class="modal-body">
                         <p><b>Відділ народної творчості</b> — методичний та творчий центр Черкаського ОЦНТ.</p>
@@ -58,24 +55,19 @@
                             <li><b>Музично-інструментальний</b></li>
                             <li><b>Театральний</b></li>
                         </ul>
-                        <p style="text-align: center; font-style: italic; margin-top: 20px;">Зберігаємо традиції — творимо майбутнє!</p>
+                        <p style="text-align: center; font-style: italic; margin-top: 25px; color: #7f8c8d;">Зберігаємо код нації — творимо майбутнє!</p>
                     </div>
                 </div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    // Глобальні функції (мають бути доступні для onclick)
+    // РЕЄСТРУЄМО ФУНКЦІЇ ГЛОБАЛЬНО
     window.openAbout = function() {
         const modal = document.getElementById('aboutModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        } else {
-            // Якщо раптом HTML ще не вставився
-            injectAboutModule();
-            document.getElementById('aboutModal').style.display = 'flex';
-        }
+        if (!modal) injectAboutModule();
+        document.getElementById('aboutModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     };
 
     window.closeAbout = function() {
@@ -89,10 +81,10 @@
     // Закриття кліком по фону
     window.addEventListener('click', function(e) {
         const modal = document.getElementById('aboutModal');
-        if (e.target === modal) closeAbout();
+        if (e.target === modal) window.closeAbout();
     });
 
-    // Ініціалізація при завантаженні
+    // Ініціалізація відразу
     if (document.readyState === 'complete') {
         injectAboutModule();
     } else {
