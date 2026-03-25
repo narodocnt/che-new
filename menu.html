@@ -74,26 +74,31 @@
             border: 1px solid rgba(0,0,0,0.03);
         }
 
-        /* Стиль для головної кнопки n8n */
+        /* Стиль для кнопки переходу на сайт */
+        .btn-site {
+            background-color: #f0f4ff;
+            color: #2c3e50;
+            border: 1px solid #d1d9e6;
+            margin-bottom: 8px; /* Відступ, щоб відділити сайт від заявок */
+        }
+
         .btn-primary {
             background-color: var(--btn-color);
             color: var(--btn-text);
         }
 
-        /* Спеціальний колір для Червоної Рути */
         .btn-ruta {
             background-color: #fce4e4;
             color: #d32f2f;
             border: 1px solid #ffcdd2;
         }
-         /* Спеціальний колір для Авраменко */
+
         .btn-avram {
-            background-color: #fce4e4;
-            color: #2fd3ad;
-            border: 1px solid #ffcdd2;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
         }
 
-        /* Стиль для Конкурс Чит */
         .btn-chit {
             background-color: #e3f2fd;
             color: #1976d2;
@@ -131,6 +136,10 @@
     </div>
 
     <div class="container">
+        <button onclick="goToSite('https://narodocnt.online')" class="btn btn-site">
+            <span class="icon">👤</span> Перейти на сайт
+        </button>
+
         <button onclick="openUrl('https://n8n.narodocnt.online/webhook/cheruta/n8n-form')" class="btn btn-ruta">
             <span class="icon">🌹</span> Червона Рута
         </button>
@@ -140,7 +149,7 @@
         </button>
 
         <button onclick="openUrl('https://n8n.narodocnt.online/webhook/avram/n8n-form')" class="btn btn-avram">
-            <span class="icon">📖</span> Фестиваль В.Авраменка
+            <span class="icon">🕺</span> Фестиваль В.Авраменка
         </button>
 
         <button onclick="openUrl('https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form')" class="btn btn-primary">
@@ -154,48 +163,38 @@
         const tele = window.Telegram.WebApp;
         tele.expand();
         tele.ready();
-
-        // Налаштовуємо колір шапки в колір фону сайту
         tele.setHeaderColor('secondary_bg_color');
 
-      function openUrl(url) {
-    if (url.startsWith('https://')) {
-        // 1. Отримуємо дані користувача
-        const webAppData = window.Telegram.WebApp.initDataUnsafe;
-        
-        // Пріоритет: спочатку шукаємо чистий user.id
-        let chatId = '';
-        
-        if (webAppData && webAppData.user && webAppData.user.id) {
-            chatId = webAppData.user.id;
-        } 
-        // Якщо раптом id немає в user, але є в іншому місці (залежить від версії API)
-        else if (webAppData && webAppData.receiver && webAppData.receiver.id) {
-            chatId = webAppData.receiver.id;
+        // Спеціальна функція для переходу на сайт (без параметрів webhook)
+        function goToSite(url) {
+            window.Telegram.WebApp.openLink(url);
         }
 
-        // 2. Формуємо URL
-        // Використовуємо URLSearchParams для надійності, щоб параметри не дублювалися
-        let baseUrl = url.replace('/webhook/', '/form/');
-        let urlObj = new URL(baseUrl);
-        
-        if (chatId) {
-            // Force toString(), щоб переконатися, що це рядок/число, а не об'єкт
-            urlObj.searchParams.set('chat_id', chatId.toString());
-        } else {
-            // Якщо ID не знайдено, можна передати '0' або 'unknown', 
-            // щоб у таблиці не було імені користувача замість ID
-            urlObj.searchParams.set('chat_id', 'no_id_found');
+        function openUrl(url) {
+            if (url.startsWith('https://')) {
+                const webAppData = window.Telegram.WebApp.initDataUnsafe;
+                let chatId = '';
+                
+                if (webAppData && webAppData.user && webAppData.user.id) {
+                    chatId = webAppData.user.id;
+                } else if (webAppData && webAppData.receiver && webAppData.receiver.id) {
+                    chatId = webAppData.receiver.id;
+                }
+
+                let baseUrl = url.replace('/webhook/', '/form/');
+                let urlObj = new URL(baseUrl);
+                
+                if (chatId) {
+                    urlObj.searchParams.set('chat_id', chatId.toString());
+                } else {
+                    urlObj.searchParams.set('chat_id', 'no_id_found');
+                }
+
+                window.Telegram.WebApp.openLink(urlObj.toString());
+            } else {
+                console.error("Invalid URL");
+            }
         }
-
-        const finalUrl = urlObj.toString();
-
-        // 3. Відкриваємо посилання
-        window.Telegram.WebApp.openLink(finalUrl);
-    } else {
-        console.error("Invalid URL");
-    }
-}
     </script>
 </body>
 </html>
