@@ -2,7 +2,7 @@
  * Розумний пошук для сайту народної творчості ОЦНТ
  * Голос + Локальна база (collectives-list.js) + PDF + ШІ (Mistral via n8n)
  */
-
+document.getElementById('search-btn').addEventListener('click', performSearch);
 document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn');
     const searchInput = document.getElementById('search-input');
