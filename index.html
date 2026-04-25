@@ -256,20 +256,30 @@
         <div class="bubble-tail"></div>
     </div>
     
+    <div id="bandura-container">
+    <div id="bandura-smart-bubble">
+        <textarea id="bandura-text-area" readonly placeholder="Питання є?"></textarea>
+        <div class="bandura-controls-row">
+            <button id="btn-mic" title="Говорити">🎤</button>
+            <button id="btn-search" title="Шукати">🔍</button>
+        </div>
+        <div class="bubble-tail"></div>
+    </div>
+    
     <div id="bandura-wrapper">
         <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
-        <div class="bandura-actions">
-            <button id="btn-mic">🎤</button>
-            <button id="btn-search">🔍</button>
-        </div>
     </div>
 </div>
 
-<div id="result-modal">
+<div id="result-modal" class="modal-overlay">
     <div class="modal-content">
         <span class="close-modal">&times;</span>
-        <div id="modal-text">Тут буде результат...</div>
-        <button id="btn-voice">🔊 Слухати</button>
+        <div class="modal-scroll-area">
+            <div id="modal-text">Тут буде результат...</div>
+        </div>
+        <div class="modal-footer">
+            <button id="btn-voice">🔊 Слухати повністю</button>
+        </div>
     </div>
 </div>
    
