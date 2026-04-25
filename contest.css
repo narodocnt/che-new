@@ -533,3 +533,18 @@ nav.main-nav {
     font-weight: bold;
     box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
 }
+
+/* Стилі для Бандури */
+        .bandura-section { background: #fff; padding: 10px 5%; border-bottom: 1px solid #ddd; }
+        .bandura-search-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; max-width: 900px; margin: 0 auto; }
+        .search-and-result { flex-grow: 1; max-width: 600px; }
+        .input-group { display: flex; background: #fff; border: 2px solid #8b4513; border-radius: 25px; padding: 2px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #search-input { border: none; outline: none; flex-grow: 1; padding: 8px; font-size: 14px; }
+        #mic-btn, #search-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 5px; }
+        .bandura-box { width: 100px; text-align: center; position: relative; }
+        #bandura-ai { width: 100%; height: auto; transition: 0.3s; }
+        #ai-text-bubble { background: #fff; border: 1px solid #8b4513; border-radius: 10px; padding: 5px; font-size: 11px; margin-bottom: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        #ai-response-container { margin-top: 10px; background: #fdf5e6; border: 2px inset #8b4513; padding: 10px; border-radius: 10px; position: relative; font-size: 14px; }
+        #read-aloud-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; cursor: pointer; font-size: 16px; }
+        @media (max-width: 600px) { .bandura-search-wrapper { flex-direction: column-reverse; gap: 10px; } }
+
