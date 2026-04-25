@@ -156,3 +156,89 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const banduraAvatar = document.getElementById('bandura-avatar');
+    const textArea = document.getElementById('bandura-text-area');
+    const micBtn = document.getElementById('btn-mic');
+    const searchBtn = document.getElementById('btn-search');
+    
+    let isSpeaking = false;
+    const synth = window.speechSynthesis;
+
+    // --- Логіка розумного віконця (Питання є? / Питань нема?) ---
+    const placeholderPhrases = ["Питання є?", "Питань нема?"];
+    let phraseIndex = 0;
+
+    function cyclePlaceholders() {
+        // Змінюємо фразу лише якщо користувач нічого не ввів
+        if (textArea.value.trim() === "") {
+            phraseIndex = (phraseIndex + 1) % placeholderPhrases.length;
+            textArea.placeholder = placeholderPhrases[phraseIndex];
+        }
+    }
+    // Запускаємо цикл кожні 30 секунд
+    setInterval(cyclePlaceholders, 30000); 
+
+
+    // --- Логіка пошуку та анімації ---
+    function performSearch() {
+        const query = textArea.value.trim();
+        if (query === "") {
+            textArea.placeholder = "Спочатку напишіть або скажіть щось...";
+            return;
+        }
+
+        // Крок 1: Бандура каже, що шукає
+        textArea.value = "Шукаю...";
+        
+        // Моделюємо час пошуку (наприклад, 2 секунди)
+        setTimeout(() => {
+            // Крок 2: Бандура каже, що знайшла
+            textArea.value = "Знайшла!";
+            
+            // Крок 3: Запускаємо анімацію стрибка
+            banduraAvatar.classList.add('jump-animation');
+            
+            // Прибираємо клас анімації після завершення, щоб можна було стрибнути знову
+            setTimeout(() => {
+                banduraAvatar.classList.remove('jump-animation');
+                
+                // --- Тут ваша логіка для відображення результатів ---
+                // Наприклад: openModal("Ось що я знайшла за запитом: " + query);
+                // textArea.value = ""; // Очищаємо поле після пошуку
+            }, 2000); // Час анімації
+
+        }, 2000); // Час "пошуку"
+    }
+
+    searchBtn.addEventListener('click', performSearch);
+
+
+    // --- Логіка Мікрофона (Speech Recognition) ---
+    // Перевірка, чи підтримує браузер розпізнавання мови
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'uk-UA'; // Українська мова
+
+        micBtn.addEventListener('click', () => {
+            recognition.start();
+            textArea.value = "Слухаю..."; // Статус у віконці
+        });
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            textArea.value = transcript; // Текст з'являється у розумному віконці
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Помилка розпізнавання:", event.error);
+            textArea.value = "Не почула, повторіть...";
+        };
+    } else {
+        micBtn.style.display = 'none'; // Ховаємо кнопку, якщо браузер не підтримує
+        console.log("Браузер не підтримує розпізнавання мови.");
+    }
+});
