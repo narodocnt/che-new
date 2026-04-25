@@ -2,60 +2,80 @@
  * Розумний помічник "Бандура" для ОЦНТ
  */
 
-// 1. Налаштування синтезу мовлення
-function speakResponse(text) {
+// 1. Налаштування коротких гуморних фраз
+const banduraPhrases = [
+    "Ось, що мені вдалося вибринькати!",
+    "Дивись, які соловейки у нас є!",
+    "Зараз розкажу, тільки струни підтягну...",
+    "Ось що я знайшла в наших архівах!",
+    "Тримай, це саме те, що ти шукав!",
+    "Поглянь-но на ці таланти!"
+];
+
+let lastResultText = ""; // Змінна для зберігання повного тексту відповіді
+
+// Функція для коротких реплік Бандури
+function speakShort(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'uk-UA';
-        utterance.pitch = 1.3; // Мультяшний тон
-        utterance.rate = 1.0;
+        utterance.pitch = 1.4; // Мультяшний голос
         window.speechSynthesis.speak(utterance);
     }
 }
 
-// 2. Функція зміни станів Бандури та хмаринки тексту
+// Функція для повного озвучення (по кліку на динамік)
+function speakFull(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'uk-UA';
+        utterance.pitch = 1.0; // Більш природний голос
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// 2. Керування станами Бандури
 function changeBanduraState(state) {
     const bandura = document.getElementById('bandura-ai');
-    const bubbleText = document.getElementById('ai-text-bubble'); // Текст у хмаринці
+    const bubble = document.getElementById('ai-text-bubble');
     
-    // Якщо картинки лежать у корені репозиторію, шлях порожній, якщо в папці — додай 'img/'
+    // Шляхи до файлів (якщо вони в корені, залиш порожньо або 'assets/')
     const path = ''; 
 
     switch(state) {
         case 'listening':
             if(bandura) bandura.src = `${path}bandura-listening.png`;
-            if(bubbleText) bubbleText.innerText = "Слухаю вас уважно...";
+            if(bubble) bubble.innerText = "Слухаю...";
             break;
         case 'thinking':
             if(bandura) bandura.src = `${path}bandura-thinking.png`;
-            if(bubbleText) bubbleText.innerText = "Зараз подивлюся в архівах...";
+            if(bubble) bubble.innerText = "Шукаю...";
             break;
         case 'pointing':
             if(bandura) bandura.src = `${path}bandura-pointing.png`;
-            if(bubbleText) bubbleText.innerText = "Ось, що мені вдалося знайти!";
-            break;
-        case 'error':
-            if(bandura) bandura.src = `${path}bandura-idle.png`;
-            if(bubbleText) bubbleText.innerText = "Ой, струна обірвалася (помилка)...";
+            if(bubble) bubble.innerText = "Є результат!";
             break;
         default:
             if(bandura) bandura.src = `${path}bandura-idle.png`;
-            if(bubbleText) bubbleText.innerText = "Запитай, я допоможу знайти колектив!";
+            if(bubble) bubble.innerText = "Я тут!";
     }
 }
 
-// 3. Основна функція пошуку
+// 3. Основна логіка пошуку
 async function performSearch() {
     const searchInput = document.getElementById('search-input');
-    const query = searchInput.value.trim();
-    const responseDisplay = document.getElementById('ai-response-text'); // Поле для тексту відповіді
+    const responseContainer = document.getElementById('ai-response-container');
+    const responseText = document.getElementById('ai-response-text');
 
+    const query = searchInput.value.trim();
     if (!query) return;
 
-    // Стан "Думаю"
+    // Починаємо пошук
     changeBanduraState('thinking');
-    if(responseDisplay) responseDisplay.innerText = "Шукаю...";
+    if(responseContainer) responseContainer.style.display = 'block';
+    if(responseText) responseText.innerText = "Зараз знайду...";
 
     try {
         const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
@@ -64,61 +84,65 @@ async function performSearch() {
             body: JSON.stringify({ query: query })
         });
 
-        if (!response.ok) throw new Error('Gateway Timeout');
+        if (!response.ok) throw new Error('Помилка сервера');
 
         const data = await response.json();
-        const result = data.output || "На жаль, я нічого не знайшла за цим запитом.";
+        lastResultText = data.output || "Вибачте, нічого не знайшла.";
 
-        // Виводимо результат
-        if(responseDisplay) responseDisplay.innerText = result;
+        // Виводимо результат у табличку/рамку
+        if(responseText) responseText.innerText = lastResultText;
         
-        // Бандура вказує на результат і говорить
+        // Бандура вказує на результат
         changeBanduraState('pointing');
-        speakResponse(result);
 
-        // Через 10 секунд повертаємо до спокою
-        setTimeout(() => changeBanduraState('idle'), 10000);
+        // Бандура каже смішну коротку фразу
+        const randomPhrase = banduraPhrases[Math.floor(Math.random() * banduraPhrases.length)];
+        speakShort(randomPhrase);
 
     } catch (error) {
         console.error("Помилка:", error);
-        changeBanduraState('error');
-        if(responseDisplay) responseDisplay.innerText = "Не вдалося зв'язатися з сервером. Спробуйте пізніше.";
-        speakResponse("Вибачте, сталася помилка зв'язку.");
+        changeBanduraState('idle');
+        if(responseText) responseText.innerText = "Ой, щось пішло не так. Спробуйте ще раз.";
     }
 }
 
-// 4. Ініціалізація подій
+// 4. Ініціалізація та обробники
 document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn');
-    const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-btn');
+    const searchInput = document.getElementById('search-input');
+    const speakBtn = document.getElementById('read-aloud-btn');
 
-    // Клік на кнопку пошуку
-    if (searchBtn) {
-        searchBtn.addEventListener('click', performSearch);
-    }
+    // Встановлюємо початковий стан (Бандура idle)
+    changeBanduraState('idle');
 
-    // Enter у полі введення
+    // Кнопка пошуку
+    if (searchBtn) searchBtn.addEventListener('click', performSearch);
+
+    // Enter
     if (searchInput) {
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') performSearch();
         });
     }
 
-    // ГОЛОСОВИЙ ПОШУК
+    // Динамік для повної озвучки
+    if (speakBtn) {
+        speakBtn.addEventListener('click', () => {
+            if(lastResultText) speakFull(lastResultText);
+        });
+    }
+
+    // Голосове введення
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition && micBtn) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'uk-UA';
 
         micBtn.onclick = () => {
-            try {
-                recognition.start();
-                changeBanduraState('listening');
-                micBtn.style.color = 'red';
-            } catch (e) {
-                console.log("Recognition already started");
-            }
+            recognition.start();
+            changeBanduraState('listening');
+            micBtn.style.color = 'red';
         };
 
         recognition.onresult = (event) => {
@@ -128,11 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         recognition.onend = () => {
-            micBtn.style.color = '';
-        };
-        
-        recognition.onerror = () => {
-            changeBanduraState('idle');
             micBtn.style.color = '';
         };
     }
