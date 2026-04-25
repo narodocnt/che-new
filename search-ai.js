@@ -136,3 +136,95 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+// Функція для зміни картинки
+function setBanduraEmotion(state) {
+    const img = document.getElementById('bandura-image');
+    if (!img) return;
+
+    switch(state) {
+        case 'listening': img.src = 'bandura-listening.png'; break;
+        case 'thinking':  img.src = 'bandura-thinking.png'; break;
+        case 'pointing':  img.src = 'bandura-pointing.png'; break;
+        default:          img.src = 'bandura-idle.png'; break;
+    }
+}
+
+async function performSearch() {
+    const query = textArea.value.trim();
+    if (!query || query === "Шукаю...") return;
+
+    const loader = document.getElementById('bandura-loader');
+    
+    // СТАН: ДУМАЄ
+    setBanduraEmotion('thinking');
+    textArea.style.display = 'none';
+    loader.style.display = 'block';
+    
+    try {
+        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+        });
+
+        const data = await response.json();
+        lastResultText = data.output || "Нічого не знайшла...";
+
+        // СТАН: ЗНАЙШЛА (ВКАЗУЄ ПАЛЬЦЕМ)
+        loader.style.display = 'none';
+        textArea.style.display = 'block';
+        textArea.value = "Знайшла!";
+        setBanduraEmotion('pointing');
+        
+        // Розтягуємо віконце
+        textArea.style.height = 'auto';
+        textArea.style.height = textArea.scrollHeight + 'px';
+
+        // Стрибок
+        document.getElementById('bandura-container').classList.add('jump-animation');
+
+        setTimeout(() => {
+            document.getElementById('bandura-container').classList.remove('jump-animation');
+            modalText.innerText = lastResultText;
+            modal.style.display = 'flex';
+            
+            // Повертаємо у звичайний стан через 3 секунди
+            setTimeout(() => { 
+                setBanduraEmotion('idle');
+                textArea.value = ""; 
+                textArea.style.height = 'auto';
+            }, 3000);
+        }, 2000);
+
+    } catch (error) {
+        setBanduraEmotion('idle');
+        loader.style.display = 'none';
+        textArea.style.display = 'block';
+        textArea.value = "Помилка зв'язку";
+    }
+}
+
+// Логіка мікрофона зі зміною емоції
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'uk-UA';
+
+    micBtn.onclick = () => {
+        recognition.start();
+        setBanduraEmotion('listening'); // СТАН: СЛУХАЄ
+        textArea.value = "Слухаю...";
+        micBtn.classList.add('mic-active');
+    };
+
+    recognition.onresult = (event) => {
+        textArea.value = event.results[0][0].transcript;
+        textArea.style.height = 'auto';
+        textArea.style.height = textArea.scrollHeight + 'px';
+        performSearch();
+    };
+
+    recognition.onend = () => {
+        micBtn.classList.remove('mic-active');
+    };
+}
