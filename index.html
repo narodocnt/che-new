@@ -252,18 +252,24 @@
 
   <div id="bandura-container">
     <div id="bandura-smart-bubble">
-        <textarea id="bandura-text-area" readonly placeholder="Питання є?"></textarea>
-        <div id="bandura-loader" style="display: none;"><span>.</span><span>.</span><span>.</span></div>
+        <textarea id="bandura-text-area" placeholder="Питання є?"></textarea>
         <div class="bubble-tail"></div>
     </div>
     
     <div id="bandura-wrapper">
         <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
-        
         <div class="bandura-actions">
-            <button id="btn-mic" title="Говорити">🎤</button>
-            <button id="btn-search" title="Шукати">🔍</button>
+            <button id="btn-mic">🎤</button>
+            <button id="btn-search">🔍</button>
         </div>
+    </div>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="modal-text">Тут буде результат...</div>
+        <button id="btn-voice">🔊 Слухати</button>
     </div>
 </div>
    
