@@ -228,3 +228,72 @@ if (SpeechRecognition) {
         micBtn.classList.remove('mic-active');
     };
 }
+
+async function performSearch() {
+    const originalQuery = textArea.value.trim();
+    // Перевіряємо, щоб не шукати порожнечу або вже існуючі статуси
+    if (!originalQuery || originalQuery.startsWith("Шукаю") || originalQuery === "Слухаю...") return;
+
+    const loader = document.getElementById('bandura-loader');
+    
+    // СТАН: ДУМАЄ
+    setBanduraEmotion('thinking');
+    
+    // ПІДСТАВЛЯЄМО ВАШ ТЕКСТ: "Шукаю [ваше питання]..."
+    textArea.value = `Шукаю ${originalQuery.toLowerCase()}...`;
+    
+    // Розтягуємо віконце під новий довгий текст
+    textArea.style.height = 'auto';
+    textArea.style.height = textArea.scrollHeight + 'px';
+
+    try {
+        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: originalQuery })
+        });
+
+        if (!response.ok) throw new Error('Сервер не відповідає');
+
+        const data = await response.json();
+        lastResultText = data.output || "Вибачте, нічого не знайшла по цьому запиту.";
+
+        // СТАН: ЗНАЙШЛА
+        textArea.value = "Знайшла!";
+        setBanduraEmotion('pointing');
+        
+        // Стрибок
+        const container = document.getElementById('bandura-container');
+        container.classList.add('jump-animation');
+
+        setTimeout(() => {
+            container.classList.remove('jump-animation');
+            
+            // ВИКЛИК МОДАЛЬНОГО ВІКНА
+            const modal = document.getElementById('result-modal');
+            if (modal) {
+                const modalContent = document.getElementById('modal-text');
+                modalContent.innerText = lastResultText;
+                
+                // Примусово робимо видимим
+                modal.style.display = 'flex';
+                modal.style.opacity = '1';
+                modal.style.visibility = 'visible';
+            } else {
+                console.error("Помилка: Елемент 'result-modal' не знайдено в HTML!");
+            }
+
+            // Повертаємо Бандуру в спокій через 3 секунди
+            setTimeout(() => { 
+                setBanduraEmotion('idle');
+                textArea.value = ""; 
+                textArea.style.height = 'auto';
+            }, 3000);
+        }, 2000);
+
+    } catch (error) {
+        console.error("Помилка пошуку:", error);
+        setBanduraEmotion('idle');
+        textArea.value = "Ой, технічна помилка...";
+    }
+}
