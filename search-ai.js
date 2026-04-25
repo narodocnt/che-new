@@ -111,3 +111,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
+// Функція відкриття модалки
+function openModal(text) {
+    const modal = document.getElementById('result-modal');
+    document.getElementById('modal-text').innerText = text;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open'); // Блокуємо скрол сайту
+}
+
+// Функція закриття модалки
+function closeModalFunc() {
+    const modal = document.getElementById('result-modal');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open'); // Повертаємо скрол сайту
+    window.speechSynthesis.cancel();
+}
+
+// Закриття по хрестику
+document.querySelector('.close-modal').onclick = closeModalFunc;
+
+// ЗАКРИТТЯ ПРИ КЛІКУ ПОЗА ВІКНОМ
+window.onclick = function(event) {
+    const modal = document.getElementById('result-modal');
+    if (event.target == modal) {
+        closeModalFunc();
+    }
+};
+
+// Оновіть вашу функцію performSearch, щоб вона використовувала openModal:
+// Замість modal.style.display = 'flex'; напишіть:
+// openModal(lastResultText);
