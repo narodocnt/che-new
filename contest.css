@@ -575,3 +575,92 @@ nav.main-nav {
     background: #e6c200;
     transform: scale(1.05);
 }
+
+/* Кнопки всередині віконця Бандури */
+.bandura-controls-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.bandura-controls-row button {
+    background: #fdf5e6;
+    border: 1px solid #ffd700;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.bandura-controls-row button:hover {
+    background: #ffd700;
+    transform: scale(1.1);
+}
+
+/* ФІКС МОДАЛЬНОГО ВІКНА */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    backdrop-filter: blur(5px);
+}
+
+/* Коли модалка відкрита, забороняємо скрол сайту через JS (див. нижче) */
+body.modal-open {
+    overflow: hidden;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh; /* Не більше 85% висоти екрану */
+    border-radius: 20px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* Область прокрутки всередині модалки */
+.modal-scroll-area {
+    overflow-y: auto;
+    margin: 20px 0;
+    padding-right: 10px;
+    text-align: left;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Стиль полоси прокрутки */
+.modal-scroll-area::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-scroll-area::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 35px;
+    cursor: pointer;
+    color: #888;
+    z-index: 10;
+}
