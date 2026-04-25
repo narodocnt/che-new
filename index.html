@@ -9,86 +9,65 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="contest.css">
     <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
     <style>
         :root { --primary: #1e272e; --accent: #e67e22; --bg: #f5f6fa; --nav: #2f3640; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--primary); overflow-x: hidden; }
-
-        /* Хедер */
         header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 15px; }
         .logo-img { height: 60px; border-radius: 8px; }
         .logo-text h1 { font-size: 1.1rem; margin: 0; line-height: 1.2; }
         .logo-text p { font-size: 0.85rem; margin: 0; color: #7f8c8d; }
-
         .header-right { display: flex; align-items: center; gap: 15px; }
         .header-socials { display: flex; gap: 12px; }
         .header-socials a { font-size: 1.6rem; transition: 0.3s; }
         .fa-facebook { color: #1877F2; } .fa-youtube { color: #FF0000; } .fa-telegram { color: #24A1DE; }
-
         .auth-btn { cursor: pointer; padding: 8px 20px; border: 2px solid var(--nav); border-radius: 25px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
-
-        
-        /* Навігація */
         nav { background: var(--nav); display: flex; justify-content: center; position: relative; flex-wrap: wrap; padding: 10px; }
         .main-nav { display: flex; gap: 12px; align-items: center; justify-content: center; }
         .nav-btn { display: inline-flex; align-items: center; justify-content: center; height: 45px; padding: 0 25px; background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; border: none; cursor: pointer; transition: all 0.2s ease; }
         .nav-btn:hover { background-color: #5a6268; }
-
-        /* [БЛОК 2] СТИЛІ ІНТЕРАКТИВНОЇ КАРТИ */
-        #map { 
-            height: 500px; 
-            width: 100%; 
-            max-width: 900px; 
-            margin: 20px auto; 
-            border-radius: 15px; 
-            border: 3px solid var(--nav);
-            position: relative;
-            z-index: 5;
-        }
-        .map-controls { 
-            display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; 
-        }
-        .count-icon {
-            display: flex !important; align-items: center; justify-content: center;
-            background: #3498db; color: white; border-radius: 50%;
-            font-weight: bold; font-size: 13px; border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-        }
-
-        /* Контейнери та картки */
+        #map { height: 500px; width: 100%; max-width: 900px; margin: 20px auto; border-radius: 15px; border: 3px solid var(--nav); position: relative; z-index: 5; }
+        .map-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .ruta-container { position: relative; max-width: 900px; margin: 20px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .contest-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
         footer { background: #2f3640; padding: 40px; color: white; text-align: center; margin-top: 50px; }
-
-        /* Стилі для випадаючого меню колективів */
         .dropdown { position: relative; display: inline-block; }
-        .dropdown-content {
-            display: none; position: absolute; background-color: white; min-width: 200px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 8px;
-        }
+        .dropdown-content { display: none; position: absolute; background-color: white; min-width: 200px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 8px; }
         .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; border-bottom: 1px solid #eee; text-align: left; }
         .dropdown-content a:hover { background-color: #f1f1f1; }
         .show { display: block; }
-        html {
-    scroll-behavior: smooth;
-}
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body>
 
+<div class="bandura-section">
+    <div class="bandura-search-wrapper">
+        <div class="search-and-result">
+            <div class="input-group">
+                <input type="text" id="search-input" placeholder="Запитай у Бандури...">
+                <button id="mic-btn" title="Голосовий пошук">🎤</button>
+                <button id="search-btn" title="Шукати">🔍</button>
+            </div>
+            <div id="ai-response-container" style="display:none;">
+                <div id="ai-response-text"></div>
+                <button id="read-aloud-btn" title="Прослухати повністю">🔊</button>
+            </div>
+        </div>
+        <div class="bandura-box">
+            <div id="ai-text-bubble">Запитай, я допоможу!</div>
+            <img id="bandura-ai" src="bandura-idle.png" alt="Бандура">
+        </div>
+    </div>
+</div>
+
 <header>
     <div class="logo-box">
-    <img src="narodocnt.jpg" 
-         class="logo-animated" 
-         onclick="window.openAbout()" 
-         alt="Відділ народної творчості" 
-         style="width: 50px; height: auto; display: block; margin: 10px 0; cursor: pointer;">        <div class="logo-text">
+        <img src="narodocnt.jpg" class="logo-animated" onclick="window.openAbout()" alt="Логотип" style="width: 50px; height: auto; cursor: pointer;">
+        <div class="logo-text">
             <h1>Відділ народної творчості</h1>
             <p>Черкаського ОЦНТ</p>
         </div>
@@ -103,20 +82,6 @@
     </div>
 </header>
 
-   <!-- ''. Пошук  ''. -->
-    <!-- Bandura -->
-    <div class="bandura-container">
-    <img id="bandura-ai" src="assets/img/bandura-idle.png" alt="Бандура-помічник">
-    <div id="speech-bubble">Запитай, я допоможу!</div>
-</div>
-<div class="search-wrapper" style="position: relative; z-index: 10000; background: white; border: 2px solid #3498db; margin: 10px auto; max-width: 280px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-    <div class="search-container" style="display: flex; align-items: center; padding: 2px 8px;">
-        <button id="mic-btn" style="background:none; border:none; font-size: 14px; cursor:pointer; padding: 5px;">🎤</button>
-        <input type="text" id="search-input" placeholder="Шукати..." style="flex:1; border:none; outline:none; padding: 6px; font-size: 13px; color: black !important; background: transparent;">
-        <button id="search-btn" style="background:none; border:none; font-size: 14px; cursor:pointer; padding: 5px;">🔍</button>
-    </div>
-</div>
-    
 <nav class="main-nav">
     <div class="dropdown">
         <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('collectivesMenu')">Колективи ▼</button>
@@ -129,11 +94,9 @@
     </div>
 
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
-    <a href="#battle-section" class="nav-btn" onclick="updateMode('battle')" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none;">
-    🔥 БИТВА ВПОДОБАЙКІВ
-</a>
+    <a href="#battle-section" class="nav-btn" onclick="updateMode('battle')" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white;">🔥 БИТВА ВПОДОБАЙКІВ</a>
 
-   <div class="dropdown">
+    <div class="dropdown">
         <button class="nav-btn dropdown-toggle" onclick="toggleDropdown('appsMenu')">ЗАЯВКИ ▼</button>
         <div id="appsMenu" class="dropdown-content">
             <a href="#" onclick="goToGeneralForm('cheruta')">Червона Рута</a>
@@ -152,43 +115,26 @@
     </div>
 </nav>
 
-<div id="ruta-results-section" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-start; max-width: 1200px; margin: 30px auto; padding: 20px; background: #f9f9f9; border-radius: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
-    
+<div id="ruta-results-section" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; margin: 30px auto; padding: 20px; background: #f9f9f9; border-radius: 20px;">
     <div style="flex: 1; min-width: 300px; max-width: 500px;">
-        <div style="background: #fff; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: 1px solid #eee;">
-            <img src="cheruta.jpg" alt="Червона Рута Черкаси результати" style="width: 100%; border-radius: 10px; display: block; margin-bottom: 15px;">
-            <div style="text-align: center;">
-                <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 22px;">Конкурс відбувся!</h2>
-                <p style="font-size: 15px; color: #555; line-height: 1.5;">
-                    21 березня у Черкасах пройшов обласний відбір «Червоної рути». 
-                    Понад 50 учасників, неймовірна енергетика та нові імена української сцени!
-                </p>
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                    <button onclick="window.open('polozhennya.pdf', '_blank')" 
-                            style="background: #6c757d; border: none; color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-                        АРХІВ ПОЛОЖЕННЯ
-                    </button>
-                </div>
+        <div style="background: #fff; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+            <img src="cheruta.jpg" alt="Результати" style="width: 100%; border-radius: 10px;">
+            <div style="text-align: center; margin-top: 15px;">
+                <h2 style="color: #2c3e50;">Конкурс відбувся!</h2>
+                <p>21 березня у Черкасах пройшов обласний відбір «Червоної рути».</p>
+                <button onclick="window.open('polozhennya.pdf', '_blank')" style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer;">АРХІВ ПОЛОЖЕННЯ</button>
             </div>
         </div>
     </div>
 
     <div style="flex: 1; min-width: 320px; max-width: 500px;">
-        <div style="border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1); background: #fff; border: 1px solid #eee;">
-            <iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fnarodocntcherkasy%2Fposts%2Fpfbid036jWuSmbHWfK9zZUqJJBfbgqJE5UYmoiBHSB8mWbb6vUmgohc7WpspdJJLGZpzTtdl&show_text=true&width=500" 
-                    width="100%" 
-                    height="730" 
-                    style="border:none; overflow:hidden;" 
-                    scrolling="no" 
-                    frameborder="0" 
-                    allowfullscreen="true" 
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-            </iframe>
+        <div style="border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+            <iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fnarodocntcherkasy%2Fposts%2Fpfbid036jWuSmbHWfK9zZUqJJBfbgqJE5UYmoiBHSB8mWbb6vUmgohc7WpspdJJLGZpzTtdl&show_text=true&width=500" width="100%" height="730" style="border:none;" scrolling="no" allowfullscreen="true"></iframe>
         </div>
     </div>
 </div>
 
-<div id="map-section" class="contest-container" style="background: #fff;">
+<div id="map-section" class="contest-container">
     <h2>📍 Культурна мапа Черкащини</h2>
     <div class="map-controls">
         <button id="btn-col" class="nav-btn" style="background:#e67e22;" onclick="updateMode('collectives')">КОЛЕКТИВИ</button>
@@ -197,47 +143,29 @@
     <div id="map"></div>
 </div>
 
-<div id="battle-section" style="max-width: 900px; margin: 20px auto; background: #2c3e50; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-    
-   <img src="bitva.jpg" style="width:100%; display: block; border-bottom: 2px solid rgba(255,255,255,0.1);">    <div style="padding: 25px; text-align: center;">
-        <h1 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 2.2em; color: #fff;">
+<div id="battle-section" style="max-width: 900px; margin: 20px auto; background: #2c3e50; border-radius: 20px; overflow: hidden;">
+    <img src="bitva.jpg" style="width:100%; display: block;">
+    <div style="padding: 25px; text-align: center;">
+        <h1 style="color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px;">
             🏆 Обласний фестиваль «Музична варта» 
-            <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 32px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);">★</span>
+            <span onclick="toggleRules(event)" style="cursor: pointer; color: #f1c40f; font-size: 32px;">★</span>
         </h1>
-       // <p style="margin: 8px 0 25px 0; color: #bdc3c7; font-size: 1.2em; font-weight: 300;">
-       //     Обласний фестиваль «Музична варта»
-     // </p>
-        
-        <div id="rankingList" style="text-align: left;">
-            <p style="text-align:center; color: #bdc3c7;">Завантаження рейтингу...</p>
-        </div>
+        <div id="rankingList"><p style="color: #bdc3c7;">Завантаження рейтингу...</p></div>
     </div>
-</div>    
-  
+</div>
+
 <div class="carousel-box">
-    <h2 id="community-title">Хореографічні колективи</h2>
+    <h2 id="community-title" style="text-align:center;">Хореографічні колективи</h2>
     <div class="swiper swiper-container">
-        <div class="swiper-wrapper">
-            </div>
+        <div class="swiper-wrapper"></div>
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
         <div class="swiper-pagination"></div>
     </div>
 </div>
 
-<div class="swiper-pagination"></div>
-    </div>
-</div>
-
-<script>
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGW5Qf1YBD0b2T0JQy-N3Wb63RWZlkSK_blVTcF5FK8-ODb_CQAV9IqIudEyMsZp8jE_g2Gd5AUC17/pub?gid=1813409784&single=true&output=csv';
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="carousel-engine.js"></script>
-
 <footer id="contacts">
-    <div class="social-icons">
+    <div class="header-socials" style="justify-content: center; display: flex; gap: 20px;">
         <a href="https://www.facebook.com/narodocntcherkasy/" target="_blank"><i class="fab fa-facebook"></i></a>
         <a href="https://www.youtube.com/@Cherkasy_OCNT" target="_blank"><i class="fab fa-youtube"></i></a>
         <a href="https://t.me/narodocnt_bot" target="_blank"><i class="fab fa-telegram"></i></a>
@@ -247,199 +175,88 @@
 
 <div id="listModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;" onclick="closeModal()">
     <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:650px; position:relative; max-height: 85vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px; font-weight: bold; color: #333;">&times;</span>
-        <div id="modalBody" style="overflow-y: auto; padding-top: 20px; margin-top: 10px; color: #333;">
-            </div>
+        <span onclick="closeModal()" style="position: absolute; right: 15px; top: 5px; cursor:pointer; font-size:35px;">&times;</span>
+        <div id="modalBody" style="overflow-y: auto; margin-top: 20px; color: #333;"></div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script>
     const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth?client_id=734541752522-bqp7ljgjq27k8psn3pv6g3c3rcp16fhi.apps.googleusercontent.com&redirect_uri=https://n8n.narodocnt.online/webhook/google-signup&response_type=code&scope=openid%20email%20profile&prompt=consent";
 
-    // Авторизація
-  // --- АВТОРИЗАЦІЯ ТА ВИХІД ---
-function handleAuthClick() {
-    const user = localStorage.getItem('user');
-    if (user) {
-        // Тепер кнопка з іменем реально виводить з акаунту
-        if (confirm(`Бажаєте вийти з акаунту ${user}?`)) {
-            localStorage.removeItem('user');
-            // Перезавантажуємо сторінку без параметрів у посиланні
-            window.location.href = window.location.pathname; 
-        }
-    } else {
-        window.location.href = AUTH_URL;
-    }
-}
-
-    // Відкриття меню заявок (з перевіркою авторизації)
-  // 3. МЕНЮ ЗАЯВОК (завантаження з menu.html)
-    async function openApplicationMenu() {
+    function handleAuthClick() {
         const user = localStorage.getItem('user');
-        if (!user) {
-            alert("🔒 Авторизуйтесь через Google для доступу до заявок!");
-            handleAuthClick();
-            return;
-        }
-
-        try {
-            const response = await fetch('menu.html');
-            if (!response.ok) throw new Error("Файл menu.html не знайдено на сервері");
-            let html = await response.text();
-            
-            // Виводимо в модальне вікно
-            showModal(html);
-        } catch (error) {
-            console.error("Помилка:", error);
-            alert("Помилка завантаження списку заявок. Перевірте наявність файлу menu.html");
-        }
-    }
-
-    // 4. ПЕРЕХІД ДО ФОРМ (Основна логіка)
- function goToGeneralForm(type = 'main') {
-    const user = localStorage.getItem('user');
-    if (!user) {
-        alert("🔒 Будь ласка, авторизуйтесь!");
-        handleAuthClick();
-        return;
-    }
-    
-    const userName = encodeURIComponent(user);
-    let url = "";
-
-    // ПЕРЕВІРКА: якщо type вже є посиланням (починається з http)
-    if (type.includes('http')) {
-        // Просто перевіряємо, чи є вже в посиланні знак питання
-        let separator = type.includes('?') ? '&' : '?';
-        url = `${type}${separator}name=${userName}`;
-    } 
-    // ЯКЩО ПЕРЕДАНО ПРОСТО НАЗВУ (короткий код)
-    else if (type === 'cheruta') {
-        url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
-    } 
-    else if (type === 'main' || type === 'zajavka') {
-        url = `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
-    }
-         else if (type === 'avram' || type === 'avram') {
-        url = `https://n8n.narodocnt.online/webhook/avram/n8n-form?name=${userName}`;
-    }
-    else {
-        // Універсальний варіант для коротких назв
-        url = `https://n8n.narodocnt.online/webhook/KonkursChit/n8n-form?name=${userName}`;
-    }
-    
-    console.log("Остаточне посилання:", url);
-    window.open(url, '_blank');
-}
-
-    // Псевдонім для сумісності з кнопками в menu.html
-    function openUrl(type) {
-        goToGeneralForm(type);
-    }
-
-    function updateMode(mode) {
-        const btnCol = document.getElementById('btn-col');
-        const btnBat = document.getElementById('btn-bat');
-        if(btnCol) btnCol.style.background = (mode === 'collectives' ? '#e67e22' : '#2f3640');
-        if(btnBat) btnBat.style.background = (mode === 'battle' ? '#e67e22' : '#2f3640');
-        if (window.setMode) window.setMode(mode);
-    }
-
-    // --- КЕРУВАННЯ МЕНЮ ---
-function toggleDropdown(menuId) {
-    // Спочатку закриваємо інші відкриті меню, щоб не накладалися
-    const dropdowns = document.getElementsByClassName("dropdown-content");
-    for (let d of dropdowns) {
-        if (d.id !== menuId) d.classList.remove('show');
-    }
-    const menu = document.getElementById(menuId);
-    if (menu) menu.classList.toggle("show");
-}
-
-// Закриття меню при кліку в будь-якому місці екрана
-window.addEventListener('click', function(event) {
-    if (!event.target.matches('.dropdown-toggle')) {
-        const dropdowns = document.getElementsByClassName("dropdown-content");
-        for (let d of dropdowns) {
-            d.classList.remove('show');
-        }
-    }
-});
-
-    function filterCollectives(genre) {
-        const menu = document.getElementById("collectivesMenu");
-        if (menu) menu.classList.remove("show");
-        if (typeof collectivesData !== 'undefined' && collectivesData[genre]) {
-            showModal(collectivesData[genre]);
+        if (user) {
+            if (confirm(`Бажаєте вийти з акаунту ${user}?`)) {
+                localStorage.removeItem('user');
+                window.location.href = window.location.pathname; 
+            }
         } else {
-            alert("Список для цього жанру ще наповнюється...");
+            window.location.href = AUTH_URL;
         }
     }
+
+    function goToGeneralForm(type = 'main') {
+        const user = localStorage.getItem('user');
+        if (!user) { alert("🔒 Будь ласка, авторизуйтесь!"); handleAuthClick(); return; }
+        const userName = encodeURIComponent(user);
+        let url = "";
+        if (type.includes('http')) {
+            let separator = type.includes('?') ? '&' : '?';
+            url = `${type}${separator}name=${userName}`;
+        } else if (type === 'cheruta') {
+            url = `https://n8n.narodocnt.online/webhook/cheruta/n8n-form?name=${userName}`;
+        } else if (type === 'main' || type === 'zajavka') {
+            url = `https://n8n.narodocnt.online/webhook/main-zajavka/n8n-form?name=${userName}`;
+        } else if (type === 'avram') {
+            url = `https://n8n.narodocnt.online/webhook/avram/n8n-form?name=${userName}`;
+        } else {
+            url = `https://n8n.narodocnt.online/webhook/KonkursChit/n8n-form?name=${userName}`;
+        }
+        window.open(url, '_blank');
+    }
+
+    function toggleDropdown(menuId) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let d of dropdowns) { if (d.id !== menuId) d.classList.remove('show'); }
+        const menu = document.getElementById(menuId);
+        if (menu) menu.classList.toggle("show");
+    }
+
+    window.addEventListener('click', function(event) {
+        if (!event.target.matches('.dropdown-toggle')) {
+            const dropdowns = document.getElementsByClassName("dropdown-content");
+            for (let d of dropdowns) { d.classList.remove('show'); }
+        }
+    });
 
     function showModal(content) {
         const modal = document.getElementById('listModal');
         const body = document.getElementById('modalBody');
-        if (modal && body) {
-            body.innerHTML = content;
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        if (modal && body) { body.innerHTML = content; modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
     }
 
-    function closeModal() { 
+    function closeModal() {
         const modal = document.getElementById('listModal');
-        if (modal) {
-            modal.style.display = 'none'; 
-            document.body.style.overflow = 'auto';
-        }
-    }
-
-    function initRutaUI() {
-        const target = new Date("March 21, 2026 09:00:00").getTime();
-        function update() {
-            const now = new Date().getTime();
-            const diff = target - now;
-            if (diff < 0) {
-                const timerDisplay = document.getElementById("ruta-timer-display");
-                if (timerDisplay) timerDisplay.innerHTML = "ФЕСТИВАЛЬ РОЗПОЧАТО!";
-                return;
-            }
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-
-            if (document.getElementById("d-val")) document.getElementById("d-val").innerText = d;
-            if (document.getElementById("h-val")) document.getElementById("h-val").innerText = h;
-            if (document.getElementById("m-val")) document.getElementById("m-val").innerText = m;
-            if (document.getElementById("s-val")) document.getElementById("s-val").innerText = s;
-        }
-        setInterval(update, 1000);
-        update();
+        if (modal) { modal.style.display = 'none'; document.body.style.overflow = 'auto'; }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         const params = new URLSearchParams(window.location.search);
         const name = params.get('name');
         if (name) localStorage.setItem('user', decodeURIComponent(name));
-
         const user = localStorage.getItem('user');
         if (user) {
             const btn = document.getElementById('loginBtn');
-            if (btn) {
-                btn.innerText = user;
-                btn.style.background = "#27ae60";
-                btn.style.color = "white";
-            }
+            if (btn) { btn.innerText = user; btn.style.background = "#27ae60"; btn.style.color = "white"; }
         }
-        initRutaUI();
     });
 </script>
 
-<script src="about.js"></script>    
-<script src="search-ai.js"></script>
+<script src="about.js?v=1.1"></script>    
+<script src="search-ai.js?v=1.3"></script>
 <script src="hromadas-data.js"></script>
 <script src="collectives-list.js"></script>
 <script src="map-collectives.js"></script>
@@ -448,7 +265,7 @@ window.addEventListener('click', function(event) {
 <script src="bitva-rule-star.js"></script>
 <script src="bitva-ranking.js"></script>
 <script src="map-bitva.js"></script>
-<script src="carousel-engine.js"></script>
+<script src="carousel-engine.js?v=1.1"></script>
 
 </body>
 </html>
