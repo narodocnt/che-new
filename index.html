@@ -42,27 +42,9 @@
         html { scroll-behavior: smooth; }
     </style>
 </head>
-<body>
 
-<div class="bandura-section">
-    <div class="bandura-search-wrapper">
-        <div class="search-and-result">
-            <div class="input-group">
-                <input type="text" id="search-input" placeholder="Запитай у Бандури...">
-                <button id="mic-btn" title="Голосовий пошук">🎤</button>
-                <button id="search-btn" title="Шукати">🔍</button>
-            </div>
-            <div id="ai-response-container" style="display:none;">
-                <div id="ai-response-text"></div>
-                <button id="read-aloud-btn" title="Прослухати повністю">🔊</button>
-            </div>
-        </div>
-        <div class="bandura-box">
-            <div id="ai-text-bubble">Запитай, я допоможу!</div>
-            <img id="bandura-ai" src="bandura-idle.png" alt="Бандура">
-        </div>
-    </div>
-</div>
+    
+<body>
 
 <header>
     <div class="logo-box">
@@ -267,6 +249,8 @@
 <script src="map-bitva.js"></script>
 <script src="carousel-engine.js?v=1.1"></script>
 <div id="bandura-container">
+
+    <div id="bandura-container">
     
     <div id="bandura-smart-bubble">
         <div class="bandura-controls">
@@ -283,5 +267,6 @@
         <img src="path-to-your-bandura-icon.png" alt="Бандура">
     </div>
 </div>
+   
 </body>
 </html>
