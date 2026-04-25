@@ -250,21 +250,19 @@
 <script src="carousel-engine.js?v=1.1"></script>
 <div id="bandura-container">
 
-    <div id="bandura-container">
-    
+   <div id="bandura-container">
     <div id="bandura-smart-bubble">
-        <div class="bandura-controls">
-            <button id="btn-mic" title="Говорити">🎤</button>
-            <button id="btn-search" title="Шукати">🔍</button>
-        </div>
-        
-        <textarea id="bandura-text-area" placeholder="Питання є?"></textarea>
-        
+        <textarea id="bandura-text-area" readonly placeholder="Питання є?"></textarea>
         <div class="bubble-tail"></div>
     </div>
     
-    <div id="bandura-avatar">
-        <img src="path-to-your-bandura-icon.png" alt="Бандура">
+    <div id="bandura-wrapper">
+        <img src="images/bandura-idle.png" id="bandura-image" alt="Бандура">
+        
+        <div class="bandura-actions">
+            <button id="btn-mic" title="Говорити">🎤</button>
+            <button id="btn-search" title="Шукати">🔍</button>
+        </div>
     </div>
 </div>
    
