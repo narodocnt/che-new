@@ -1,299 +1,113 @@
-/**
- * Оновлений інтелектуальний помічник "Бандура"
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Елементи інтерфейсу
-    const banduraContainer = document.getElementById('bandura-container');
+    const banduraImg = document.getElementById('bandura-image');
     const textArea = document.getElementById('bandura-text-area');
-    const micBtn = document.getElementById('btn-mic');
-    const searchBtn = document.getElementById('btn-search');
+    const container = document.getElementById('bandura-container');
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
-    const closeModal = document.querySelector('.close-modal');
     const voiceBtn = document.getElementById('btn-voice');
 
-    let lastResultText = "";
+    let lastResult = "";
     let isSpeaking = false;
-    const synth = window.speechSynthesis;
 
-    // 1. Авто-збільшення віконця при вводі
-    textArea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    // 2. Циклічні фрази (Питання є? / Питань нема?)
-    const placeholderPhrases = ["Питання є?", "Питань нема?"];
-    let phraseIndex = 0;
-    setInterval(() => {
-        if (textArea.value.trim() === "") {
-            phraseIndex = (phraseIndex + 1) % placeholderPhrases.length;
-            textArea.placeholder = placeholderPhrases[phraseIndex];
-        }
-    }, 30000);
-
-    // 3. Функція озвучки (On/Off)
-    function toggleSpeech(text) {
-        if (isSpeaking) {
-            synth.cancel();
-            isSpeaking = false;
-            if(voiceBtn) voiceBtn.innerText = "🔊 Слухати";
-        } else {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'uk-UA';
-            utterance.onend = () => {
-                isSpeaking = false;
-                if(voiceBtn) voiceBtn.innerText = "🔊 Слухати";
-            };
-            synth.speak(utterance);
-            isSpeaking = true;
-            if(voiceBtn) voiceBtn.innerText = "⏹ Зупинити";
-        }
+    // Функція зміни емоцій
+    function setEmotion(state) {
+        if (!banduraImg) return;
+        const emotions = {
+            'listening': 'bandura-listening.png',
+            'thinking': 'bandura-thinking.png',
+            'pointing': 'bandura-pointing.png',
+            'idle': 'bandura-idle.png'
+        };
+        banduraImg.src = emotions[state] || emotions['idle'];
     }
 
-    if(voiceBtn) {
-        voiceBtn.onclick = () => toggleSpeech(lastResultText);
-    }
-
-    // 4. Основна функція пошуку (Зв'язок з n8n)
+    // Функція пошуку
     async function performSearch() {
         const query = textArea.value.trim();
-        if (!query || query === "Шукаю..." || query === "Слухаю...") return;
+        if (!query || query.startsWith("Шукаю")) return;
 
-        // Статус: Шукаю
-        textArea.value = "Шукаю...";
+        setEmotion('thinking');
+        const userQuery = query; // зберігаємо чистий запит
+        textArea.value = `Шукаю ${userQuery.toLowerCase()}...`;
         
+        // Авто-розмір віконця
+        textArea.style.height = 'auto';
+        textArea.style.height = textArea.scrollHeight + 'px';
+
         try {
             const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ query: userQuery })
             });
 
-            if (!response.ok) throw new Error('Помилка сервера');
-
             const data = await response.json();
-            lastResultText = data.output || "Вибачте, нічого не знайшла.";
+            lastResult = data.output || "Нічого не знайшла...";
 
-            // Статус: Знайшла + Стрибок
             textArea.value = "Знайшла!";
-            banduraContainer.classList.add('jump-animation');
+            setEmotion('pointing');
+            container.classList.add('jump-animation');
 
             setTimeout(() => {
-                banduraContainer.classList.remove('jump-animation');
-                // Відкриваємо модалку з результатом
-                modalText.innerText = lastResultText;
-                modal.style.display = 'flex';
+                container.classList.remove('jump-animation');
+                modalText.innerText = lastResult;
+                modal.style.display = 'flex'; // ПОКАЗУЄМО ВІКНО
+                
+                setTimeout(() => {
+                    setEmotion('idle');
+                    textArea.value = "";
+                    textArea.style.height = 'auto';
+                }, 3000);
             }, 2000);
 
-        } catch (error) {
-            console.error("Помилка:", error);
-            textArea.value = "Ой, помилка зв'язку...";
-            setTimeout(() => { textArea.value = ""; }, 3000);
+        } catch (e) {
+            textArea.value = "Помилка мережі";
+            setEmotion('idle');
         }
     }
 
-    searchBtn.addEventListener('click', performSearch);
-    
-    // Пошук по Enter
-    textArea.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            performSearch();
-        }
-    });
-
-    // 5. Голосове введення
+    // Мікрофон
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'uk-UA';
 
-        micBtn.onclick = () => {
+        document.getElementById('btn-mic').onclick = () => {
             recognition.start();
+            setEmotion('listening');
             textArea.value = "Слухаю...";
-            micBtn.classList.add('mic-active');
         };
 
         recognition.onresult = (event) => {
             textArea.value = event.results[0][0].transcript;
             performSearch();
         };
-
-        recognition.onend = () => {
-            micBtn.classList.remove('mic-active');
-        };
+        
+        recognition.onend = () => { if(textArea.value === "Слухаю...") setEmotion('idle'); };
     }
+
+    // Кнопка пошуку (лупа)
+    document.getElementById('btn-search').onclick = performSearch;
 
     // Закриття модалки
-    if(closeModal) {
-        closeModal.onclick = () => {
-            modal.style.display = 'none';
-            synth.cancel(); // Зупиняємо голос при закритті
+    document.querySelector('.close-modal').onclick = () => {
+        modal.style.display = 'none';
+        window.speechSynthesis.cancel();
+    };
+
+    // Озвучка (Toggle)
+    voiceBtn.onclick = () => {
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
             isSpeaking = false;
-            if(voiceBtn) voiceBtn.innerText = "🔊 Слухати";
-        };
-    }
+            voiceBtn.innerText = "🔊 Слухати";
+        } else {
+            const ut = new SpeechSynthesisUtterance(lastResult);
+            ut.lang = 'uk-UA';
+            ut.onend = () => { isSpeaking = false; voiceBtn.innerText = "🔊 Слухати"; };
+            window.speechSynthesis.speak(ut);
+            isSpeaking = true;
+            voiceBtn.innerText = "⏹ Зупинити";
+        }
+    };
 });
-
-// Функція для зміни картинки
-function setBanduraEmotion(state) {
-    const img = document.getElementById('bandura-image');
-    if (!img) return;
-
-    switch(state) {
-        case 'listening': img.src = 'bandura-listening.png'; break;
-        case 'thinking':  img.src = 'bandura-thinking.png'; break;
-        case 'pointing':  img.src = 'bandura-pointing.png'; break;
-        default:          img.src = 'bandura-idle.png'; break;
-    }
-}
-
-async function performSearch() {
-    const query = textArea.value.trim();
-    if (!query || query === "Шукаю...") return;
-
-    const loader = document.getElementById('bandura-loader');
-    
-    // СТАН: ДУМАЄ
-    setBanduraEmotion('thinking');
-    textArea.style.display = 'none';
-    loader.style.display = 'block';
-    
-    try {
-        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query })
-        });
-
-        const data = await response.json();
-        lastResultText = data.output || "Нічого не знайшла...";
-
-        // СТАН: ЗНАЙШЛА (ВКАЗУЄ ПАЛЬЦЕМ)
-        loader.style.display = 'none';
-        textArea.style.display = 'block';
-        textArea.value = "Знайшла!";
-        setBanduraEmotion('pointing');
-        
-        // Розтягуємо віконце
-        textArea.style.height = 'auto';
-        textArea.style.height = textArea.scrollHeight + 'px';
-
-        // Стрибок
-        document.getElementById('bandura-container').classList.add('jump-animation');
-
-        setTimeout(() => {
-            document.getElementById('bandura-container').classList.remove('jump-animation');
-            modalText.innerText = lastResultText;
-            modal.style.display = 'flex';
-            
-            // Повертаємо у звичайний стан через 3 секунди
-            setTimeout(() => { 
-                setBanduraEmotion('idle');
-                textArea.value = ""; 
-                textArea.style.height = 'auto';
-            }, 3000);
-        }, 2000);
-
-    } catch (error) {
-        setBanduraEmotion('idle');
-        loader.style.display = 'none';
-        textArea.style.display = 'block';
-        textArea.value = "Помилка зв'язку";
-    }
-}
-
-// Логіка мікрофона зі зміною емоції
-if (SpeechRecognition) {
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'uk-UA';
-
-    micBtn.onclick = () => {
-        recognition.start();
-        setBanduraEmotion('listening'); // СТАН: СЛУХАЄ
-        textArea.value = "Слухаю...";
-        micBtn.classList.add('mic-active');
-    };
-
-    recognition.onresult = (event) => {
-        textArea.value = event.results[0][0].transcript;
-        textArea.style.height = 'auto';
-        textArea.style.height = textArea.scrollHeight + 'px';
-        performSearch();
-    };
-
-    recognition.onend = () => {
-        micBtn.classList.remove('mic-active');
-    };
-}
-
-async function performSearch() {
-    const originalQuery = textArea.value.trim();
-    // Перевіряємо, щоб не шукати порожнечу або вже існуючі статуси
-    if (!originalQuery || originalQuery.startsWith("Шукаю") || originalQuery === "Слухаю...") return;
-
-    const loader = document.getElementById('bandura-loader');
-    
-    // СТАН: ДУМАЄ
-    setBanduraEmotion('thinking');
-    
-    // ПІДСТАВЛЯЄМО ВАШ ТЕКСТ: "Шукаю [ваше питання]..."
-    textArea.value = `Шукаю ${originalQuery.toLowerCase()}...`;
-    
-    // Розтягуємо віконце під новий довгий текст
-    textArea.style.height = 'auto';
-    textArea.style.height = textArea.scrollHeight + 'px';
-
-    try {
-        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: originalQuery })
-        });
-
-        if (!response.ok) throw new Error('Сервер не відповідає');
-
-        const data = await response.json();
-        lastResultText = data.output || "Вибачте, нічого не знайшла по цьому запиту.";
-
-        // СТАН: ЗНАЙШЛА
-        textArea.value = "Знайшла!";
-        setBanduraEmotion('pointing');
-        
-        // Стрибок
-        const container = document.getElementById('bandura-container');
-        container.classList.add('jump-animation');
-
-        setTimeout(() => {
-            container.classList.remove('jump-animation');
-            
-            // ВИКЛИК МОДАЛЬНОГО ВІКНА
-            const modal = document.getElementById('result-modal');
-            if (modal) {
-                const modalContent = document.getElementById('modal-text');
-                modalContent.innerText = lastResultText;
-                
-                // Примусово робимо видимим
-                modal.style.display = 'flex';
-                modal.style.opacity = '1';
-                modal.style.visibility = 'visible';
-            } else {
-                console.error("Помилка: Елемент 'result-modal' не знайдено в HTML!");
-            }
-
-            // Повертаємо Бандуру в спокій через 3 секунди
-            setTimeout(() => { 
-                setBanduraEmotion('idle');
-                textArea.value = ""; 
-                textArea.style.height = 'auto';
-            }, 3000);
-        }, 2000);
-
-    } catch (error) {
-        console.error("Помилка пошуку:", error);
-        setBanduraEmotion('idle');
-        textArea.value = "Ой, технічна помилка...";
-    }
-}
