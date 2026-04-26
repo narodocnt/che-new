@@ -745,3 +745,110 @@ body.modal-open {
     #bandura-text-field { font-size: 12px; }
     .bandura-bar-avatar img { height: 35px; }
 }
+
+#bandura-bar-final {
+    width: 100%;
+    background: #fff;
+    border-bottom: 2px solid #ffd700; /* Золота лінія */
+    padding: 8px 20px;
+    position: sticky;
+    top: 0; 
+    z-index: 999;
+    font-family: inherit;
+}
+
+.bar-flex-container {
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 20px;
+}
+
+/* СМУЖКА ПОШУКУ */
+.search-line-wrapper {
+    flex-grow: 1; /* Займає весь вільний простір */
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 25px; /* Заокруглена */
+    background: #fdfdfd;
+    padding-right: 5px; /* Місце для кнопок */
+    transition: box-shadow 0.2s;
+}
+
+.search-line-wrapper:focus-within {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+}
+
+#bandura-text-field {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    padding: 10px 15px;
+    font-size: 15px;
+    background: transparent;
+    color: #333;
+}
+
+/* КНОПКИ */
+.bar-action-btns {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn-red {
+    background: #fff;
+    border: 1px solid #ff4d4d; /* Червона рамка */
+    border-radius: 6px;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #ff4d4d;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn-red:hover {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+/* БАНДУРА ОКРЕМО */
+.bandura-standalone-avatar {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#bandura-image {
+    height: 100%;
+    width: auto;
+    transition: transform 0.3s;
+}
+
+/* Стрибок для окремої Бандури */
+@keyframes jump-bar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.jump-bar-animation {
+    animation: jump-bar 0.5s ease-in-out 4;
+}
+
+/* МОБІЛЬНА ВЕРСІЯ - kompaktnishe */
+@media (max-width: 600px) {
+    #bandura-bar-final { padding: 5px 10px; }
+    .bar-flex-container { gap: 10px; }
+    .bandura-standalone-avatar { width: 40px; height: 40px; }
+    #bandura-text-field { font-size: 13px; padding: 8px; }
+}
+
