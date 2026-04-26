@@ -667,11 +667,10 @@ body.modal-open {
 
 #bandura-horizontal-bar {
     width: 100%;
-    background: #fff;
+    background: #ffffff;
     border-bottom: 2px solid #ffd700;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 5px 15px;
-    position: sticky; /* Панель буде "литись" під меню при скролі */
+    padding: 6px 15px;
+    position: sticky;
     top: 0; 
     z-index: 999;
 }
@@ -681,13 +680,12 @@ body.modal-open {
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
-    gap: 15px;
+    gap: 12px;
 }
 
 .bandura-bar-avatar img {
-    height: 45px; /* Маленька акуратна Бандура */
+    height: 40px; /* Маленька іконка Бандури */
     width: auto;
-    transition: transform 0.3s;
 }
 
 .bandura-bar-input-wrapper {
@@ -699,46 +697,47 @@ body.modal-open {
 
 #bandura-text-field {
     width: 100%;
-    border: 1px solid #eee;
+    border: 1px solid #ddd;
     border-radius: 20px;
-    padding: 8px 15px;
+    padding: 6px 15px;
     font-size: 14px;
-    background: #f9f9f9;
-    color: #333;
+    background: #fdfdfd;
     outline: none;
 }
 
 .bandura-bar-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
-.bar-btn {
+/* Червоні кнопки як на вашому малюнку */
+.bar-btn-red {
     background: white;
-    border: 1px solid #ffd700;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
+    border: 2px solid #ff4d4d; /* Червоний колір */
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
-    font-size: 16px;
-    transition: 0.2s;
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: 0.2s;
 }
 
-.bar-btn:hover {
-    background: #ffd700;
-    transform: scale(1.1);
+.bar-btn-red:hover {
+    background: #ff4d4d;
+    color: white;
 }
 
-/* Анімація крапочок всередині панелі */
+/* Анімація крапок */
 #bandura-bar-loader {
     position: absolute;
-    right: 15px;
-    font-size: 20px;
+    right: 12px;
+    font-weight: bold;
     color: #ffd700;
 }
+
 
 /* Для мобільних - робимо ще компактніше */
 @media (max-width: 600px) {
