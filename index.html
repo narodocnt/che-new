@@ -75,23 +75,6 @@
         </div>
     </div>
 
-<div id="bandura-horizontal-bar">
-    <div class="bandura-bar-content">
-        <div class="bandura-bar-avatar">
-            <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
-        </div>
-        
-        <div class="bandura-bar-input-wrapper">
-            <input type="text" id="bandura-text-field" readonly placeholder="Питання є?">
-            <div id="bandura-bar-loader" style="display: none;"><span>.</span><span>.</span><span>.</span></div>
-        </div>
-
-        <div class="bandura-bar-actions">
-            <button id="btn-mic" class="bar-btn-red" title="Голосовий пошук">🎤</button>
-            <button id="btn-search" class="bar-btn-red" title="Пошук">🔍</button>
-        </div>
-    </div>
-</div>
 
 
     <a href="#map-section" class="nav-btn">КУЛЬТУРНА МАПА</a>
@@ -115,6 +98,26 @@
         </div>
     </div>
 </nav>
+
+<div id="bandura-bar-final">
+    <div class="bar-flex-container">
+        
+        <div class="search-line-wrapper">
+            <input type="text" id="bandura-text-field" placeholder="Питання є?">
+            
+            <div class="bar-action-btns">
+                <button id="btn-mic" class="action-btn-red" title="Голосовий пошук">🎤</button>
+                <button id="btn-search" class="action-btn-red" title="Шукати">🔍</button>
+            </div>
+        </div>
+
+        <div class="bandura-standalone-avatar">
+            <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
+        </div>
+
+    </div>
+</div>
+
 
 <div id="ruta-results-section" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; margin: 30px auto; padding: 20px; background: #f9f9f9; border-radius: 20px;">
     <div style="flex: 1; min-width: 300px; max-width: 500px;">
@@ -267,17 +270,7 @@
 <script src="bitva-ranking.js"></script>
 <script src="map-bitva.js"></script>
 <script src="carousel-engine.js?v=1.1"></script>
-<div id="bandura-container">
-
-  <div id="bandura-container">
-    <div id="bandura-smart-bubble">
-        <textarea id="bandura-text-area" placeholder="Питання є?"></textarea>
-        <div class="bubble-tail"></div>
-    </div>
-    
-    <div id="bandura-container">
-    <div id="bandura-smart-bubble">
-        <textarea id="bandura-text-area" readonly placeholder="Питання є?"></textarea>
+< id="bandura-text-area" readonly placeholder="Питання є?"></textarea>
         <div class="bandura-controls-row">
             <button id="btn-mic" title="Говорити">🎤</button>
             <button id="btn-search" title="Шукати">🔍</button>
@@ -285,10 +278,6 @@
         <div class="bubble-tail"></div>
     </div>
     
-    <div id="bandura-wrapper">
-        <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
-    </div>
-</div>
 
    
 </body>
