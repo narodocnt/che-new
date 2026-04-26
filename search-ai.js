@@ -142,3 +142,83 @@ window.onclick = function(event) {
 // Оновіть вашу функцію performSearch, щоб вона використовувала openModal:
 // Замість modal.style.display = 'flex'; напишіть:
 // openModal(lastResultText);
+document.addEventListener('DOMContentLoaded', () => {
+    const barTextField = document.getElementById('bandura-text-field');
+    const banduraImg = document.getElementById('bandura-image');
+    const loader = document.getElementById('bandura-bar-loader');
+    
+    // Фрази-заглушки
+    const idlePhrases = ["Питання є?", "Хто шукає, той находить!"];
+    let phraseIdx = 0;
+    setInterval(() => {
+        if (!barTextField.value || idlePhrases.includes(barTextField.value)) {
+            phraseIdx = (phraseIdx + 1) % idlePhrases.length;
+            barTextField.placeholder = idlePhrases[phraseIdx];
+            barTextField.value = ""; // очищаємо, щоб було видно placeholder
+        }
+    }, 10000);
+
+    async function performSearch(query) {
+        if (!query) return;
+
+        // Зміна емоції на "думає"
+        banduraImg.src = 'bandura-thinking.png';
+        barTextField.value = `Шукаю ${query.toLowerCase()}...`;
+        loader.style.display = 'block';
+
+        try {
+            const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+
+            const data = await response.json();
+            
+            // Стан "Знайшла"
+            banduraImg.src = 'bandura-pointing.png';
+            barTextField.value = "Знайшла!";
+            loader.style.display = 'none';
+
+            // Відкриваємо ваше модальне вікно (воно вже налаштоване)
+            setTimeout(() => {
+                openModal(data.output || "Нічого не знайдено");
+                // Повернення до норми
+                setTimeout(() => {
+                    banduraImg.src = 'bandura-idle.png';
+                    barTextField.value = "";
+                }, 3000);
+            }, 1000);
+
+        } catch (e) {
+            barTextField.value = "Помилка зв'язку...";
+            banduraImg.src = 'bandura-idle.png';
+            loader.style.display = 'none';
+        }
+    }
+
+    // Мікрофон
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'uk-UA';
+
+        document.getElementById('btn-mic').onclick = () => {
+            recognition.start();
+            banduraImg.src = 'bandura-listening.png';
+            barTextField.value = "Слухаю...";
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            performSearch(transcript); // Відправляємо розпізнаний текст у пошук
+        };
+    }
+
+    // Кнопка лупи
+    document.getElementById('btn-search').onclick = () => {
+        // Якщо користувач вписав щось вручну (якщо прибрати readonly) або просто клікнув
+        const q = barTextField.value;
+        if (q && q !== "Слухаю...") performSearch(q);
+    };
+});
