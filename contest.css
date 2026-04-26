@@ -426,13 +426,11 @@ nav.main-nav {
 #bandura-bar-final {
     width: 100%;
     background: #ffffff;
-    border-bottom: 2px solid #ffd700; /* Золота лінія */
-    padding: 8px 20px;
+    border-bottom: 2px solid #ffd700;
+    padding: 10px 20px;
     position: sticky;
     top: 0; 
     z-index: 1000;
-    font-family: inherit;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .bar-flex-container {
@@ -440,184 +438,76 @@ nav.main-nav {
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
-    gap: 20px;
+    gap: 15px;
 }
 
-/* 2. СМУЖКА ПОШУКУ */
 .search-line-wrapper {
     flex-grow: 1;
-    position: relative;
     display: flex;
     align-items: center;
-    border: 1px solid #ddd;
-    border-radius: 25px;
+    border: 2px solid #ddd;
+    border-radius: 30px;
     background: #fdfdfd;
-    padding-right: 5px;
-    transition: all 0.2s ease;
-}
-
-.search-line-wrapper:focus-within {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    border-color: #ffd700;
+    padding: 5px 15px;
 }
 
 #bandura-text-field {
     flex-grow: 1;
     border: none;
     outline: none;
-    padding: 10px 15px;
-    font-size: 15px;
     background: transparent;
-    color: #333;
+    font-size: 16px;
+    padding: 8px;
 }
 
-/* 3. КНОПКИ ДІЙ (Червоні) */
 .bar-action-btns {
     display: flex;
-    gap: 8px;
+    gap: 10px;
 }
 
 .action-btn-red {
-    background: #fff;
-    border: 1px solid #ff4d4d;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    background: white;
+    border: 2px solid #ff4d4d;
+    border-radius: 10px;
+    width: 38px;
+    height: 38px;
     cursor: pointer;
     font-size: 18px;
-    color: #ff4d4d;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    transition: 0.2s;
 }
 
 .action-btn-red:hover {
     background: #ff4d4d;
-    color: #fff;
-    transform: scale(1.05);
+    color: white;
 }
 
-/* 4. БАНДУРА (Аватар) */
+/* Бандура праворуч, втричі менша за ту, що розтягнулася */
 .bandura-standalone-avatar {
-    width: 50px;
-    height: 50px;
+    width: 80px; /* Оптимальний розмір */
+    height: 80px;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #bandura-image {
+    width: 100%;
     height: 100%;
-    width: auto;
     object-fit: contain;
 }
 
-/* 5. МОДАЛЬНЕ ВІКНО (Результати) */
-#result-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    display: none; /* Керується JS */
-    justify-content: center;
-    align-items: center;
-    z-index: 999999;
-}
-
-body.modal-open {
-    overflow: hidden; /* Блокуємо скрол сайту */
-}
-
-.modal-content {
-    background: white;
-    width: 90%;
-    max-width: 700px;
-    max-height: 85vh;
-    border-radius: 25px;
-    border: 3px solid #ffd700;
-    padding: 35px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-    text-align: center;
-}
-
-.modal-scroll-area {
-    overflow-y: auto;
-    margin: 20px 0;
-    padding-right: 15px;
-    text-align: left;
-    font-size: 17px;
-    line-height: 1.6;
-    color: #333;
-}
-
-/* Кастомний скролл */
-.modal-scroll-area::-webkit-scrollbar {
-    width: 6px;
-}
-.modal-scroll-area::-webkit-scrollbar-thumb {
-    background: #ffd700;
-    border-radius: 10px;
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 30px;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.2s;
-}
-.close-modal:hover { color: #ff4d4d; }
-
-#btn-voice {
-    align-self: center;
-    padding: 12px 30px;
-    background: #ffd700;
-    border: none;
-    border-radius: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-#btn-voice:hover {
-    background: #e6c200;
-    transform: translateY(-2px);
-}
-
-/* 6. АНІМАЦІЇ */
-@keyframes jump-bar {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
-}
-
+/* Анімація стрибка */
 .jump-bar-animation {
     animation: jump-bar 0.5s ease-in-out 3;
 }
-
-#bandura-bar-loader {
-    position: absolute;
-    right: 100px; /* Поруч із кнопками */
-    font-weight: bold;
-    color: #ffd700;
-    font-size: 12px;
+@keyframes jump-bar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
 }
 
-/* 7. АДАПТИВНІСТЬ */
+/* Мобільна версія */
 @media (max-width: 600px) {
-    #bandura-bar-final { padding: 5px 10px; }
-    .bar-flex-container { gap: 10px; }
-    .bandura-standalone-avatar { width: 45px; height: 45px; }
-    #bandura-text-field { font-size: 14px; padding: 8px 10px; }
-    .action-btn-red { width: 32px; height: 32px; font-size: 14px; }
-    .modal-content { padding: 25px 15px; }
+    .bandura-standalone-avatar { width: 60px; height: 60px; }
+    #bandura-text-field { font-size: 14px; }
 }
