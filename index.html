@@ -271,14 +271,20 @@
     </div>
 </div>
 
-<div id="result-modal" class="modal-overlay">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <div class="modal-scroll-area">
-            <div id="modal-text">Тут буде результат...</div>
+<div id="bandura-horizontal-bar">
+    <div class="bandura-bar-content">
+        <div class="bandura-bar-avatar">
+            <img src="bandura-idle.png" id="bandura-image" alt="Бандура">
         </div>
-        <div class="modal-footer">
-            <button id="btn-voice">🔊 Слухати повністю</button>
+        
+        <div class="bandura-bar-input-wrapper">
+            <input type="text" id="bandura-text-field" readonly placeholder="Питання є?">
+            <div id="bandura-bar-loader" style="display: none;"><span>.</span><span>.</span><span>.</span></div>
+        </div>
+
+        <div class="bandura-bar-actions">
+            <button id="btn-mic" class="bar-btn" title="Говорити">🎤</button>
+            <button id="btn-search" class="bar-btn" title="Шукати">🔍</button>
         </div>
     </div>
 </div>
