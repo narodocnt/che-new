@@ -93,3 +93,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+// --- ФУНКЦІЇ ДЛЯ МЕНЮ (Колективи) ---
+
+// 1. Функція відкриття/закриття випадаючого списку
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    if (dropdown) {
+        // Закриваємо інші відкриті меню, якщо вони є
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            if (content.id !== id) content.style.display = 'none';
+        });
+        
+        // Перемикаємо поточне
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+    }
+}
+
+// 2. Функція фільтрації (те, що ви просили повернути)
+function filterCollectives(category) {
+    console.log("Вибрано категорію з меню:", category);
+    
+    // Закриваємо меню після кліку
+    const menu = document.getElementById('collectivesMenu');
+    if (menu) menu.style.display = 'none';
+
+    // Отримуємо поле пошуку
+    const textField = document.getElementById('bandura-text-field');
+    
+    if (textField) {
+        // Створюємо зрозумілий запит для ШІ залежно від вибору
+        const queries = {
+            'vocal': 'Вокальні колективи',
+            'instrumental': 'Інструментальні колективи',
+            'choreographic': 'Хореографічні колективи',
+            'theatrical': 'Театральні колективи'
+        };
+
+        const searchQuery = queries[category] || category;
+        textField.value = searchQuery;
+
+        // Автоматично запускаємо пошук Бандурою
+        if (typeof performSearch === 'function') {
+            performSearch(searchQuery);
+        }
+    }
+}
+
+// Закриття меню, якщо клікнули в іншому місці сайту
+window.addEventListener('click', function(e) {
+    if (!e.target.matches('.dropdown-toggle')) {
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            content.style.display = 'none';
+        });
+    }
+});
