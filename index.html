@@ -102,10 +102,10 @@
 <div id="bandura-bar-final">
     <div class="bar-flex-container">
         <div class="search-line-wrapper">
-            <input type="text" id="bandura-text-field" placeholder="Питання є?">
+            <input type="text" id="bandura-text-field" placeholder="Питання є?" autocomplete="off">
             <div class="bar-action-btns">
-                <button id="btn-mic" class="action-btn-red">🎤</button>
-                <button id="btn-search" class="action-btn-red">🔍</button>
+                <button type="button" id="btn-mic" class="action-btn-red">🎤</button>
+                <button type="button" id="btn-search" class="action-btn-red">🔍</button>
             </div>
         </div>
         <div class="bandura-standalone-avatar">
@@ -116,9 +116,9 @@
 
 <div id="result-modal" style="display: none;">
     <div class="modal-content">
-        <span class="close-modal">&times;</span>
+        <span class="close-modal" id="modal-close-btn">&times;</span>
         <div class="modal-scroll-area">
-            <div id="modal-text">Тут буде відповідь...</div>
+            <div id="modal-text">Чекайте на відповідь...</div>
         </div>
         <button id="btn-voice">🔊 Слухати повністю</button>
     </div>
