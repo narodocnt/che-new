@@ -3,48 +3,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const banduraImg = document.getElementById('bandura-image');
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
+    const banduraWrapper = document.querySelector('.bandura-standalone-avatar');
 
-    async function performSearch(query) {
-        if (!query || query.length < 2) return;
+    let lastResult = "";
 
+    // 1. Функція пошуку
+    async function performSearch() {
+        const query = textField.value.trim();
+        if (!query || query === "Шукаю..." || query === "Слухаю...") return;
+
+        console.log("Запуск пошуку для:", query);
         banduraImg.src = 'bandura-thinking.png';
+        const originalText = textField.value;
         textField.value = "Шукаю...";
 
         try {
             const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
                 method: 'POST',
-                mode: 'cors', // Додано примусовий CORS режим
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: query })
             });
 
-            if (!response.ok) throw new Error('CORS or Server Error');
-
             const data = await response.json();
-            const result = data.text || data.output || "Відповідь не знайдена";
-
-            banduraImg.src = 'bandura-pointing.png';
+            const result = data.text || data.output || "Вибачте, сталася помилка при отриманні відповіді.";
             
+            lastResult = result;
+            banduraImg.src = 'bandura-pointing.png';
+            if (banduraWrapper) banduraWrapper.classList.add('jump-bar-animation');
+
             setTimeout(() => {
                 modalText.innerText = result;
                 modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                document.body.classList.add('modal-open');
                 banduraImg.src = 'bandura-idle.png';
                 textField.value = "";
-            }, 800);
+                if (banduraWrapper) banduraWrapper.classList.remove('jump-bar-animation');
+            }, 1000);
 
         } catch (error) {
-            console.error(error);
+            console.error("Помилка:", error);
+            textField.value = "Помилка зв'язку";
             banduraImg.src = 'bandura-idle.png';
-            textField.value = "Помилка доступу (CORS)";
+            setTimeout(() => { textField.value = ""; }, 2000);
         }
     }
 
-    document.getElementById('btn-search').onclick = () => performSearch(textField.value.trim());
-    
-    document.querySelector('.close-modal').onclick = () => {
+    // 2. Обробка натискань
+    document.getElementById('btn-search').addEventListener('click', (e) => {
+        e.preventDefault();
+        performSearch();
+    });
+
+    textField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+
+    // 3. Мікрофон
+    const micBtn = document.getElementById('btn-mic');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (micBtn && SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'uk-UA';
+        micBtn.onclick = () => {
+            recognition.start();
+            banduraImg.src = 'bandura-listening.png';
+            textField.value = "Слухаю...";
+        };
+        recognition.onresult = (e) => {
+            textField.value = e.results[0][0].transcript;
+            performSearch();
+        };
+    }
+
+    // 4. Закриття модалки
+    document.getElementById('modal-close-btn').onclick = () => {
         modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        document.body.classList.remove('modal-open');
         window.speechSynthesis.cancel();
+    };
+
+    window.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            window.speechSynthesis.cancel();
+        }
     };
 });
