@@ -508,3 +508,20 @@ body.modal-open { overflow: hidden; }
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
 }
+/* Переконайтеся, що модалка повністю прихована, коли display: none */
+#result-modal {
+    display: none; 
+    position: fixed;
+    z-index: 99999; /* Дуже високий пріоритет ТІЛЬКИ при відкритті */
+}
+
+/* Поле вводу має бути доступним */
+#bandura-text-field {
+    position: relative;
+    z-index: 10;
+    cursor: text !important;
+}
+
+.search-line-wrapper {
+    cursor: text;
+}
