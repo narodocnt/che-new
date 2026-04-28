@@ -1,11 +1,9 @@
 // Вставте сюди посилання, яке ви щойно скопіювали (CSV)
 // const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGW5Qf1YBD0b2T0JQy-N3Wb63RWZlkSK_blVTcF5FK8-ODb_CQAV9IqIudEyMsZp8jE_g2Gd5AUC17/pub?gid=1813409784&single=true&output=csv';
-
-
-async function initCarousconst SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGW5Qf1YBD0b2T0JQy-N3Wb63RWZlkSK_blVTcF5FK8-ODb_CQAV9IqIudEyMsZp8jE_g2Gd5AUC17/pub?gid=1813409784&single=true&output=csv';
+// Вставте сюди посилання (CSV) БЕЗ косих рисок на початку рядка
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGW5Qf1YBD0b2T0JQy-N3Wb63RWZlkSK_blVTcF5FK8-ODb_CQAV9IqIudEyMsZp8jE_g2Gd5AUC17/pub?gid=1813409784&single=true&output=csv';
 
 async function initCarousel() {
-    // ... решта кодуel() {
     try {
         const response = await fetch(SHEET_URL);
         const data = await response.text();
