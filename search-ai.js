@@ -3,148 +3,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const banduraImg = document.getElementById('bandura-image');
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
-    const banduraWrapper = document.querySelector('.bandura-standalone-avatar');
 
-    let lastResult = "";
+    async function performSearch(query) {
+        const searchText = query || textField.value.trim().toLowerCase();
+        if (!searchText || searchText.length < 2) return;
 
-    // 1. Функція пошуку
-    async function performSearch() {
-        const query = textField.value.trim();
-        if (!query || query === "Шукаю..." || query === "Слухаю...") return;
-
-        console.log("Запуск пошуку для:", query);
         banduraImg.src = 'bandura-thinking.png';
-        const originalText = textField.value;
-        textField.value = "Шукаю...";
+        textField.value = "Шукаю у базі...";
 
         try {
+            // Запит до n8n, який просто віддає дані з Google Таблиці
             const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ query: searchText })
             });
 
-            const data = await response.json();
-            const result = data.text || data.output || "Вибачте, сталася помилка при отриманні відповіді.";
+            const allCollectives = await response.json(); 
+            // Очікуємо, що n8n віддасть масив об'єктів з таблиці
             
-            lastResult = result;
-            banduraImg.src = 'bandura-pointing.png';
-            if (banduraWrapper) banduraWrapper.classList.add('jump-bar-animation');
+            // Фільтрація прямо в браузері (по прізвищу, громаді або жанру)
+            const results = allCollectives.filter(item => {
+                const content = Object.values(item).join(' ').toLowerCase();
+                return content.includes(searchText);
+            });
 
-            setTimeout(() => {
-                modalText.innerText = result;
-                modal.style.display = 'flex';
-                document.body.classList.add('modal-open');
-                banduraImg.src = 'bandura-idle.png';
-                textField.value = "";
-                if (banduraWrapper) banduraWrapper.classList.remove('jump-bar-animation');
-            }, 1000);
+            if (results.length > 0) {
+                renderResults(results, searchText);
+            } else {
+                showResultInModal("На жаль, за запитом '" + searchText + "' нічого не знайдено. Спробуйте змінити назву громади чи прізвище.");
+            }
 
         } catch (error) {
             console.error("Помилка:", error);
-            textField.value = "Помилка зв'язку";
+            textField.value = "Помилка зв'язку з таблицею";
             banduraImg.src = 'bandura-idle.png';
-            setTimeout(() => { textField.value = ""; }, 2000);
         }
     }
 
-    // 2. Обробка натискань
-    document.getElementById('btn-search').addEventListener('click', (e) => {
-        e.preventDefault();
-        performSearch();
-    });
-
-    textField.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            performSearch();
-        }
-    });
-
-    // 3. Мікрофон
-    const micBtn = document.getElementById('btn-mic');
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (micBtn && SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'uk-UA';
-        micBtn.onclick = () => {
-            recognition.start();
-            banduraImg.src = 'bandura-listening.png';
-            textField.value = "Слухаю...";
-        };
-        recognition.onresult = (e) => {
-            textField.value = e.results[0][0].transcript;
-            performSearch();
-        };
-    }
-
-    // 4. Закриття модалки
-    document.getElementById('modal-close-btn').onclick = () => {
-        modal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        window.speechSynthesis.cancel();
-    };
-
-    window.onclick = (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            window.speechSynthesis.cancel();
-        }
-    };
-});
-// --- ФУНКЦІЇ ДЛЯ МЕНЮ (Колективи) ---
-
-// 1. Функція відкриття/закриття випадаючого списку
-function toggleDropdown(id) {
-    const dropdown = document.getElementById(id);
-    if (dropdown) {
-        // Закриваємо інші відкриті меню, якщо вони є
-        document.querySelectorAll('.dropdown-content').forEach(content => {
-            if (content.id !== id) content.style.display = 'none';
-        });
+    function renderResults(data, query) {
+        banduraImg.src = 'bandura-pointing.png';
         
-        // Перемикаємо поточне
-        const isVisible = dropdown.style.display === 'block';
-        dropdown.style.display = isVisible ? 'none' : 'block';
-    }
-}
-
-// 2. Функція фільтрації (те, що ви просили повернути)
-function filterCollectives(category) {
-    console.log("Вибрано категорію з меню:", category);
-    
-    // Закриваємо меню після кліку
-    const menu = document.getElementById('collectivesMenu');
-    if (menu) menu.style.display = 'none';
-
-    // Отримуємо поле пошуку
-    const textField = document.getElementById('bandura-text-field');
-    
-    if (textField) {
-        // Створюємо зрозумілий запит для ШІ залежно від вибору
-        const queries = {
-            'vocal': 'Вокальні колективи',
-            'instrumental': 'Інструментальні колективи',
-            'choreographic': 'Хореографічні колективи',
-            'theatrical': 'Театральні колективи'
-        };
-
-        const searchQuery = queries[category] || category;
-        textField.value = searchQuery;
-
-        // Автоматично запускаємо пошук Бандурою
-        if (typeof performSearch === 'function') {
-            performSearch(searchQuery);
-        }
-    }
-}
-
-// Закриття меню, якщо клікнули в іншому місці сайту
-window.addEventListener('click', function(e) {
-    if (!e.target.matches('.dropdown-toggle')) {
-        document.querySelectorAll('.dropdown-content').forEach(content => {
-            content.style.display = 'none';
+        let html = `<h3>Знайдено колективів: ${data.length}</h3><ul>`;
+        data.forEach(col => {
+            // Тут вкажіть назви колонок з вашої Google Таблиці
+            const name = col['Назва колективу'] || col['назва'] || "Без назви";
+            const leader = col['Керівник'] || col['керівник'] || "";
+            const hromada = col['Громада'] || col['громада'] || "";
+            
+            html += `<li style="margin-bottom:15px;">
+                        <strong>${name}</strong><br>
+                        <span>📍 Громада: ${hromada}</span><br>
+                        <span>👤 Керівник: ${leader}</span>
+                     </li>`;
         });
+        html += `</ul>`;
+        
+        showResultInModal(html);
     }
+
+    function showResultInModal(content) {
+        modalText.innerHTML = content;
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        banduraImg.src = 'bandura-idle.png';
+        textField.value = "";
+    }
+
+    // Прив'язка до кнопок
+    document.getElementById('btn-search').onclick = () => performSearch();
+    textField.onkeypress = (e) => { if (e.key === 'Enter') performSearch(); };
+    
+    // Функція для меню (тепер вона працює з цією ж логікою)
+    window.filterCollectives = (category) => {
+        const genreMap = {
+            'vocal': 'вокально-хоровий',
+            'choreographic': 'хореографічний',
+            'instrumental': 'інструментальний',
+            'theatrical': 'театральний'
+        };
+        performSearch(genreMap[category] || category);
+    };
 });
