@@ -1,3 +1,5 @@
+window.SHEET_URL = "https://docs.google.com/spreadsheets/d/ВАШ_ID_ТАБЛИЦІ/gviz/tq?tqx=out:json";
+
 document.addEventListener('DOMContentLoaded', () => {
     const textField = document.getElementById('bandura-text-field');
     const banduraImg = document.getElementById('bandura-image');
@@ -5,46 +7,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalText = document.getElementById('modal-text');
 
     // ОСНОВНА ФУНКЦІЯ ПОШУКУ
-    async function performSearch(query) {
-        const searchText = (query || textField.value).trim().toLowerCase();
-        if (searchText.length < 2) return;
+   async function performSearch(query) {
+    const searchText = (query || textField.value).trim().toLowerCase();
+    if (searchText.length < 2) return;
 
-        console.log("Шукаю:", searchText);
-        banduraImg.src = 'bandura-thinking.png';
-        textField.value = "Звертаюся до бази...";
+    banduraImg.src = 'bandura-thinking.png';
+    textField.value = "Шукаю у базі...";
 
-        try {
-            // Запит до n8n (важливо: n8n має повертати JSON масив рядків з таблиці)
-            const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: searchText })
-            });
+    try {
+        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchText })
+        });
 
-            if (!response.ok) throw new Error('Помилка сервера');
-
-            const data = await response.json(); 
-            // data має бути масивом об'єктів [{}, {}] з вашої таблиці
-
-            // ФІЛЬТРАЦІЯ (пошук по прізвищах, громадах, жанрах)
-            const filtered = data.filter(row => {
-                const combinedString = Object.values(row).join(' ').toLowerCase();
-                return combinedString.includes(searchText);
-            });
-
-            if (filtered.length > 0) {
-                displayResults(filtered);
-            } else {
-                showModal("Нічого не знайдено за запитом '" + searchText + "'. Перевірте прізвище або назву громади.");
-            }
-
-        } catch (error) {
-            console.error("CORS або Помилка мережі:", error);
-            textField.value = "Помилка зв'язку (CORS)";
-            banduraImg.src = 'bandura-idle.png';
+        // ПЕРЕВІРКА: чи не порожня відповідь?
+        const textData = await response.text(); 
+        if (!textData) {
+            throw new Error("Сервер n8n прислав порожню відповідь. Перевірте вузол 'Respond to Webhook'");
         }
-    }
 
+        const data = JSON.parse(textData); 
+        
+        // Фільтрація (якщо n8n присилає весь список)
+        const filtered = data.filter(row => {
+            return Object.values(row).some(val => 
+                String(val).toLowerCase().includes(searchText)
+            );
+        });
+
+        if (filtered.length > 0) {
+            displayResults(filtered);
+        } else {
+            showModal(`За запитом "${searchText}" нічого не знайдено.`);
+        }
+
+    } catch (error) {
+        console.error("Помилка:", error);
+        textField.value = "Помилка бази";
+        banduraImg.src = 'bandura-idle.png';
+        // Показуємо модалку навіть при помилці, щоб ви бачили, що вона працює
+        showModal("Сталася помилка при пошуку. Спробуйте ще раз пізніше.");
+    }
+}
+    
     function displayResults(items) {
         banduraImg.src = 'bandura-pointing.png';
         let content = `<h3>Знайдено колективів: ${items.length}</h3><hr>`;
@@ -91,3 +97,29 @@ document.addEventListener('DOMContentLoaded', () => {
         performSearch(types[type] || type);
     };
 });
+
+const micBtn = document.getElementById('btn-mic');
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (micBtn && SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'uk-UA';
+
+    micBtn.onclick = () => {
+        try {
+            recognition.start();
+            banduraImg.src = 'bandura-listening.png';
+            textField.value = "Слухаю вас...";
+        } catch (e) { console.error("Мікрофон вже працює"); }
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        textField.value = transcript;
+        performSearch(transcript); // Відразу шукаємо
+    };
+
+    recognition.onend = () => {
+        if (banduraImg.src.includes('listening')) banduraImg.src = 'bandura-idle.png';
+    };
+}
