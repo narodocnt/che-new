@@ -1,68 +1,85 @@
-window.SHEET_URL = "https://docs.google.com/spreadsheets/d/ВАШ_ID_ТАБЛИЦІ/gviz/tq?tqx=out:json";
+// 1. Оголошуємо глобальну назву функції, щоб вона була доступна всюди
+window.performSearch = null; 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Елементи DOM
     const textField = document.getElementById('bandura-text-field');
     const banduraImg = document.getElementById('bandura-image');
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
+    const micBtn = document.getElementById('btn-mic');
+
+    // ФУНКЦІЯ ЗАКРИТТЯ МОДАЛКИ (додайте, якщо її немає)
+    const closeModal = () => {
+        if (modal) modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+
+    // ФУНКЦІЯ ПОКАЗУ МОДАЛКИ
+    const showModal = (html) => {
+        if (!modal || !modalText) return;
+        modalText.innerHTML = html;
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        if (banduraImg) banduraImg.src = 'bandura-idle.png';
+        if (textField) textField.value = "";
+    };
 
     // ОСНОВНА ФУНКЦІЯ ПОШУКУ
-   async function performSearch(query) {
-    const searchText = (query || textField.value).trim().toLowerCase();
-    if (searchText.length < 2) return;
+    window.performSearch = async function(query) {
+        const searchText = (query || textField.value).trim().toLowerCase();
+        if (searchText.length < 2) return;
 
-    banduraImg.src = 'bandura-thinking.png';
-    textField.value = "Шукаю у базі...";
+        if (banduraImg) banduraImg.src = 'bandura-thinking.png';
+        if (textField) textField.value = "Шукаю у базі...";
 
-    try {
-        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: searchText })
-        });
+        try {
+            const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: searchText })
+            });
 
-        // ПЕРЕВІРКА: чи не порожня відповідь?
-        const textData = await response.text(); 
-        if (!textData) {
-            throw new Error("Сервер n8n прислав порожню відповідь. Перевірте вузол 'Respond to Webhook'");
+            const textData = await response.text(); 
+            if (!textData || textData.trim() === "") {
+                throw new Error("Сервер n8n прислав порожню відповідь.");
+            }
+
+            const data = JSON.parse(textData); 
+            
+            // Якщо n8n вже прислав відфільтровані дані, використовуємо їх, 
+            // якщо ні — фільтруємо на місці (залежить від вашого workflow в n8n)
+            const filtered = Array.isArray(data) ? data.filter(row => {
+                return Object.values(row).some(val => 
+                    String(val).toLowerCase().includes(searchText)
+                );
+            }) : [];
+
+            if (filtered.length > 0) {
+                displayResults(filtered);
+            } else {
+                showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
+            }
+
+        } catch (error) {
+            console.error("Помилка:", error);
+            if (textField) textField.value = "Помилка бази";
+            if (banduraImg) banduraImg.src = 'bandura-idle.png';
+            showModal("Сталася помилка при зверненні до бази. Перевірте з'єднання або вузол Respond to Webhook в n8n.");
         }
+    };
 
-        const data = JSON.parse(textData); 
-        
-        // Фільтрація (якщо n8n присилає весь список)
-        const filtered = data.filter(row => {
-            return Object.values(row).some(val => 
-                String(val).toLowerCase().includes(searchText)
-            );
-        });
-
-        if (filtered.length > 0) {
-            displayResults(filtered);
-        } else {
-            showModal(`За запитом "${searchText}" нічого не знайдено.`);
-        }
-
-    } catch (error) {
-        console.error("Помилка:", error);
-        textField.value = "Помилка бази";
-        banduraImg.src = 'bandura-idle.png';
-        // Показуємо модалку навіть при помилці, щоб ви бачили, що вона працює
-        showModal("Сталася помилка при пошуку. Спробуйте ще раз пізніше.");
-    }
-}
-    
     function displayResults(items) {
-        banduraImg.src = 'bandura-pointing.png';
+        if (banduraImg) banduraImg.src = 'bandura-pointing.png';
         let content = `<h3>Знайдено колективів: ${items.length}</h3><hr>`;
         
         items.forEach(item => {
-            // Використовуйте назви стовпчиків з вашої таблиці
             const name = item['назва'] || item['Назва'] || "Без назви";
             const leader = item['керівник'] || item['Керівник'] || "Не вказано";
             const hromada = item['громада'] || item['Громада'] || "";
 
             content += `
-                <div style="margin-bottom: 20px; border-left: 4px solid #ffd700; padding-left: 10px;">
+                <div style="margin-bottom: 20px; border-left: 4px solid #ffd700; padding-left: 10px; text-align: left;">
                     <strong style="font-size: 1.1em;">${name}</strong><br>
                     <span>👥 Керівник: ${leader}</span><br>
                     <span>📍 Громада: ${hromada}</span>
@@ -72,21 +89,44 @@ document.addEventListener('DOMContentLoaded', () => {
         showModal(content);
     }
 
-    function showModal(html) {
-        modalText.innerHTML = html;
-        modal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-        banduraImg.src = 'bandura-idle.png';
-        textField.value = "";
+    // ЛОГІКА МІКРОФОНУ (всередині DOMContentLoaded)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (micBtn && SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'uk-UA';
+
+        micBtn.onclick = () => {
+            try {
+                recognition.start();
+                if (banduraImg) banduraImg.src = 'bandura-listening.png';
+                if (textField) textField.value = "Слухаю вас...";
+            } catch (e) { console.error("Мікрофон уже активний"); }
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            if (textField) textField.value = transcript;
+            window.performSearch(transcript); // Викликаємо глобальну функцію
+        };
+
+        recognition.onend = () => {
+            if (banduraImg && banduraImg.src.includes('listening')) {
+                banduraImg.src = 'bandura-idle.png';
+            }
+        };
     }
 
-    // Прив'язка кнопок
+    // Прив'язка кнопок пошуку
     const searchBtn = document.getElementById('btn-search');
-    if (searchBtn) searchBtn.onclick = () => performSearch();
+    if (searchBtn) searchBtn.onclick = () => window.performSearch();
     
-    textField.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+    if (textField) {
+        textField.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') window.performSearch(); 
+        });
+    }
 
-    // Повертаємо функцію для МЕНЮ
+    // Для вибору категорій з меню
     window.filterCollectives = (type) => {
         const types = {
             'vocal': 'вокальний',
@@ -94,74 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'instrumental': 'інструментальний',
             'theatrical': 'театральний'
         };
-        performSearch(types[type] || type);
+        window.performSearch(types[type] || type);
     };
 });
-
-const micBtn = document.getElementById('btn-mic');
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-if (micBtn && SpeechRecognition) {
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'uk-UA';
-
-    micBtn.onclick = () => {
-        try {
-            recognition.start();
-            banduraImg.src = 'bandura-listening.png';
-            textField.value = "Слухаю вас...";
-        } catch (e) { console.error("Мікрофон вже працює"); }
-    };
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        textField.value = transcript;
-        performSearch(transcript); // Відразу шукаємо
-    };
-
-    recognition.onend = () => {
-        if (banduraImg.src.includes('listening')) banduraImg.src = 'bandura-idle.png';
-    };
-}
-
-// ПРАВИЛЬНА СТРУКТУРА НА ПОЧАТКУ ФАЙЛУ
-document.addEventListener('DOMContentLoaded', () => {
-    // Оголошуємо змінні ОДИН РАЗ тут, щоб вони були доступні всюди нижче
-    const textField = document.getElementById('bandura-text-field');
-    const banduraImg = document.getElementById('bandura-image');
-    const micBtn = document.getElementById('btn-mic');
-    // ... інші змінні
-
-    // Тільки після цього йде код мікрофона
-    if (micBtn && window.webkitSpeechRecognition) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'uk-UA';
-
-        micBtn.onclick = () => {
-            recognition.start();
-            if (banduraImg) banduraImg.src = 'bandura-listening.png';
-            if (textField) textField.value = "Слухаю вас...";
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            textField.value = transcript; // Тепер textField буде знайдено!
-            performSearch(transcript); 
-        };
-    }
-});
-
-// Обробка помилки закриття модалки
-async function performSearch(query) {
-    try {
-        // Логіка запиту до n8n
-        const response = await fetch('YOUR_N8N_URL', ...);
-        // ...
-    } catch (error) {
-        console.error("Помилка під час пошуку:", error);
-        alert("Сталася помилка на сервері");
-    } finally {
-        // Цей код виконається ЗАВЖДИ: і при успіху, і при помилці
-        closeModal(); // Функція закриття вашого вікна
-    }
-}
