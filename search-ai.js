@@ -13,8 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = () => {
         if (modal) modal.style.display = 'none';
         document.body.classList.remove('modal-open');
+        
     };
+// Додайте це всередині document.addEventListener('DOMContentLoaded', () => { ...
 
+const closeBtn = document.querySelector('.close-modal'); // Перевірте, чи такий клас у вашого хрестика
+if (closeBtn) {
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+}
+
+// Закриття при кліку поза межами модалки (сіра зона)
+window.onclick = (event) => {
+    if (event.target === modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+};
     // ФУНКЦІЯ ПОКАЗУ МОДАЛКИ
     const showModal = (html) => {
         if (!modal || !modalText) return;
