@@ -43,48 +43,52 @@ window.onclick = (event) => {
     };
 
     // ОСНОВНА ФУНКЦІЯ ПОШУКУ
-    window.performSearch = async function(query) {
-        const searchText = (query || textField.value).trim().toLowerCase();
-        if (searchText.length < 2) return;
+  window.performSearch = async function(query) {
+    const searchText = (query || textField.value).trim().toLowerCase();
+    if (searchText.length < 2) return;
 
-        if (banduraImg) banduraImg.src = 'bandura-thinking.png';
-        if (textField) textField.value = "Шукаю у базі...";
+    if (banduraImg) banduraImg.src = 'bandura-thinking.png';
+    if (textField) textField.value = "Шукаю у базі...";
 
-        try {
-            const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: searchText })
-            });
+    try {
+        const response = await fetch('https://n8n.narodocnt.online/webhook/search-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchText })
+        });
 
-            const textData = await response.text(); 
-            if (!textData || textData.trim() === "") {
-                throw new Error("Сервер n8n прислав порожню відповідь.");
-            }
-
-            const data = JSON.parse(textData); 
-            
-            // Якщо n8n вже прислав відфільтровані дані, використовуємо їх, 
-            // якщо ні — фільтруємо на місці (залежить від вашого workflow в n8n)
-            const filtered = Array.isArray(data) ? data.filter(row => {
-                return Object.values(row).some(val => 
-                    String(val).toLowerCase().includes(searchText)
-                );
-            }) : [];
-
-            if (filtered.length > 0) {
-                displayResults(filtered);
-            } else {
-                showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
-            }
-
-        } catch (error) {
-            console.error("Помилка:", error);
-            if (textField) textField.value = "Помилка бази";
-            if (banduraImg) banduraImg.src = 'bandura-idle.png';
-            showModal("Сталася помилка при зверненні до бази. Перевірте з'єднання або вузол Respond to Webhook в n8n.");
+        const textData = await response.text(); 
+        
+        if (!textData || textData.trim() === "") {
+            // Замість throw, відразу показуємо помилку в модалці
+            showModal(`Сервер не повернув даних. Перевірте n8n (вузол Respond to Webhook).`);
+            return; 
         }
-    };
+
+        const data = JSON.parse(textData); 
+        const filtered = Array.isArray(data) ? data.filter(row => {
+            return Object.values(row).some(val => 
+                String(val).toLowerCase().includes(searchText)
+            );
+        }) : [];
+
+        if (filtered.length > 0) {
+            displayResults(filtered);
+        } else {
+            showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
+        }
+
+    } catch (error) {
+        console.error("Помилка:", error);
+        showModal("Сталася помилка з'єднання. Спробуйте пізніше.");
+    } finally {
+        // Цей блок спрацює ЗАВЖДИ
+        if (banduraImg) banduraImg.src = 'bandura-idle.png';
+        if (textField && textField.value === "Шукаю у базі...") {
+            textField.value = "";
+        }
+    }
+};
 
     function displayResults(items) {
         if (banduraImg) banduraImg.src = 'bandura-pointing.png';
