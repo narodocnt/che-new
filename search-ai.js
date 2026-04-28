@@ -123,3 +123,30 @@ if (micBtn && SpeechRecognition) {
         if (banduraImg.src.includes('listening')) banduraImg.src = 'bandura-idle.png';
     };
 }
+
+// ПРАВИЛЬНА СТРУКТУРА НА ПОЧАТКУ ФАЙЛУ
+document.addEventListener('DOMContentLoaded', () => {
+    // Оголошуємо змінні ОДИН РАЗ тут, щоб вони були доступні всюди нижче
+    const textField = document.getElementById('bandura-text-field');
+    const banduraImg = document.getElementById('bandura-image');
+    const micBtn = document.getElementById('btn-mic');
+    // ... інші змінні
+
+    // Тільки після цього йде код мікрофона
+    if (micBtn && window.webkitSpeechRecognition) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'uk-UA';
+
+        micBtn.onclick = () => {
+            recognition.start();
+            if (banduraImg) banduraImg.src = 'bandura-listening.png';
+            if (textField) textField.value = "Слухаю вас...";
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            textField.value = transcript; // Тепер textField буде знайдено!
+            performSearch(transcript); 
+        };
+    }
+});
