@@ -150,3 +150,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+// Обробка помилки закриття модалки
+async function performSearch(query) {
+    try {
+        // Логіка запиту до n8n
+        const response = await fetch('YOUR_N8N_URL', ...);
+        // ...
+    } catch (error) {
+        console.error("Помилка під час пошуку:", error);
+        alert("Сталася помилка на сервері");
+    } finally {
+        // Цей код виконається ЗАВЖДИ: і при успіху, і при помилці
+        closeModal(); // Функція закриття вашого вікна
+    }
+}
