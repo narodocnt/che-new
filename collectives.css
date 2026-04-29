@@ -1,0 +1,88 @@
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none; /* Ховаємо за замовчуванням */
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 2000; /* Має бути вище за інші елементи */
+    border-radius: 8px;
+    overflow: hidden;
+    /* Додаткові властивості з вашого коду вище */
+    top: 100%; 
+    left: 0;
+    border: 1px solid #ddd;
+}
+
+/* Клас, який додає JavaScript для відкриття */
+.show { display: block !important; }
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #ffd700;
+}
+/* Навігація */
+nav.main-nav { 
+    background: var(--nav); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    gap: 15px;
+    padding: 15px 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Кнопки меню */
+.nav-btn { 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    height: 40px; 
+    padding: 0 20px; 
+    background-color: #6c757d; 
+    color: white !important; 
+    text-decoration: none; 
+    border-radius: 8px; 
+    font-size: 13px; 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+/* Стилі для відображення списку колективів після вибору в меню */
+#collectives-display {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+}
+
+#collectives-display h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+#collectives-display ol {
+    padding-left: 20px;
+}
+
+#collectives-display li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
