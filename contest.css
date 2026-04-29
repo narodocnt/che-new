@@ -555,3 +555,23 @@ body.modal-open { overflow: hidden; }
 
 .close-modal { position: absolute; top: 10px; right: 15px; font-size: 25px; cursor: pointer; }
 body.modal-open { overflow: hidden; }
+
+.btn-listen {
+    padding: 10px 20px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 25px;
+    background-color: #e67e22;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-listen.speaking {
+    background-color: #2c3e50; /* Колір змінюється на темний, коли звучить голос */
+}
+
+.btn-listen:hover {
+    background-color: #d35400;
+}
