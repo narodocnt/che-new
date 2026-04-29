@@ -281,22 +281,23 @@ function toggleDropdown(id) {
 function filterCollectives(genre) {
     const displayArea = document.getElementById('collectives-display');
     
-    // Перевіряємо, чи є такий жанр у нашому об'єкті
-    if (collectivesData[genre]) {
-        // Вставляємо готовий HTML-текст (заголовки та списки <ol>)
-        displayArea.innerHTML = collectivesData[genre];
-        
-        // Плавна прокрутка до списку (зручно для мобільних)
-        displayArea.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        displayArea.innerHTML = "<p>Інформація оновлюється...</p>";
+    // Перевірка: якщо блок не знайдено в HTML, виводимо попередження в консоль
+    if (!displayArea) {
+        console.error("Помилка: Блок з id='collectives-display' не знайдено на сторінці!");
+        return; 
     }
 
-    // Закриваємо меню після вибору
+    if (collectivesData[genre]) {
+        displayArea.innerHTML = collectivesData[genre];
+        displayArea.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Закриття меню
     const menu = document.getElementById('collectivesMenu');
     if (menu) menu.classList.remove('show');
 }
 
+   
 // Закриття меню, якщо клікнули повз нього
 window.onclick = function(event) {
     if (!event.target.matches('.nav-btn')) {
