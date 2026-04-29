@@ -44,54 +44,95 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ (ЛОКАЛЬНА) ---
-    window.performSearch = async function(query) {
-        const searchText = (query || (textField ? textField.value : "")).trim().toLowerCase();
-        if (searchText.length < 2) return;
+   window.performSearch = async function(query) {
+    const searchText = (query || (textField ? textField.value : "")).trim().toLowerCase();
+    if (searchText.length < 2) return;
 
-        if (banduraImg) banduraImg.src = 'bandura-thinking.png';
-        if (textField) textField.value = "Шукаю у базі...";
+    if (banduraImg) banduraImg.src = 'bandura-thinking.png';
+    if (textField) textField.value = "Аналізую запит...";
 
-        try {
-            // Перевіряємо, чи підключено файл з базою даних
-            if (typeof collectivesData === 'undefined') {
-                showModal("Помилка: База даних колективів не завантажена.");
-                return;
-            }
+    try {
+        let allResults = [];
+        let isCountQuery = searchText.includes("скільки") || searchText.includes("кількість");
 
-            let allResults = [];
+        // Список громад для розпізнавання (можна розширити)
+        const hromadas = ["золотоніська", "багачівська", "смілянська", "черкаська", "уманська", "чигиринська"];
+        let targetHromada = hromadas.find(h => searchText.includes(h.toLowerCase()));
 
-            // Проходимо по категоріях у collectives.js
-            for (const genre in collectivesData) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = collectivesData[genre];
-                const items = tempDiv.querySelectorAll('li');
-                
-                items.forEach(li => {
-                    if (li.innerText.toLowerCase().includes(searchText)) {
-                        allResults.push({
-                            назва: li.innerHTML,
-                            категорія: genre
-                        });
-                    }
-                });
-            }
+        // Список жанрів для розпізнавання
+        const genresMap = {
+            "вокальн": "vocal",
+            "хоров": "vocal",
+            "хореографіч": "choreographic",
+            "танцювальн": "choreographic",
+            "інструментальн": "instrumental",
+            "фольклор": "folklore"
+        };
+        let targetGenreKey = Object.keys(genresMap).find(key => searchText.includes(key));
+        let targetGenre = targetGenreKey ? genresMap[targetGenreKey] : null;
 
-            if (allResults.length > 0) {
-                displayLocalResults(allResults, searchText);
-            } else {
-                if (banduraImg) banduraImg.src = 'bandura-idle.png';
-                showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
-            }
+        // ШУКАЄМО
+        for (const genre in collectivesData) {
+            // Якщо в запиті вказано конкретний жанр, ігноруємо інші категорії
+            if (targetGenre && genre !== targetGenre) continue;
 
-        } catch (error) {
-            console.error("Помилка пошуку:", error);
-            showModal("Сталася помилка при обробці даних.");
-        } finally {
-            if (textField && textField.value === "Шукаю у базі...") {
-                textField.value = "";
-            }
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = collectivesData[genre];
+            const items = tempDiv.querySelectorAll('li');
+            
+            items.forEach(li => {
+                const text = li.innerText.toLowerCase();
+                let match = false;
+
+                if (targetHromada) {
+                    // Якщо шукаємо по громаді + жанр
+                    if (text.includes(targetHromada)) match = true;
+                } else {
+                    // Звичайний пошук по тексту
+                    if (text.includes(searchText)) match = true;
+                }
+
+                if (match) {
+                    allResults.push({ назва: li.innerHTML, категорія: genre });
+                }
+            });
         }
-    };
+
+        // ВІДОБРАЖЕННЯ
+        if (allResults.length > 0) {
+            if (isCountQuery) {
+                // Спеціальна відповідь для запитів "Скільки..."
+                let genreName = targetGenreKey || "колективів";
+                let hromadaName = targetHromada ? `у ${targetHromada[0].toUpperCase() + targetHromada.slice(1)} громаді` : "";
+                
+                let countHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h1 style="font-size: 50px; color: #e67e22; margin: 0;">${allResults.length}</h1>
+                        <p style="font-size: 18px;">Саме стільки <strong>${genreName}</strong> колективів знайдено ${hromadaName}.</p>
+                        <button onclick='window.showFullList()' style="background: #2c3e50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Показати список</button>
+                    </div>
+                `;
+                // Зберігаємо список, щоб показати його за кнопкою
+                window.lastResults = allResults;
+                window.showFullList = () => displayLocalResults(window.lastResults, searchText);
+                
+                showModal(countHTML);
+            } else {
+                displayLocalResults(allResults, searchText);
+            }
+        } else {
+            showModal(`На жаль, за запитом "<strong>${searchText}</strong>" інформації не знайдено.`);
+        }
+
+    } catch (error) {
+        console.error("Помилка:", error);
+        showModal("Сталася помилка при аналізі даних.");
+    } finally {
+        if (textField && (textField.value.includes("Шукаю") || textField.value.includes("Аналізую"))) {
+            textField.value = "";
+        }
+    }
+};
 
     // --- ЛОГІКА МІКРОФОНУ ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -127,3 +168,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+let currentUtterance = null; // Глобальна змінна для відстеження мовлення
+
+function toggleSpeech() {
+    const modalText = document.getElementById('modal-text');
+    const btn = document.querySelector('.btn-listen'); // Переконайтеся, що у кнопки є цей клас
+
+    // 1. Якщо зараз уже звучить голос — зупиняємо його
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        if (btn) btn.innerHTML = '🔊 Слухати повністю';
+        return;
+    }
+
+    // 2. Якщо тиша — починаємо читати
+    if (modalText) {
+        const textToRead = modalText.innerText;
+        currentUtterance = new SpeechSynthesisUtterance(textToRead);
+        currentUtterance.lang = 'uk-UA';
+
+        // Змінюємо текст кнопки, поки грає звук
+        currentUtterance.onstart = () => {
+            if (btn) btn.innerHTML = '🔇 Зупинити прослуховування';
+        };
+
+        // Повертаємо текст кнопки, коли закінчив читати
+        currentUtterance.onend = () => {
+            if (btn) btn.innerHTML = '🔊 Слухати повністю';
+        };
+
+        window.speechSynthesis.speak(currentUtterance);
+    }
+}
+
+// Важливо: зупиняти звук при закритті модалки
+const originalCloseModal = closeModal; 
+const closeModalWithAudio = () => {
+    window.speechSynthesis.cancel(); // Вимикаємо звук при закритті
+    if (typeof originalCloseModal === 'function') originalCloseModal();
+};
