@@ -86,3 +86,76 @@ nav.main-nav {
     margin-bottom: 10px;
     line-height: 1.4;
 }
+/* Фон модального вікна (напівпрозорий) */
+.modal-overlay {
+    display: none; /* Спочатку сховано */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 3000; /* Вище за всі елементи */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Контейнер вікна */
+.modal-container {
+    background: white;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh; /* Не більше 90% висоти екрану */
+    border-radius: 15px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    animation: modalAppear 0.3s ease-out;
+}
+
+/* Область з прокруткою всередині */
+.modal-scrollable {
+    padding: 30px;
+    overflow-y: auto; /* Вмикаємо прокрутку тільки тут */
+    flex-grow: 1;
+}
+
+/* Кнопка закриття (хрестик) */
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 35px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    z-index: 3001;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #e67e22;
+}
+
+/* Анімація появи */
+@keyframes modalAppear {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Стилізація тексту всередині модалки */
+#modal-content-area h2 {
+    color: #2c3e50;
+    border-bottom: 2px solid #e67e22;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+#modal-content-area ol li {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    list-style-position: inside;
+}
