@@ -169,42 +169,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-let currentUtterance = null; // Глобальна змінна для відстеження мовлення
+let currentUtterance = null; // Глобальна змінна
 
 function toggleSpeech() {
     const modalText = document.getElementById('modal-text');
-    const btn = document.querySelector('.btn-listen'); // Переконайтеся, що у кнопки є цей клас
+    const btn = document.getElementById('btn-voice'); // Використовуємо ваш ID з HTML
 
-    // 1. Якщо зараз уже звучить голос — зупиняємо його
+    // 1. Якщо голос уже звучить — зупиняємо
     if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         if (btn) btn.innerHTML = '🔊 Слухати повністю';
+        btn.classList.remove('speaking'); // Для стилізації (опційно)
         return;
     }
 
     // 2. Якщо тиша — починаємо читати
-    if (modalText) {
+    if (modalText && modalText.innerText.trim() !== "") {
         const textToRead = modalText.innerText;
         currentUtterance = new SpeechSynthesisUtterance(textToRead);
         currentUtterance.lang = 'uk-UA';
+        currentUtterance.rate = 1.0; // Швидкість (можна поставити 0.9 для повільнішої)
 
-        // Змінюємо текст кнопки, поки грає звук
         currentUtterance.onstart = () => {
-            if (btn) btn.innerHTML = '🔇 Зупинити прослуховування';
+            if (btn) {
+                btn.innerHTML = '🔇 Зупинити звук';
+                btn.classList.add('speaking');
+            }
         };
 
-        // Повертаємо текст кнопки, коли закінчив читати
         currentUtterance.onend = () => {
-            if (btn) btn.innerHTML = '🔊 Слухати повністю';
+            if (btn) {
+                btn.innerHTML = '🔊 Слухати повністю';
+                btn.classList.remove('speaking');
+            }
         };
 
         window.speechSynthesis.speak(currentUtterance);
     }
 }
 
-// Важливо: зупиняти звук при закритті модалки
-const originalCloseModal = closeModal; 
-const closeModalWithAudio = () => {
-    window.speechSynthesis.cancel(); // Вимикаємо звук при закритті
-    if (typeof originalCloseModal === 'function') originalCloseModal();
-};
+// Додайте це до вашої існуючої функції закриття модалки, 
+// щоб звук зникав, коли користувач закриває вікно хрестиком
+document.getElementById('modal-close-btn').addEventListener('click', () => {
+    window.speechSynthesis.cancel();
+});
