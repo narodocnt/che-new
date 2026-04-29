@@ -279,33 +279,38 @@ function toggleDropdown(id) {
 
 // ГОЛОВНА ФУНКЦІЯ: виводить дані з вашого об'єкта collectivesData
 function filterCollectives(genre) {
-    const displayArea = document.getElementById('collectives-display');
+    const modal = document.getElementById('collectives-modal');
+    const contentArea = document.getElementById('modal-content-area');
     
-    // Перевірка: якщо блок не знайдено в HTML, виводимо попередження в консоль
-    if (!displayArea) {
-        console.error("Помилка: Блок з id='collectives-display' не знайдено на сторінці!");
-        return; 
+    if (collectivesData[genre]) {
+        // Заповнюємо модалку даними
+        contentArea.innerHTML = collectivesData[genre];
+        
+        // Показуємо модалку
+        modal.style.display = 'flex';
+        
+        // Блокуємо прокрутку основного сайту, щоб не "тікав"
+        document.body.style.overflow = 'hidden';
     }
 
-    if (collectivesData[genre]) {
-        displayArea.innerHTML = collectivesData[genre];
-        displayArea.scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    // Закриття меню
+    // Закриваємо випадаюче меню
     const menu = document.getElementById('collectivesMenu');
     if (menu) menu.classList.remove('show');
 }
 
-   
-// Закриття меню, якщо клікнули повз нього
-window.onclick = function(event) {
-    if (!event.target.matches('.nav-btn')) {
-        const dropdowns = document.getElementsByClassName("dropdown-content");
-        for (let i = 0; i < dropdowns.length; i++) {
-            if (dropdowns[i].classList.contains('show')) {
-                dropdowns[i].classList.remove('show');
-            }
-        }
-    }
+// Функція закриття
+function closeCollectivesModal() {
+    const modal = document.getElementById('collectives-modal');
+    modal.style.display = 'none';
+    
+    // Повертаємо прокрутку сайту
+    document.body.style.overflow = 'auto';
 }
+
+// Закриття при кліку на темний фон
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('collectives-modal');
+    if (event.target === modal) {
+        closeCollectivesModal();
+    }
+});
