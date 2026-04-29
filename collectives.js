@@ -270,3 +270,41 @@ window.closeModal = function() {
         document.body.style.overflow = 'auto';
     }
 };
+
+// Функція для перемикання меню (відкрити/закрити)
+function toggleDropdown(id) {
+    const menu = document.getElementById(id);
+    menu.classList.toggle('show');
+}
+
+// ГОЛОВНА ФУНКЦІЯ: виводить дані з вашого об'єкта collectivesData
+function filterCollectives(genre) {
+    const displayArea = document.getElementById('collectives-display');
+    
+    // Перевіряємо, чи є такий жанр у нашому об'єкті
+    if (collectivesData[genre]) {
+        // Вставляємо готовий HTML-текст (заголовки та списки <ol>)
+        displayArea.innerHTML = collectivesData[genre];
+        
+        // Плавна прокрутка до списку (зручно для мобільних)
+        displayArea.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        displayArea.innerHTML = "<p>Інформація оновлюється...</p>";
+    }
+
+    // Закриваємо меню після вибору
+    const menu = document.getElementById('collectivesMenu');
+    if (menu) menu.classList.remove('show');
+}
+
+// Закриття меню, якщо клікнули повз нього
+window.onclick = function(event) {
+    if (!event.target.matches('.nav-btn')) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let i = 0; i < dropdowns.length; i++) {
+            if (dropdowns[i].classList.contains('show')) {
+                dropdowns[i].classList.remove('show');
+            }
+        }
+    }
+}
