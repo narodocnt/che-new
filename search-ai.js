@@ -137,24 +137,4 @@ window.onclick = (event) => {
         };
     }
 
-    // Прив'язка кнопок пошуку
-    const searchBtn = document.getElementById('btn-search');
-    if (searchBtn) searchBtn.onclick = () => window.performSearch();
-    
-    if (textField) {
-        textField.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') window.performSearch(); 
-        });
-    }
-
-    // Для вибору категорій з меню
-    window.filterCollectives = (type) => {
-        const types = {
-            'vocal': 'вокальний',
-            'choreographic': 'хореографічний',
-            'instrumental': 'інструментальний',
-            'theatrical': 'театральний'
-        };
-        window.performSearch(types[type] || type);
-    };
-});
+  
