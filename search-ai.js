@@ -136,5 +136,5 @@ window.onclick = (event) => {
             }
         };
     }
-
+});
   
