@@ -58,97 +58,102 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = (event) => { if (event.target === modal) closeModal(); };
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
-  window.performSearch = async function(query) {
+window.performSearch = async function(query) {
     const textField = document.getElementById('bandura-text-field');
     const banduraImg = document.getElementById('bandura-image');
     
+    // Беремо текст із мікрофона або з поля вводу
     const searchText = (query || (textField ? textField.value : "")).trim().toLowerCase();
     if (searchText.length < 2) return;
 
-    if (textField) textField.value = `Аналізую запит: ${searchText}...`;
+    // 1. ВІЗУАЛІЗАЦІЯ ЗАПИТУ (як ви просили)
+    if (textField) textField.value = `Шукаю: ${searchText}...`;
     if (banduraImg) banduraImg.src = 'bandura-thinking.png';
 
     try {
         let allResults = [];
         let isCountQuery = searchText.includes("скільки") || searchText.includes("кількість");
 
-        // 1. Визначаємо ГРОМАДУ (ключі з вашого window.collectivesList)
+        // Визначаємо ГРОМАДУ
         const hromadaKeys = Object.keys(window.collectivesList);
         let targetHromada = hromadaKeys.find(h => searchText.includes(h));
 
-        // 2. Визначаємо ЖАНР (ключові слова для пошуку всередині рядків)
+        // Визначаємо ЖАНР
         const genresMap = {
-            "театр": ["театр", "драматич", "сміхограй", "березіль", "брама"],
-            "хореографіч": ["танцю", "хореографіч", "бального", "ерц", "сузір", "ясочка"],
-            "вокальн": ["хор", "вокальн", "ансамбль пісні", "тріо", "дует", "капела", "гурт"],
+            "театр": ["театр", "драматич", "сміхограй", "березіль", "брама", "театральн"],
+            "хореографіч": ["танцю", "хореографіч", "бального", "герц", "сузір", "ясочка", "ансамбль танцю"],
+            "вокальн": ["хор", "вокальн", "ансамбль пісні", "тріо", "дует", "капела", "гурт", "співу", "вокально-хоров"],
             "інструментальн": ["оркестр", "інструмент", "музик", "баян", "гармош", "рок-гурт", "біг-бенд"]
         };
 
         let activeGenreWords = null;
+        let genreLabel = "колективів";
+
         for (let genre in genresMap) {
-            if (searchText.includes(genre.slice(0, 5))) { // шукаємо по кореню слова
+            if (searchText.includes(genre.slice(0, 5))) {
                 activeGenreWords = genresMap[genre];
+                genreLabel = genre + "их колективів";
                 break;
             }
         }
 
-        // 3. САМИЙ ПОШУК
+        // 2. ПОШУК ПО БАЗІ
         for (const hromada in window.collectivesList) {
-            // Якщо вказана громада, але вона не збігається з поточною — пропускаємо
             if (targetHromada && hromada !== targetHromada) continue;
 
             window.collectivesList[hromada].forEach(item => {
                 const itemLower = item.toLowerCase();
-                
-                let matchesGenre = false;
+                let matches = false;
+
                 if (activeGenreWords) {
-                    // Перевіряємо, чи є хоча б одне слово з жанру в назві колективу
-                    matchesGenre = activeGenreWords.some(word => itemLower.includes(word));
+                    matches = activeGenreWords.some(word => itemLower.includes(word));
                 } else {
-                    // Якщо жанр не вказано, шукаємо просто по тексту (наприклад, прізвище)
-                    matchesGenre = itemLower.includes(searchText);
+                    matches = itemLower.includes(searchText);
                 }
 
-                if (matchesGenre) {
+                if (matches) {
                     allResults.push({ text: item, hromada: hromada });
                 }
             });
         }
 
-        // 4. ФОРМУВАННЯ ВІДПОВІДІ
+        // 3. ФОРМУВАННЯ РЕЗУЛЬТАТУ
         if (allResults.length > 0) {
             if (banduraImg) banduraImg.src = 'bandura-pointing.png';
             
             let html = "";
-            if (isCountQuery) {
-                html += `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <span style="font-size: 60px; color: #e67e22; font-weight: bold;">${allResults.length}</span>
-                        <p style="font-size: 18px;">Знайдено колективів</p>
-                        <hr>
-                    </div>`;
-            } else {
-                html += `<h3>Результати пошуку:</h3><hr>`;
-            }
+            const hromadaName = targetHromada ? `у ${targetHromada} громаді` : "";
+            
+            // Текст-підсумок (відображається в модалці)
+            let resultSummary = `За вашим запитом знайдено ${allResults.length} ${genreLabel} ${hromadaName}.`;
+
+            html += `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="font-size: 55px; color: #e67e22; margin: 0;">${allResults.length}</h1>
+                    <p style="font-size: 16px; font-weight: bold;">${resultSummary}</p>
+                    <hr>
+                </div>`;
 
             allResults.forEach(res => {
                 html += `
                     <div style="margin-bottom: 12px; border-left: 4px solid #ffd700; padding-left: 10px; text-align: left;">
                         <div style="font-size: 14px;">${res.text}</div>
-                        <div style="font-size: 11px; color: #7f8c8d; text-transform: uppercase;">📍 Громада: ${res.hromada}</div>
+                        <div style="font-size: 11px; color: #7f8c8d; text-transform: uppercase;">📍 ${res.hromada}</div>
                     </div>`;
             });
 
             showModal(html);
         } else {
-            showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено. Спробуйте змінити назву жанру або громади.`);
+            showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
         }
 
     } catch (error) {
-        console.error("Помилка пошуку:", error);
-        showModal("Сталася помилка. Перевірте підключення списку колективів.");
+        console.error("Помилка:", error);
     } finally {
-        if (textField) textField.value = "";
+        // Очищаємо поле пошуку через невелику паузу, щоб встигли прочитати "Шукаю..."
+        setTimeout(() => {
+            if (textField) textField.value = "";
+        }, 1500);
     }
 };
 
