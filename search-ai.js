@@ -223,4 +223,4 @@ let yOffset = 0;
 // Події для мишки та тачскріна
 document.addEventListener("touchstart", dragStart, false);
 document.addEventListener("touchend", dragEnd, false);
-document.addEventListener("touchmoveNormally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
+document.addEventListener("touchmoveNormally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else);
