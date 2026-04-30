@@ -1,0 +1,30 @@
+.bandura-standalone-avatar {
+    width: 70px;
+    height: 70px;
+    position: fixed; /* Тепер вона завжди в полі зору */
+    bottom: 20px;    /* Відступ знизу */
+    right: 20px;     /* Відступ справа */
+    z-index: 1000;   /* Поверх усіх елементів */
+    cursor: grab;    /* Курсор у вигляді руки */
+    touch-action: none; /* Важливо для мобільних, щоб не скролилася сторінка при перетягуванні */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bandura-standalone-avatar:active {
+    cursor: grabbing;
+    transform: scale(1.1); /* Трохи збільшується при натисканні */
+}
+
+/* Якщо на екрані мало місця (мобільні) */
+@media (max-width: 600px) {
+    .bandura-standalone-avatar {
+        width: 60px;
+        height: 60px;
+        bottom: 15px;
+        right: 15px;
+    }
+}
