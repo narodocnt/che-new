@@ -1,25 +1,88 @@
+/* ГОЛОВНИЙ КОНТЕЙНЕР БАНДУРИ (Рухома аватарка) */
 .bandura-standalone-avatar {
     width: 70px;
     height: 70px;
-    position: fixed; /* Тепер вона завжди в полі зору */
-    bottom: 20px;    /* Відступ знизу */
-    right: 20px;     /* Відступ справа */
-    z-index: 1000;   /* Поверх усіх елементів */
-    cursor: grab;    /* Курсор у вигляді руки */
-    touch-action: none; /* Важливо для мобільних, щоб не скролилася сторінка при перетягуванні */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: fixed;    /* Фіксована позиція, щоб не зникала */
+    bottom: 20px;       /* Відступ від низу */
+    right: 20px;        /* Відступ від краю */
+    z-index: 1000;      /* Завжди зверху */
+    cursor: grab;
+    touch-action: none; /* Для коректного перетягування на мобільних */
     user-select: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.3s ease;
+    flex-shrink: 0;
 }
 
+/* Зображення всередині аватарки */
+#bandura-image { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+
+/* Ефект при натисканні (захопленні) */
 .bandura-standalone-avatar:active {
     cursor: grabbing;
-    transform: scale(1.1); /* Трохи збільшується при натисканні */
+    transform: scale(1.1);
 }
 
-/* Якщо на екрані мало місця (мобільні) */
+/* ВЕСЕЛИЙ РЕЖИМ: Анімація радості (танцю) */
+@keyframes bandura-dance {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(5deg); }
+    75% { transform: translateY(-10px) rotate(-5deg); }
+}
+
+.bandura-standalone-avatar.thinking-music {
+    animation: bandura-dance 0.6s infinite ease-in-out;
+    filter: drop-shadow(0 0 15px #ffd700); /* Золотисте сяйво навколо */
+}
+
+/* Хмаринка думок (якщо додасте її в HTML) */
+.thought-bubble {
+    position: absolute;
+    top: -40px;
+    right: -10px;
+    background: white;
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+.thinking-music .thought-bubble { opacity: 1; }
+
+/* ПАНЕЛЬ ПОШУКУ (Верхній бар) */
+#bandura-bar-final {
+    width: 100%;
+    background: #fff;
+    border-bottom: 2px solid #ffd700;
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+/* ТЕКСТОВЕ ПОЛЕ */
+#bandura-text-field {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background: transparent;
+    position: relative;
+    z-index: 10;
+    cursor: text !important;
+}
+
+/* АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ */
 @media (max-width: 600px) {
     .bandura-standalone-avatar {
         width: 60px;
