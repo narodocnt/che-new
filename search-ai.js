@@ -210,3 +210,17 @@ function toggleSpeech() {
         window.speechSynthesis.speak(currentUtterance);
     }
 }
+// Рух бандури
+const dragItem = document.querySelector("#movableBandura");
+let active = false;
+let currentX;
+let currentY;
+let initialX;
+let initialY;
+let xOffset = 0;
+let yOffset = 0;
+
+// Події для мишки та тачскріна
+document.addEventListener("touchstart", dragStart, false);
+document.addEventListener("touchend", dragEnd, false);
+document.addEventListener("touchmoveNormally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
