@@ -424,15 +424,6 @@ nav.main-nav {
 
 /* 1. ГОЛОВНА ПАНЕЛЬ (Sticky Bar) */
 /* ПАНЕЛЬ */
-#bandura-bar-final {
-    width: 100%;
-    background: #fff;
-    border-bottom: 2px solid #ffd700;
-    padding: 10px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
 
 .bar-flex-container {
     display: flex;
@@ -452,14 +443,6 @@ nav.main-nav {
     background: #fdfdfd;
 }
 
-#bandura-text-field {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: transparent;
-}
-
 /* КНОПКИ */
 .bar-action-btns { display: flex; gap: 8px; }
 .action-btn-red {
@@ -470,14 +453,6 @@ nav.main-nav {
     height: 36px;
     cursor: pointer;
 }
-
-/* БАНДУРА (Розмір і позиція) */
-.bandura-standalone-avatar {
-    width: 70px; /* У 3 рази менша за гігантську */
-    height: 70px;
-    flex-shrink: 0;
-}
-#bandura-image { width: 100%; height: 100%; object-fit: contain; }
 
 /* МОДАЛКА */
 #result-modal {
@@ -516,11 +491,6 @@ body.modal-open { overflow: hidden; }
 }
 
 /* Поле вводу має бути доступним */
-#bandura-text-field {
-    position: relative;
-    z-index: 10;
-    cursor: text !important;
-}
 
 .search-line-wrapper {
     cursor: text;
