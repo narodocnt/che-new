@@ -108,8 +108,10 @@
         <div class="search-line-wrapper">
             <input type="text" id="bandura-text-field" placeholder="Питання є?" autocomplete="off">
             <div class="bar-action-btns">
-                <button type="button" id="btn-mic" class="action-btn-red">🎤</button>
-                <button type="button" id="btn-search" class="action-btn-red">🔍</button>
+                <!-- Мікрофон -->
+                <button type="button" id="btn-mic" class="action-btn-red" onclick="startVoiceSearch()">🎤</button>
+                <!-- Лупа -->
+                <button type="button" id="btn-search" class="action-btn-red" onclick="processFullSearch(document.getElementById('bandura-text-field').value)">🔍</button>
             </div>
         </div>
         <div class="bandura-standalone-avatar">
