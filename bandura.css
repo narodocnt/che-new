@@ -91,3 +91,23 @@
         right: 15px;
     }
 }
+
+/* Додайте або оновіть ці рядки у своєму файлі */
+
+#bandura-text-field {
+    pointer-events: auto !important; /* Щоб можна було ставити курсор */
+    cursor: text !important;
+}
+
+.bandura-standalone-avatar {
+    /* Важливо прибрати перехід transition під час перетягування, 
+       щоб вона не "відставала" від курсора */
+    transition: transform 0.05s linear, filter 0.3s ease; 
+    z-index: 9999;
+}
+
+/* Стиль кнопки мікрофона (лупи), якщо вони всередині */
+.search-icon, .mic-icon {
+    cursor: pointer;
+    pointer-events: auto;
+}
