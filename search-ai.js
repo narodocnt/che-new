@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = (event) => { if (event.target === modal) closeModal(); };
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
-window.performSearch = function(query) {
+window.processFullSearch = function(query) {
     if (!query) return;
     var q = query.toLowerCase().trim();
     var foundResults = "";
