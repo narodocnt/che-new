@@ -58,104 +58,106 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = (event) => { if (event.target === modal) closeModal(); };
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
-window.performSearch = async function(query) {
-    const textField = document.getElementById('bandura-text-field');
-    const banduraImg = document.getElementById('bandura-image');
-    
-    // Беремо текст із мікрофона або з поля вводу
-    const searchText = (query || (textField ? textField.value : "")).trim().toLowerCase();
-    if (searchText.length < 2) return;
+window.performSearch = function(query) {
+    if (!query) return;
+    var q = query.toLowerCase().trim();
+    var foundResults = "";
+    var allPossibleSuggestions = []; // Тут збираємо всі назви для бази підказок
 
-    // 1. ВІЗУАЛІЗАЦІЯ ЗАПИТУ (як ви просили)
-    if (textField) textField.value = `Шукаю: ${searchText}...`;
-    if (banduraImg) banduraImg.src = 'bandura-thinking.png';
+    if (typeof collectivesData !== 'undefined') {
+        for (var key in collectivesData) {
+            var categoryHtml = collectivesData[key];
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = categoryHtml;
+            var items = tempDiv.getElementsByTagName('li');
 
-    try {
-        let allResults = [];
-        let isCountQuery = searchText.includes("скільки") || searchText.includes("кількість");
+            for (var i = 0; i < items.length; i++) {
+                var itemText = items[i].innerText;
+                var itemTextLower = itemText.toLowerCase();
+                
+                // 1. Прямий пошук (повна інформація)
+                if (itemTextLower.includes(q)) {
+                    foundResults += items[i].outerHTML;
+                }
 
-        // Визначаємо ГРОМАДУ
-        const hromadaKeys = Object.keys(window.collectivesList);
-        let targetHromada = hromadaKeys.find(h => searchText.includes(h));
-
-        // Визначаємо ЖАНР
-        const genresMap = {
-            "театр": ["театр", "драматич", "сміхограй", "березіль", "брама", "театральн"],
-            "хореографіч": ["танцю", "хореографіч", "бального", "герц", "сузір", "ясочка", "ансамбль танцю"],
-            "вокальн": ["хор", "вокальн", "ансамбль пісні", "тріо", "дует", "капела", "гурт", "співу", "вокально-хоров"],
-            "інструментальн": ["оркестр", "інструмент", "музик", "баян", "гармош", "рок-гурт", "біг-бенд"]
-        };
-
-        let activeGenreWords = null;
-        let genreLabel = "колективів";
-
-        for (let genre in genresMap) {
-            if (searchText.includes(genre.slice(0, 5))) {
-                activeGenreWords = genresMap[genre];
-                genreLabel = genre + "их колективів";
-                break;
+                // 2. Збираємо базу для підказок (назви, громади, прізвища)
+                // Розбиваємо рядок на частини за роздільниками, щоб отримати окремі назви
+                var parts = itemText.split(/[—,.]/); 
+                parts.forEach(p => {
+                    var clean = p.trim();
+                    if (clean.length > 3) allPossibleSuggestions.push(clean);
+                });
             }
         }
+    }
 
-        // 2. ПОШУК ПО БАЗІ
-        for (const hromada in window.collectivesList) {
-            if (targetHromada && hromada !== targetHromada) continue;
-
-            window.collectivesList[hromada].forEach(item => {
-                const itemLower = item.toLowerCase();
-                let matches = false;
-
-                if (activeGenreWords) {
-                    matches = activeGenreWords.some(word => itemLower.includes(word));
-                } else {
-                    matches = itemLower.includes(searchText);
-                }
-
-                if (matches) {
-                    allResults.push({ text: item, hromada: hromada });
-                }
-            });
-        }
-
-        // 3. ФОРМУВАННЯ РЕЗУЛЬТАТУ
-        if (allResults.length > 0) {
-            if (banduraImg) banduraImg.src = 'bandura-pointing.png';
-            
-            let html = "";
-            const hromadaName = targetHromada ? `у ${targetHromada} громаді` : "";
-            
-            // Текст-підсумок (відображається в модалці)
-            let resultSummary = `За вашим запитом знайдено ${allResults.length} ${genreLabel} ${hromadaName}.`;
-
-            html += `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="font-size: 55px; color: #e67e22; margin: 0;">${allResults.length}</h1>
-                    <p style="font-size: 16px; font-weight: bold;">${resultSummary}</p>
-                    <hr>
-                </div>`;
-
-            allResults.forEach(res => {
-                html += `
-                    <div style="margin-bottom: 12px; border-left: 4px solid #ffd700; padding-left: 10px; text-align: left;">
-                        <div style="font-size: 14px;">${res.text}</div>
-                        <div style="font-size: 11px; color: #7f8c8d; text-transform: uppercase;">📍 ${res.hromada}</div>
-                    </div>`;
-            });
-
-            showModal(html);
+    // ВИВЕДЕННЯ РЕЗУЛЬТАТІВ
+    if (foundResults !== "") {
+        var finalHtml = "<ul style='list-style: none; padding: 0;'>" + foundResults + "</ul>";
+        if (window.showModal) {
+            window.showModal(finalHtml);
         } else {
-            showModal(`За запитом "<strong>${searchText}</strong>" нічого не знайдено.`);
+            var display = document.getElementById('collectives-display');
+            if (display) display.innerHTML = finalHtml;
+        }
+    } else {
+        // ОБРОБКА ПОМИЛОК (Можливо, ви мали на увазі...)
+        var suggestion = findBestMatch(q, allPossibleSuggestions);
+        
+        var errorMsg = "За запитом '" + query + "' нічого не знайдено.";
+        if (suggestion) {
+            errorMsg += "<br><br><strong>Можливо, ви мали на увазі:</strong><br><em>" + suggestion + "</em>";
         }
 
-    } catch (error) {
-        console.error("Помилка:", error);
-    } finally {
-        // Очищаємо поле пошуку через невелику паузу, щоб встигли прочитати "Шукаю..."
-        setTimeout(() => {
-            if (textField) textField.value = "";
-        }, 1500);
+        if (window.showModal) {
+            window.showModal("<div style='text-align:center; padding:20px;'>" + errorMsg + "</div>");
+        } else {
+            alert(errorMsg.replace(/<br>/g, '\n').replace(/<\/?[^>]+(>|$)/g, ""));
+        }
     }
 };
+
+/**
+ * Функція пошуку схожого слова (Алгоритм Левенштейна або спрощений варіант)
+ */
+function findBestMatch(input, list) {
+    var bestWord = null;
+    var minDistance = 3; // Максимальна кількість помилок у слові (чим менше, тим суворіше)
+
+    // Прибираємо дублікати з бази підказок
+    var uniqueList = [...new Set(list)];
+
+    for (var i = 0; i < uniqueList.length; i++) {
+        var word = uniqueList[i];
+        var distance = levenshtein(input, word.toLowerCase());
+        
+        if (distance < minDistance) {
+            minDistance = distance;
+            bestWord = word;
+        }
+    }
+    return bestWord;
+}
+
+/**
+ * Обчислення дистанції між словами (кількість правок)
+ */
+function levenshtein(a, b) {
+    var matrix = [];
+    for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (var i = 1; i <= b.length; i++) {
+        for (var j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) == a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
 
     // --- ЛОГІКА МІКРОФОНУ ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
