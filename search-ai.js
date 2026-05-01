@@ -62,7 +62,8 @@ window.processFullSearch = function(query) {
     if (!query) return;
     var q = query.toLowerCase().trim();
     var foundResults = "";
-    var allPossibleSuggestions = []; // Тут збираємо всі назви для бази підказок
+    var count = 0; // Лічильник для загальної кількості
+    var allPossibleSuggestions = []; 
 
     if (typeof collectivesData !== 'undefined') {
         for (var key in collectivesData) {
@@ -75,13 +76,16 @@ window.processFullSearch = function(query) {
                 var itemText = items[i].innerText;
                 var itemTextLower = itemText.toLowerCase();
                 
-                // 1. Прямий пошук (повна інформація)
+                // 1. Прямий пошук
                 if (itemTextLower.includes(q)) {
-                    foundResults += items[i].outerHTML;
+                    count++; // Збільшуємо лічильник при кожному збігу
+                    
+                    // Додаємо порядковий номер перед текстом колективу
+                    var numberedContent = "<strong>" + count + ".</strong> " + items[i].innerHTML;
+                    foundResults += "<li style='margin-bottom: 10px;'>" + numberedContent + "</li>";
                 }
 
-                // 2. Збираємо базу для підказок (назви, громади, прізвища)
-                // Розбиваємо рядок на частини за роздільниками, щоб отримати окремі назви
+                // 2. Збір бази для підказок
                 var parts = itemText.split(/[—,.]/); 
                 parts.forEach(p => {
                     var clean = p.trim();
@@ -93,7 +97,12 @@ window.processFullSearch = function(query) {
 
     // ВИВЕДЕННЯ РЕЗУЛЬТАТІВ
     if (foundResults !== "") {
-        var finalHtml = "<ul style='list-style: none; padding: 0;'>" + foundResults + "</ul>";
+        // Додаємо заголовок із загальною кількістю знайдених колективів
+        var header = "<div style='margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #ccc;'>" +
+                     "Знайдено колективів: <strong>" + count + "</strong></div>";
+        
+        var finalHtml = header + "<ul style='list-style: none; padding: 0;'>" + foundResults + "</ul>";
+        
         if (window.showModal) {
             window.showModal(finalHtml);
         } else {
@@ -103,8 +112,8 @@ window.processFullSearch = function(query) {
     } else {
         // ОБРОБКА ПОМИЛОК (Можливо, ви мали на увазі...)
         var suggestion = findBestMatch(q, allPossibleSuggestions);
-        
         var errorMsg = "За запитом '" + query + "' нічого не знайдено.";
+        
         if (suggestion) {
             errorMsg += "<br><br><strong>Можливо, ви мали на увазі:</strong><br><em>" + suggestion + "</em>";
         }
