@@ -54,21 +54,13 @@ function getLocalThumbnail(fbUrl, location, id) {
 
     // 1. ПЕРЕВІРКА ЗА КОНКРЕТНИМИ URL (з вашого списку)
     if (url.includes("WyzPQSpMreCz7auctnxkKwtcdYg97h6HCqNiWmjFfSRvckA9JU4PBntEU4BMZYQtl")) return 'bogidar.jpg';
-    if (url.includes("035nKVaG1KrQG5GRDYCoNZqVwi6KGepE8tjx4bBgskbVPLM11gxpTmTZGCcoMmqks5l")) return 'kamjanka.jpg';
-    if (url.includes("w2GwfuX2MHDWtxTUUeddGY3g9WiSgPnRpaiXivEsjewVEi8yxKyuQqB1PVr5eFxRl")) return 'taljne.jpg';
-    if (url.includes("CQjwz6ULaUAzdxZiz3T6w9LmeaFju4enkotcLiW8teoRexMPFNw5BtLH4xEUtwAKl")) return 'velikosevastjyanivka.jpg';
-    if (url.includes("eG6BzQLzt1Y1i72KwycW1Qu8b7g6mZfGnGDiTAkSjFkv4Dye9R1RFkJhcsEX5piCl")) return 'vodogray.jpg';
+    if (url.includes("035nKVaG1KrQG5GRDYCoNZqVwi6KGepE8tjx4bBgskbVPLM11gxpTmTZGCcoMmqks5l")) return 'zvenigorodka.jpg';
+    if (url.includes("w2GwfuX2MHDWtxTUUeddGY3g9WiSgPnRpaiXivEsjewVEi8yxKyuQqB1PVr5eFxRl")) return 'kamjanka.jpg';
+    if (url.includes("CQjwz6ULaUAzdxZiz3T6w9LmeaFju4enkotcLiW8teoRexMPFNw5BtLH4xEUtwAKl")) return 'taljne.jpg';
+    if (url.includes("eG6BzQLzt1Y1i72KwycW1Qu8b7g6mZfGnGDiTAkSjFkv4Dye9R1RFkJhcsEX5piCl")) return 'velikosevastjyanivka.jpg';
     // Шоста адреса (якщо вона є окремою картинкою, додайте назву тут)
-    if (url.includes("2WJ8S4ZoMXeEbdNrFbid9MpybW6fscRvSTWC3ptKZ4tqRAdrRJZ7KznrovDENHkkl")) return 'bitva-general.jpg'; 
-
-    // 2. РЕЗЕРВНИЙ ПОШУК ЗА НАЗВОЮ ГРОМАДИ
-    if (loc.includes('кам’ян')) return 'kamjanka.jpg';
-    if (loc.includes('тальн')) return 'taljne.jpg';
-    if (loc.includes('богдан') || loc.includes('богодар')) return 'bogidar.jpg';
-    if (loc.includes('севаст')) return 'velikosevastjyanivka.jpg';
-    if (loc.includes('водогр')) return 'vodogray.jpg';
-    
-    return `${id}.jpg`; // Якщо нічого не підійшло
+    if (url.includes("2WJ8S4ZoMXeEbdNrFbid9MpybW6fscRvSTWC3ptKZ4tqRAdrRJZ7KznrovDENHkkl")) return 'vodogray.jpg';
+   
 }
 
 // РЕЖИМ КОЛЕКТИВІВ
