@@ -145,7 +145,9 @@ window.renderBitvaMode = function() {
                                 comments: cms, 
                                 shares: shr, 
                                 url: fbUrl,
-                                currentMedia: `https://narodocnt.online/img/bitva/${fileName}` 
+                                // currentMedia: `https://narodocnt.online/img/bitva/${fileName}` 
+                                // Замість локального шляху використовуємо CDN для вашого репозиторію
+                                currentMedia: `https://cdn.jsdelivr.net/gh/narodocnt/che-new@main/img/bitva/${fileName}`
                             };
                         }
                     }
