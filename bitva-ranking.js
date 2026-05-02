@@ -1,3 +1,31 @@
+// ФУНКЦІЯ ПРИВ'ЯЗКИ КАРТИНКИ ДО URL АБО ГРОМАДИ (Локальна версія для карток)
+function getLocalThumbnail(fbUrl, location) {
+    const url = fbUrl || "";
+    const loc = (location || "").toLowerCase();
+    
+    // Базовий шлях до вашого репозиторію на GitHub
+    const basePath = "https://raw.githubusercontent.com/narodocnt/che-new/main/img/bitva/";
+    let fileName = "bitva-general.jpg"; // Картинка за замовчуванням
+
+    // 1. ПЕРЕВІРКА ЗА КОНКРЕТНИМИ URL (з вашого списку)
+    if (url.includes("WyzPQSpMreCz7auctnxkKwtcdYg97h6HCqNiWmjFfSRvckA9JU4PBntEU4BMZYQtl")) fileName = 'bogidar.jpg';
+    else if (url.includes("035nKVaG1KrQG5GRDYCoNZqVwi6KGepE8tjx4bBgskbVPLM11gxpTmTZGCcoMmqks5l")) fileName = 'zvenigorodka.jpg';
+    else if (url.includes("w2GwfuX2MHDWtxTUUeddGY3g9WiSgPnRpaiXivEsjewVEi8yxKyuQqB1PVr5eFxRl")) fileName = 'kamjanka.jpg';
+    else if (url.includes("CQjwz6ULaUAzdxZiz3T6w9LmeaFju4enkotcLiW8teoRexMPFNw5BtLH4xEUtwAKl")) fileName = 'taljne.jpg';
+    else if (url.includes("eG6BzQLzt1Y1i72KwycW1Qu8b7g6mZfGnGDiTAkSjFkv4Dye9R1RFkJhcsEX5piCl")) fileName = 'velikosevastjyanivka.jpg';
+    else if (url.includes("2WJ8S4ZoMXeEbdNrFbid9MpybW6fscRvSTWC3ptKZ4tqRAdrRJZ7KznrovDENHkkl")) fileName = 'vodogray.jpg';
+    
+    // 2. ДОДАТКОВА ПЕРЕВІРКА ЗА НАЗВОЮ ГРОМАДИ (на випадок зміни URL у FB)
+    else if (loc.includes('богодар')) fileName = 'bogidar.jpg';
+    else if (loc.includes('звенигород')) fileName = 'zvenigorodka.jpg';
+    else if (loc.includes('кам’ян')) fileName = 'kamjanka.jpg';
+    else if (loc.includes('тальн')) fileName = 'taljne.jpg';
+    else if (loc.includes('севаст')) fileName = 'velikosevastjyanivka.jpg';
+    else if (loc.includes('водогр')) fileName = 'vodogray.jpg';
+
+    return basePath + fileName;
+}
+
 function loadBattleRanking() {
     const container = document.getElementById('rankingList');
     if (!container || !window.collectivesDatabase) return;
@@ -27,11 +55,16 @@ function loadBattleRanking() {
 
                 if (foundId) {
                     if (!resultsMap[foundId] || totalScore > resultsMap[foundId].total) {
+                        
+                        // ОБРОБКА КАРТИНКИ: підміняємо FB URL на локальний файл з GitHub
+                        const rawMedia = item.media || db[foundId].media;
+                        const localPhoto = getLocalThumbnail(rawMedia, db[foundId].location);
+
                         resultsMap[foundId] = {
                             ...db[foundId],
                             likes, comments, shares,
                             total: totalScore,
-                            finalMedia: item.media || db[foundId].media,
+                            finalMedia: localPhoto, 
                             url: item.facebookUrl
                         };
                     }
