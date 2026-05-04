@@ -58,8 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = (event) => { if (event.target === modal) closeModal(); };
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
-window.processFullSearch = function(query) {
+    
+// Переконайтеся, що функція має назву performSearch
+window.performSearch = function(query) {
     if (!query) return;
+    // ... ваша логіка пошуку ...
+    console.log("Пошук запущено для:", query);
+};
     var q = query.toLowerCase().trim();
     var foundResults = "";
     var count = 0; // Лічильник для загальної кількості
