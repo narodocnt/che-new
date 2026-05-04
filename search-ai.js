@@ -230,6 +230,7 @@ if (textField) {
         }
     });
 }
+}); 
 
 // --- ФУНКЦІЯ ГОЛОСУ (TOGGLE) ---
 function toggleSpeech() {
@@ -252,5 +253,4 @@ function toggleSpeech() {
 
         window.speechSynthesis.speak(currentUtterance);
     }
-}
 }
