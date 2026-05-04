@@ -253,3 +253,4 @@ function toggleSpeech() {
         window.speechSynthesis.speak(currentUtterance);
     }
 }
+}
