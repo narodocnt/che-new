@@ -169,35 +169,67 @@ function levenshtein(a, b) {
 }
 
     // --- ЛОГІКА МІКРОФОНУ ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (micBtn && SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'uk-UA';
+   // --- ЛОГІКА МІКРОФОНУ ТА КЛАВІАТУРИ ---
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        micBtn.onclick = () => {
-            try {
-                recognition.start();
-                if (banduraImg) banduraImg.src = 'bandura-listening.png';
-                if (textField) textField.value = "Слухаю вас...";
-            } catch (e) { recognition.stop(); }
-        };
+if (micBtn && SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'uk-UA';
+    recognition.interimResults = false; // Повертати тільки фінальний результат
 
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            window.performSearch(transcript);
-        };
-
-        recognition.onend = () => {
-            if (banduraImg && banduraImg.src.includes('listening')) {
-                banduraImg.src = 'bandura-idle.png';
+    micBtn.onclick = () => {
+        try {
+            recognition.start();
+            if (banduraImg) banduraImg.src = 'bandura-listening.png';
+            if (textField) {
+                textField.value = ""; 
+                textField.placeholder = "Слухаю вас...";
             }
-        };
-    }
+        } catch (e) { 
+            recognition.stop(); 
+        }
+    };
 
-    if (textField) {
-        textField.addEventListener('keypress', (e) => { if (e.key === 'Enter') window.performSearch(); });
-    }
-});
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        
+        // 1. Записуємо розпізнаний текст у поле введення
+        if (textField) {
+            textField.value = transcript;
+            textField.placeholder = "Пошук колективів...";
+        }
+        
+        // 2. Відправляємо текст у функцію пошуку
+        if (typeof window.performSearch === "function") {
+            window.performSearch(transcript);
+        }
+    };
+
+    recognition.onend = () => {
+        if (banduraImg) {
+            // Повертаємо початковий стан бандури
+            banduraImg.src = 'bandura-idle.png';
+        }
+        if (textField && textField.value === "") {
+            textField.placeholder = "Пошук колективів...";
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        if (banduraImg) banduraImg.src = 'bandura-idle.png';
+    };
+}
+
+// Виправлення для клавіші Enter
+if (textField) {
+    textField.addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') {
+            // Передаємо значення з поля в функцію пошуку
+            window.performSearch(textField.value); 
+        }
+    });
+}
 
 // --- ФУНКЦІЯ ГОЛОСУ (TOGGLE) ---
 function toggleSpeech() {
