@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
     const voiceBtn = document.getElementById('btn-voice');
+    const closeBtn = document.getElementById('modal-close-btn');
 
     // Додаємо стилі анімації коливання (Shake)
     const style = document.createElement('style');
