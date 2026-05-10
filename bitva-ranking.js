@@ -50,29 +50,25 @@ function loadBattleRanking() {
             container.innerHTML = sorted.map((el, index) => {
                 const rank = index + 1;
                 return `
-                <a href="${el.url}" target="_blank" class="battle-link">
-                    <div class="battle-card">
-                        <div class="rank-number">${rank}</div>
-                        
-                        <div class="card-left">
-                            <img src="${el.finalMedia}" onerror="this.src='https://narodocnt.online/img/bitva/bitva-general.jpg'">
-                        </div>
-                        
-                        <div class="card-right">
-                            <div class="card-info-text">
-                                <span class="location-label">📍 ${el.location} громада</span>
-                                <h3 class="collective-name">${el.name}</h3>
-                                <p class="leader-name">Керівник: ${el.leader}</p>
-                            </div>
-                            <div class="stats-formula">
-                                <div class="stat-item">👍 ${el.likes}</div>
-                                <div class="stat-item">💬 ${el.comments}</div>
-                                <div class="stat-item">🔁 ${el.shares}</div>
-                                <div class="total-score-value">= ${el.total}</div>
-                            </div>
-                        </div>
-                    </div>
-                </a>`;
+<a href="${el.url}" target="_blank" class="battle-link">
+    <div class="battle-card">
+        <div class="rank-number">${rank}</div>
+        <div class="card-left">
+            <img src="${el.finalMedia}" onerror="this.src='https://narodocnt.online/img/bitva/bitva-general.jpg'">
+        </div>
+        <div class="card-right">
+            <div class="card-info-text">
+                <span class="location-label">📍 ${el.location} громада</span>
+                <h3 class="collective-name">${el.name}</h3>
+                <p class="leader-name">Керівник: ${el.leader}</p>
+            </div>
+            <div class="stats-formula">
+                <span>👍 ${el.likes} + 💬 ${el.comments} + 🔁 ${el.shares}</span>
+                <span class="total-score-value">= ${el.total}</span>
+            </div>
+        </div>
+    </div>
+</a>`;
             }).join('');
         })
         .catch(err => {
