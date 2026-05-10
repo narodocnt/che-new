@@ -53,20 +53,25 @@ function loadBattleRanking() {
                 const rank = index + 1;
                 const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
 
+                // Побудова картки з використанням класів, які ми прописали в CSS
                 return `
-                <a href="${el.url}" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 15px;">
-                    <div class="battle-card" style="background: #ffffff; border-radius: 12px; display: flex; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: none; min-height: 120px;">
-                        <div style="width: 140px; min-width: 140px; position: relative;">
-                            <img src="${el.finalMedia}" onerror="this.src='https://narodocnt.online/img/bitva/bitva-general.jpg'" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px;">${medal}</div>
+                <a href="${el.url}" target="_blank" class="battle-link">
+                    <div class="battle-card">
+                        <div class="card-left">
+                            <img src="${el.finalMedia}" onerror="this.src='https://narodocnt.online/img/bitva/bitva-general.jpg'">
+                            <div class="rank-badge">${medal}</div>
                         </div>
-                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
-                            <span style="color: #e67e22; font-size: 11px; font-weight: bold;">📍 ${el.location} громада</span>
-                            <h3 style="margin: 5px 0; font-size: 16px; color: #2c3e50;">${el.name}</h3>
-                            <p style="margin: 0; font-size: 13px; color: #7f8c8d;">Керівник: ${el.leader}</p>
-                            <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 5px 10px; border-radius: 6px;">
-                                <span style="font-size: 12px;">👍 ${el.likes} + 💬 ${el.comments} + 🔁 ${el.shares}</span>
-                                <span style="font-weight: bold; color: #2c3e50;">= ${el.total}</span>
+                        <div class="card-right">
+                            <div class="card-info-text">
+                                <span class="location-label">📍 ${el.location} громада</span>
+                                <h3 class="collective-name">${el.name}</h3>
+                                <p class="leader-name">Керівник: ${el.leader}</p>
+                            </div>
+                            <div class="stats-formula">
+                                <div class="stat-item">👍 ${el.likes}</div>
+                                <div class="stat-item">💬 ${el.comments}</div>
+                                <div class="stat-item">🔁 ${el.shares}</div>
+                                <div class="total-score-value">= ${el.total}</div>
                             </div>
                         </div>
                     </div>
@@ -79,5 +84,4 @@ function loadBattleRanking() {
         });
 }
 
-// Запуск при завантаженні
 document.addEventListener('DOMContentLoaded', loadBattleRanking);
