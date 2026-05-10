@@ -1,36 +1,35 @@
-/* Основна картка */
+/* Додайте це на самий початок файлу bitva-ranking.css */
+
 .battle-card {
     display: flex !important;
-    align-items: stretch !important; /* Розтягує номер та фото на всю висоту */
+    align-items: stretch !important;
     background: #ffffff !important;
     margin: 0 auto 16px auto !important;
     border-radius: 12px !important;
     overflow: hidden !important;
-    height: 140px !important; /* Фіксована висота для десктопа */
+    height: 140px !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
     max-width: 900px !important;
     border: none !important;
     transition: transform 0.2s ease !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
-.battle-card:hover {
-    transform: translateY(-2px) !important;
-}
-
-/* 1. Номер місця зліва ПОСЕРЕДИНІ */
+/* Центруємо номер зліва посередині */
 .rank-number {
     display: flex !important;
-    align-items: center !important; /* Центрування по вертикалі */
-    justify-content: center !important; /* Центрування по горизонталі */
-    width: 50px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 60px !important;
     background: #2c3e50 !important;
     color: #ffffff !important;
-    font-size: 22px !important;
+    font-size: 24px !important;
     font-weight: 900 !important;
     flex-shrink: 0 !important;
+    height: 100% !important;
 }
 
-/* 2. Мініатюра (Фото по центру між номером та текстом) */
 .card-left {
     width: 180px !important;
     height: 100% !important;
@@ -44,7 +43,7 @@
     display: block !important;
 }
 
-/* 3. Права частина (Інформація) */
+/* Блок, який у вас на скріншоті білий/порожній */
 .card-right {
     flex-grow: 1 !important;
     display: flex !important;
@@ -52,88 +51,35 @@
     align-items: center !important;
     justify-content: space-between !important;
     padding: 0 20px !important;
-    background: #fff !important;
-    color: #333 !important;
+    background: #ffffff !important;
+    color: #2c3e50 !important; /* Чіткий колір тексту */
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .card-info-text {
     flex: 1 !important;
-    text-align: left !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
 }
 
-.location-label {
-    font-size: 11px !important;
-    color: #e67e22 !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-}
-
 .collective-name {
-    font-size: 17px !important;
+    font-size: 18px !important;
     color: #2c3e50 !important;
     font-weight: 800 !important;
     margin: 4px 0 !important;
+    display: block !important;
 }
 
-.leader-name {
-    font-size: 13px !important;
-    color: #7f8c8d !important;
-}
-
-/* Плашка з балами */
+/* Формула балів */
 .stats-formula {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     background: #f8f9fa !important;
-    padding: 8px 15px !important;
+    padding: 10px 15px !important;
     border-radius: 8px !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
     color: #2c3e50 !important;
-}
-
-.total-score-value {
-    font-weight: 900 !important;
-    border-left: 2px solid #ddd !important;
-    padding-left: 10px !important;
-}
-
-/* --- МОБІЛЬНА ВЕРСІЯ --- */
-@media (max-width: 768px) {
-    .battle-card {
-        flex-direction: column !important;
-        height: auto !important; /* На мобільних висота адаптивна */
-        max-width: 100% !important;
-    }
-
-    .rank-number {
-        width: 100% !important;
-        height: 35px !important;
-        font-size: 18px !important;
-    }
-
-    .card-left {
-        width: 100% !important;
-        height: 200px !important;
-    }
-
-    .card-right {
-        flex-direction: column !important;
-        padding: 15px !important;
-        text-align: center !important;
-    }
-
-    .card-info-text {
-        text-align: center !important;
-        margin-bottom: 10px !important;
-    }
-
-    .stats-formula {
-        width: 100% !important;
-        justify-content: center !important;
-    }
+    font-weight: bold !important;
 }
