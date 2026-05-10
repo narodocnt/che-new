@@ -14,137 +14,109 @@
 /* Основна картка */
 .battle-card {
     display: flex !important;
+    align-items: stretch !important; /* Розтягує контент на всю висоту фото */
     background: #ffffff !important;
-    margin: 0 auto 20px auto !important;
-    border-radius: 16px !important;
+    margin: 0 auto 16px auto !important;
+    border-radius: 12px !important;
     overflow: hidden !important;
-    height: auto !important; /* Прибираємо фіксовану висоту 110px */
-    min-height: 130px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
-    border: 1px solid rgba(0,0,0,0.05) !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    width: 100% !important;
+    height: 140px !important; /* Фіксована висота для десктопа */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
     max-width: 850px !important;
+    border: none !important;
 }
 
-.battle-card:hover {
-    transform: translateY(-5px) !important;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-}
-
-/* Фото зліва (Мініатюра) */
-.card-left {
-    width: 180px !important; /* Робимо фото більшим, як ви просили */
+/* Цифра місця зліва */
+.rank-number {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 50px !important;
+    background: #2c3e50 !important;
+    color: #ffffff !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
     flex-shrink: 0 !important;
-    position: relative !important;
-    background: #f0f0f0 !important;
+}
+
+/* Мініатюра */
+.card-left {
+    width: 180px !important;
+    height: 100% !important;
+    flex-shrink: 0 !important;
 }
 
 .card-left img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
-    display: block !important;
 }
 
-/* Контентна частина */
+/* Права частина (Інфо) */
 .card-right {
     flex-grow: 1 !important;
-    padding: 15px 20px !important;
     display: flex !important;
-    flex-direction: row !important; /* В ряд на десктопі */
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 15px !important;
+    padding: 0 20px !important;
+    overflow: hidden !important;
 }
 
-/* Текст: Громада, Назва, Керівник */
 .card-info-text {
-    flex: 2 !important;
-    text-align: left !important;
-}
-
-.location-label {
-    font-size: 12px !important;
-    color: #e67e22 !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    margin-bottom: 4px !important;
-    display: block !important;
+    flex: 1 !important;
+    padding-right: 15px !important;
 }
 
 .collective-name {
-    font-size: 18px !important;
-    color: #2c3e50 !important;
-    font-weight: 800 !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
+    font-size: 16px !important;
+    margin: 2px 0 !important;
+    white-space: nowrap !important; /* Щоб не розривало висоту */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
-.leader-name {
-    font-size: 13px !important;
-    color: #7f8c8d !important;
-    margin-top: 6px !important;
-}
-
-/* Блок статистики (Лайки, коменти) */
+/* Формула балів */
 .stats-formula {
     display: flex !important;
-    align-items: center !important;
     gap: 12px !important;
     background: #f8f9fa !important;
     padding: 10px 15px !important;
-    border-radius: 12px !important;
-    border: 1px solid #edf2f7 !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
 }
 
-.stat-item {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    font-weight: 600 !important;
-    font-size: 15px !important;
-}
-
-/* Підсумковий бал */
-.total-score-value {
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    color: #2d3748 !important;
-    margin-left: 5px !important;
-}
-
-/* ================================================= */
-/* МОБІЛЬНА ВЕРСІЯ (Вертикальні картки)             */
-/* ================================================= */
-
-@media (max-width: 650px) {
+/* --- МОБІЛЬНА ВЕРСІЯ --- */
+@media (max-width: 768px) {
     .battle-card {
-        flex-direction: column !important; /* Фото зверху, текст знизу */
+        flex-direction: column !important;
+        height: auto !important; /* На мобілці висота довільна */
         max-width: 100% !important;
-        margin: 0 10px 20px 10px !important;
+    }
+
+    .rank-number {
+        width: 100% !important;
+        height: 30px !important;
+        font-size: 16px !important;
     }
 
     .card-left {
         width: 100% !important;
-        height: 220px !important; /* Велика мініатюра зверху */
+        height: 200px !important;
     }
 
     .card-right {
         flex-direction: column !important;
-        padding: 20px !important;
+        padding: 15px !important;
         text-align: center !important;
     }
 
     .card-info-text {
-        text-align: center !important;
+        padding-right: 0 !important;
         margin-bottom: 10px !important;
     }
 
-    .stats-formula {
-        width: 100% !important;
-        justify-content: center !important;
+    .collective-name {
+        white-space: normal !important; /* Дозволяємо перенос тексту на мобілці */
     }
 }
 
