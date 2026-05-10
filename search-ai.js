@@ -1,8 +1,18 @@
-// 1. Глобальні змінні
-window.performSearch = null;
-let currentUtterance = null;
+/**
+ * Файл: search-ai.js
+ * Інтерактивний пошук з асистентом-Бандурою
+ */
 
-// Функція Левенштейна для пошуку помилок
+// 1. Конфігурація зображень
+const BANDURA_IMAGES = {
+    idle: 'bandura-idle.png',
+    listening: 'bandura-listening.png',
+    pointing: 'bandura-pointing.png'
+};
+
+window.performSearch = null;
+
+// 2. Алгоритм Левенштейна (покращений для кращого розпізнавання)
 function levenshteinDistance(a, b) {
     const matrix = [];
     for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -16,51 +26,69 @@ function levenshteinDistance(a, b) {
     return matrix[b.length][a.length];
 }
 
-// Функція підбору схожого слова
+// Функція підбору найкращого збігу
 function findBestMatch(input, list) {
     let bestWord = null;
-    let minDistance = 3; // Поріг: 1-2 помилки
+    let minDistance = 4; // Збільшено поріг для кращого розловлення довгих слів (як Панзюк)
     const uniqueList = [...new Set(list)];
-    for (let i = 0; i < uniqueList.length; i++) {
-        let distance = levenshteinDistance(input.toLowerCase(), uniqueList[i].toLowerCase());
+    
+    for (let word of uniqueList) {
+        let cleanWord = word.toLowerCase().trim();
+        let cleanInput = input.toLowerCase().trim();
+        let distance = levenshteinDistance(cleanInput, cleanWord);
+        
         if (distance < minDistance) {
             minDistance = distance;
-            bestWord = uniqueList[i];
+            bestWord = word;
         }
     }
     return bestWord;
 }
 
-// Функція перемикання анімації пошуку (виїзд з-під бандури)
+// 3. Анімація виїзду пошуку
 window.toggleBanduraSearch = function() {
     const wrapper = document.getElementById('search-wrapper');
     const field = document.getElementById('bandura-text-field');
+    const img = document.getElementById('bandura-image');
     
     if (!wrapper) return;
 
     if (wrapper.style.width === "0px" || wrapper.style.width === "0" || !wrapper.style.width) {
-        wrapper.style.width = "380px"; 
+        wrapper.style.width = "280px"; 
         wrapper.style.border = "1px solid #ccc";
-        wrapper.style.paddingLeft = "10px";
-        field.placeholder = "Пошук по базі колективів...";
+        img.src = BANDURA_IMAGES.pointing;
         setTimeout(() => field.focus(), 500);
     } else {
         wrapper.style.width = "0";
-        wrapper.style.border = "0";
-        wrapper.style.paddingLeft = "0";
+        wrapper.style.border = "none";
+        img.src = BANDURA_IMAGES.idle;
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     const textField = document.getElementById('bandura-text-field');
     const micBtn = document.getElementById('btn-mic');
-    const searchBtn = document.getElementById('btn-execute-search'); // Лупа
+    const searchBtn = document.getElementById('btn-execute-search');
+    const banduraImg = document.getElementById('bandura-image');
     const modal = document.getElementById('result-modal');
     const modalText = document.getElementById('modal-text');
-    const closeBtn = document.getElementById('modal-close-btn');
-    const voiceBtn = document.getElementById('btn-voice'); // Кнопка прослуховування
+    const voiceBtn = document.getElementById('btn-voice');
 
-    // --- МОДАЛЬНЕ ВІКНО ---
+    // Додаємо стилі анімації коливання (Shake)
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes banduraShake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(4deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-4deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .shaking { animation: banduraShake 0.3s infinite; }
+        .mic-active { color: red !important; text-shadow: 0 0 5px rgba(255,0,0,0.5); }
+    `;
+    document.head.appendChild(style);
+
     const showModal = (html) => {
         if (!modal || !modalText) return;
         modalText.innerHTML = html;
@@ -68,20 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('modal-open');
     };
 
-    const closeModal = () => {
-        if (modal) modal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        window.speechSynthesis.cancel();
-    };
-
-    if (closeBtn) closeBtn.onclick = closeModal;
-
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
     window.performSearch = function(query) {
         if (!query || query.trim() === "") return;
+
+        // Видаляємо латиницю, залишаємо тільки кирилицю та пробіли
+        let q = query.replace(/[a-zA-Z]/g, '').toLowerCase().trim();
         
-        const q = query.toLowerCase().trim();
-        textField.value = "Шукаю: " + query + "..."; // Бандура пише, що шукає
+        if (q === "") {
+            textField.value = "Тільки кирилиця!";
+            return;
+        }
+
+        textField.value = "Шукаю: " + q + "...";
+        banduraImg.classList.add('shaking');
+        banduraImg.src = BANDURA_IMAGES.pointing;
 
         let foundResults = "";
         let count = 0;
@@ -89,63 +118,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (typeof collectivesData !== 'undefined') {
             for (let key in collectivesData) {
-                let tempDiv = document.createElement('div');
-                tempDiv.innerHTML = collectivesData[key];
-                let items = tempDiv.getElementsByTagName('li');
+                let div = document.createElement('div');
+                div.innerHTML = collectivesData[key];
+                let items = div.getElementsByTagName('li');
 
-                for (let i = 0; i < items.length; i++) {
-                    let itemText = items[i].innerText;
-                    if (itemText.toLowerCase().includes(q)) {
+                for (let item of items) {
+                    let txt = item.innerText;
+                    if (txt.toLowerCase().includes(q)) {
                         count++;
-                        foundResults += `<li style="margin-bottom:12px;"><strong>${count}.</strong> ${items[i].innerHTML}</li>`;
+                        foundResults += `<li style="margin-bottom:12px;">${item.innerHTML}</li>`;
                     }
-                    // Збираємо базу для Левенштейна
-                    itemText.split(/[—,.]/).forEach(p => {
-                        if (p.trim().length > 3) suggestionsBase.push(p.trim());
+                    // Розбиваємо текст на слова для бази виправлень
+                    txt.split(/[—\s,.]/).forEach(p => {
+                        let clean = p.trim().replace(/[a-zA-Z]/g, '');
+                        if (clean.length > 3) suggestionsBase.push(clean);
                     });
                 }
             }
         }
 
-        // Імітація процесу пошуку
         setTimeout(() => {
+            banduraImg.classList.remove('shaking');
+            banduraImg.src = BANDURA_IMAGES.idle;
+
             if (foundResults !== "") {
-                textField.value = query; // Повертаємо текст запиту
-                let header = `<div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #ddd;">Знайдено колективів: <strong>${count}</strong></div>`;
-                showModal(header + `<ul style="list-style:none; padding:0;">${foundResults}</ul>`);
+                textField.value = q;
+                showModal(`<div style="margin-bottom:10px; border-bottom:1px solid #eee;">Знайдено: <b>${count}</b></div><ul style="list-style:none; padding:0;">${foundResults}</ul>`);
             } else {
                 let suggestion = findBestMatch(q, suggestionsBase);
                 if (suggestion) {
-                    textField.value = "Мається на увазі: " + suggestion + "?"; // Бандура уточнює в рядку
-                    let errorMsg = `За запитом "<strong>${query}</strong>" нічого не знайдено.<br><br>
-                                   <strong>Можливо, ви мали на увазі:</strong><br>
-                                   <span style="color:#d32f2f; cursor:pointer; font-weight:bold; text-decoration:underline;" 
-                                   onclick="window.performSearch('${suggestion.replace(/'/g, "\\'")}')">${suggestion}</span>`;
-                    showModal(`<div style="text-align:center; padding:20px;">${errorMsg}</div>`);
+                    textField.value = "Мається на увазі: " + suggestion + "?";
+                    let errorHtml = `
+                        <div style="text-align:center; padding:20px;">
+                            Нічого не знайдено за запитом "<b>${q}</b>".<br><br>
+                            <strong>Можливо, ви мали на увазі:</strong><br>
+                            <span style="color:red; font-weight:bold; cursor:pointer; text-decoration:underline; font-size:1.2em;" 
+                            onclick="window.performSearch('${suggestion.replace(/'/g, "\\'")}')">${suggestion}</span>
+                        </div>`;
+                    showModal(errorHtml);
                 } else {
                     textField.value = "Нічого не знайдено";
-                    showModal(`<div style="text-align:center; padding:20px;">На жаль, за запитом "${query}" збігів немає.</div>`);
+                    showModal(`<div style="text-align:center; padding:20px;">За запитом "${q}" нічого не знайдено.</div>`);
                 }
             }
-        }, 600);
+        }, 800);
     };
 
-    // Лупа (Кнопка пошуку)
-    if (searchBtn) {
-        searchBtn.onclick = () => window.performSearch(textField.value);
-    }
+    // Кнопка Лупа
+    if (searchBtn) searchBtn.onclick = () => window.performSearch(textField.value);
 
-    // Прослуховування в модалці
+    // Кнопка Прослухати в модалці
     if (voiceBtn) {
         voiceBtn.onclick = () => {
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
-                voiceBtn.innerHTML = "🔊 Слухати повністю";
+                voiceBtn.innerHTML = "🔊 Прослухати";
             } else {
                 const utterance = new SpeechSynthesisUtterance(modalText.innerText);
                 utterance.lang = 'uk-UA';
-                utterance.onstart = () => voiceBtn.innerHTML = "🔇 Зупинити звук";
-                utterance.onend = () => voiceBtn.innerHTML = "🔊 Слухати повністю";
+                utterance.onstart = () => voiceBtn.innerHTML = "🔇 Зупинити";
+                utterance.onend = () => voiceBtn.innerHTML = "🔊 Прослухати";
                 window.speechSynthesis.speak(utterance);
             }
         };
@@ -156,20 +188,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (micBtn && SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'uk-UA';
+        recognition.interimResults = false;
 
         micBtn.onclick = () => {
-            textField.value = "Слухаю..."; // Бандура пише "слухаю"
+            textField.value = "Слухаю...";
+            micBtn.classList.add('mic-active');
+            banduraImg.src = BANDURA_IMAGES.listening;
             recognition.start();
         };
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            textField.value = transcript; // Підставляє текст
+            textField.value = transcript;
             window.performSearch(transcript);
+        };
+
+        recognition.onend = () => {
+            micBtn.classList.remove('mic-active');
+            if (banduraImg.src.includes('listening')) banduraImg.src = BANDURA_IMAGES.idle;
+        };
+        
+        recognition.onerror = () => {
+            micBtn.classList.remove('mic-active');
+            banduraImg.src = BANDURA_IMAGES.idle;
+            textField.value = "Помилка мікрофону";
         };
     }
 
-    // Enter у полі
     if (textField) {
         textField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') window.performSearch(textField.value);
