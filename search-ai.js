@@ -89,12 +89,25 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
 
-    const showModal = (html) => {
-        if (!modal || !modalText) return;
-        modalText.innerHTML = html;
-        modal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-    };
+    // --- БЛОК МОДАЛЬНОГО ВІКНА ---
+const showModal = (html) => {
+    if (!modal || !modalText) return;
+    modalText.innerHTML = html;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+
+    // ЦЕЙ РЯДОК ДОЗВОЛЯЄ ЗАКРИВАТИ ВІКНО КЛІКОМ НА ФОН
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+};
+
+const closeModal = () => {
+    if (modal) modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    window.speechSynthesis.cancel(); // Зупиняємо голос, якщо він працював
+};
+
+// Прив'язка кнопки "Закрити" (хрестика)
+if (closeBtn) closeBtn.onclick = closeModal;
 
     // --- ГОЛОВНА ФУНКЦІЯ ПОШУКУ ---
     window.performSearch = function(query) {
